@@ -1,11 +1,25 @@
 package org.vivecraft.client_vr.gameplay.trackers;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+
+import net.minecraft.network.chat.contents.TranslatableContents;
+import org.vivecraft.api.client.Tracker;
+import org.vivecraft.client.VivecraftVRMod;
+import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.extensions.PlayerExtension;
+import org.vivecraft.client.network.ClientNetworking;
+import org.vivecraft.client_vr.gameplay.VRPlayer;
+import org.vivecraft.client_vr.provider.ControllerType;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -17,23 +31,15 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
-import org.vivecraft.client.VivecraftVRMod;
-import org.vivecraft.client.network.ClientNetworking;
-import org.vivecraft.client_vr.ClientDataHolderVR;
-import org.vivecraft.client_vr.extensions.PlayerExtension;
-import org.vivecraft.client_vr.gameplay.VRPlayer;
-import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.common.network.packet.c2s.ClimbingPayloadC2S;
 import org.vivecraft.data.BlockTags;
 import org.vivecraft.server.config.ClimbeyBlockmode;
 
 import java.util.*;
 
-public class ClimbTracker extends Tracker {
+public class ClimbTracker implements Tracker {
     public static final ModelResourceLocation CLAWS_MODEL = new ModelResourceLocation("vivecraft", "climb_claws",
-        "inventory");
-
-    public Set<Block> blocklist = new HashSet<>();
+        "inventory");    public Set<Block> blocklist = new HashSet<>();
     public ClimbeyBlockmode serverBlockmode = ClimbeyBlockmode.DISABLED;
     public boolean forceActivate = false;
     public int latchStartController = -1;
@@ -60,9 +66,12 @@ public class ClimbTracker extends Tracker {
     private final AABB fullBB = new AABB(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
     private final Random rand = new Random();
     private boolean unsetFlag;
+    protected Minecraft mc;
+    protected ClientDataHolderVR dh;
 
     public ClimbTracker(Minecraft mc, ClientDataHolderVR dh) {
-        super(mc, dh);
+        this.mc = mc;
+        this.dh = dh;
     }
 
     public boolean isGrabbingLadder() {
@@ -660,6 +669,11 @@ public class ClimbTracker extends Tracker {
                 blockStateBelow.getValue(LadderBlock.FACING) == blockState.getValue(TrapDoorBlock.FACING);
         }
         return false;
+    }
+
+    @Override
+    public TrackerTickType tickType() {
+        return TrackerTickType.PER_TICK;
     }
 
     private boolean allowed(BlockState bs) {

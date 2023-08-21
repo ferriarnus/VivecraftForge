@@ -1,17 +1,22 @@
 package org.vivecraft.client_vr.gameplay.trackers;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
-import org.joml.Vector3f;
+import org.vivecraft.api.client.Tracker;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.settings.VRSettings;
 
-public class RunTracker extends Tracker {
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import org.joml.Vector3f;
+
+public class RunTracker implements Tracker {
     private double direction = 0.0D;
     private float speed = 0.0F;
+    protected Minecraft mc;
+    protected ClientDataHolderVR dh;
 
     public RunTracker(Minecraft mc, ClientDataHolderVR dh) {
-        super(mc, dh);
+        this.mc = mc;
+        this.dh = dh;
     }
 
     @Override
@@ -85,5 +90,10 @@ public class RunTracker extends Tracker {
         if (this.speed > 1.0F) {
             this.speed = 1.3F;
         }
+    }
+
+    @Override
+    public TrackerTickType tickType() {
+        return TrackerTickType.PER_TICK;
     }
 }

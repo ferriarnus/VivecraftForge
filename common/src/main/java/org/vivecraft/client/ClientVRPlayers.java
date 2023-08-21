@@ -24,6 +24,8 @@ import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.AutoCalibration;
 import org.vivecraft.client_vr.settings.VRSettings;
+import org.vivecraft.common.api_impl.data.VRDataImpl;
+import org.vivecraft.common.api_impl.data.VRPoseImpl;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.network.VrPlayerState;
 import org.vivecraft.common.utils.MathUtils;
@@ -562,5 +564,19 @@ public class ClientVRPlayers {
             }
             return (float) Math.atan2(-dir.x, dir.z);
         }
+
+        public org.vivecraft.api.data.VRData asVRData() {
+            return new VRDataImpl(
+                new VRPoseImpl(fromVector3fc(this.headPos), fromVector3fc(this.headRot), this.headQuat),
+                new VRPoseImpl(fromVector3fc(this.mainHandPos), fromVector3fc(this.mainHandRot), this.mainHandQuat),
+                new VRPoseImpl(fromVector3fc(this.offHandPos), fromVector3fc(this.offHandPos), this.offHandQuat),
+                this.seated,
+                this.leftHanded
+            );
+        }
+    }
+
+    private static Vec3 fromVector3fc(Vector3fc vec) {
+        return new Vec3(vec.x(), vec.y(), vec.z());
     }
 }

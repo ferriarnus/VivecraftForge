@@ -1,16 +1,21 @@
 package org.vivecraft.client_vr.gameplay.trackers;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
+import org.vivecraft.api.client.Tracker;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.settings.AutoCalibration;
 
-public class SneakTracker extends Tracker {
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+
+public class SneakTracker implements Tracker {
     public boolean sneakOverride = false;
     public int sneakCounter = 0;
+    protected Minecraft mc;
+    protected ClientDataHolderVR dh;
 
     public SneakTracker(Minecraft mc, ClientDataHolderVR dh) {
-        super(mc, dh);
+        this.mc = mc;
+        this.dh = dh;
     }
 
     @Override
@@ -43,5 +48,10 @@ public class SneakTracker extends Tracker {
 
         this.sneakOverride = AutoCalibration.getPlayerHeight() - this.dh.vr.hmdPivotHistory.latest().y() >
             this.dh.vrSettings.sneakThreshold;
+    }
+
+    @Override
+    public TrackerTickType tickType() {
+        return TrackerTickType.PER_TICK;
     }
 }

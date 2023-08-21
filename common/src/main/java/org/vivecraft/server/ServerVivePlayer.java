@@ -3,10 +3,17 @@ package org.vivecraft.server;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.vivecraft.common.network.*;
 import org.vivecraft.common.utils.MathUtils;
+import org.vivecraft.api.data.VRData;
+import org.vivecraft.common.api_impl.data.VRDataImpl;
+import org.vivecraft.common.api_impl.data.VRPoseImpl;
+import org.vivecraft.common.network.CommonNetworkHelper;
+import org.vivecraft.common.network.Pose;
+import org.vivecraft.common.network.VrPlayerState;
 
 import javax.annotation.Nullable;
 
@@ -143,6 +150,19 @@ public class ServerVivePlayer {
     }
 
     /**
+     *
+     * @param c controller to get the rotation for
+     * @return controller rotation as a quaternion
+     */
+    public Quaternionfc getControllerQuaternion(int c) {
+        if (this.vrPlayerState != null) {
+            Pose controllerPose = c == 0 ? this.vrPlayerState.mainHand() : this.vrPlayerState.offHand();
+            return controllerPose.orientation();
+        }
+        return null; // Should only return null if player isn't in VR.
+    }
+
+    /**
      * @return if the player has VR active
      */
     public boolean isVR() {
@@ -161,5 +181,34 @@ public class ServerVivePlayer {
      */
     public boolean isSeated() {
         return this.vrPlayerState != null && this.vrPlayerState.seated();
+    }
+
+    public boolean usingReversedHands() {
+        if (this.vrPlayerState == null) {
+            return false;
+        }
+        return this.vrPlayerState.leftHanded();
+    }
+
+    public VRData asVRData() {
+        if (this.vrPlayerState == null) {
+            return null;
+        }
+        return new VRDataImpl(
+                new VRPoseImpl(this.getHMDPos(), this.getHMDDir(), this.vrPlayerState.hmd().orientation()),
+                new VRPoseImpl(getPos(this.vrPlayerState.mainHand()), getDir(this.vrPlayerState.mainHand()), this.vrPlayerState.mainHand().orientation()),
+                new VRPoseImpl(getPos(this.vrPlayerState.offHand()), getDir(this.vrPlayerState.offHand()), this.vrPlayerState.mainHand().orientation()),
+                this.isSeated(),
+                this.usingReversedHands()
+        );
+    }
+
+    private Vec3 getPos(Pose pose) {
+        Vector3fc pos = pose.position();
+        return new Vec3(pos.x(), pos.y(), pos.z());
+    }
+
+    private Vec3 getDir(Pose pose) {
+        return new Vec3(pose.orientation().transform(MathUtils.BACK, new Vector3f()));
     }
 }

@@ -1,5 +1,12 @@
 package org.vivecraft.client_vr.gameplay.trackers;
 
+import org.vivecraft.api.client.Tracker;
+import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.extensions.PlayerExtension;
+import org.vivecraft.client.network.ClientNetworking;
+import org.vivecraft.client_vr.VRData;
+import org.vivecraft.client_vr.settings.VRSettings;
+
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -24,7 +31,7 @@ import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.network.packet.c2s.DrawPayloadC2S;
 import org.vivecraft.common.utils.MathUtils;
 
-public class BowTracker extends Tracker {
+public class BowTracker implements Tracker {
     private static final long MAX_DRAW_MILLIS = 1100L;
     private static final double NOTCH_DOT_THRESHOLD = 20F;
 
@@ -43,8 +50,12 @@ public class BowTracker extends Tracker {
     private int hapCounter = 0;
     private int lastHapStep = 0;
 
+    protected Minecraft mc;
+    protected ClientDataHolderVR dh;
+
     public BowTracker(Minecraft mc, ClientDataHolderVR dh) {
-        super(mc, dh);
+        this.mc = mc;
+        this.dh = dh;
     }
 
     public Vector3fc getAimVector() {
@@ -108,11 +119,6 @@ public class BowTracker extends Tracker {
     public void reset(LocalPlayer player) {
         this.isDrawing = false;
         this.canDraw = false;
-    }
-
-    @Override
-    public EntryPoint getEntryPoint() {
-        return EntryPoint.SPECIAL_ITEMS;
     }
 
     @Override
@@ -285,5 +291,10 @@ public class BowTracker extends Tracker {
                 this.lastHapStep = 0;
             }
         }
+    }
+
+    @Override
+    public TrackerTickType tickType() {
+        return TrackerTickType.PER_FRAME;
     }
 }

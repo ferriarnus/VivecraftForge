@@ -1,5 +1,15 @@
 package org.vivecraft.client_vr.gameplay.trackers;
 
+import java.util.List;
+
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.*;
+import org.vivecraft.api.client.Tracker;
+import org.vivecraft.client.VivecraftVRMod;
+import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.provider.ControllerType;
+import org.vivecraft.client_vr.settings.VRSettings;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -12,9 +22,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
 import net.minecraft.world.phys.AABB;
@@ -22,7 +30,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
-import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.Xplat;
 import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -38,9 +45,7 @@ import org.vivecraft.data.ItemTags;
 import org.vivecraft.mod_compat_vr.bettercombat.BetterCombatHelper;
 import org.vivecraft.mod_compat_vr.epicfight.EpicFightHelper;
 
-import java.util.List;
-
-public class SwingTracker extends Tracker {
+public class SwingTracker implements Tracker {
     private static final int[] CONTROLLER_AND_FEET = new int[]{MCVR.MAIN_CONTROLLER, MCVR.OFFHAND_CONTROLLER, MCVR.RIGHT_FOOT_TRACKER, MCVR.LEFT_FOOT_TRACKER};
     private static final float SPEED_THRESH = 3.0F;
 
@@ -52,8 +57,12 @@ public class SwingTracker extends Tracker {
     public boolean[] canAct = new boolean[4];
     public int disableSwing = 3;
 
+    protected Minecraft mc;
+    protected ClientDataHolderVR dh;
+
     public SwingTracker(Minecraft mc, ClientDataHolderVR dh) {
-        super(mc, dh);
+        this.mc = mc;
+        this.dh = dh;
     }
 
     @Override
@@ -390,14 +399,19 @@ public class SwingTracker extends Tracker {
         this.mc.getProfiler().pop();
     }
 
+    @Override
+    public TrackerTickType tickType() {
+        return TrackerTickType.PER_TICK;
+    }
+
     private boolean getIsHittingBlock() {
         return this.mc.gameMode.isDestroying();
     }
 
     private void clearBlockHitDelay() {
         // TODO set destroyTicks to 1 to cancel multiple sound events per hit
-        // MCReflection.PlayerController_blockHitDelay.set(Minecraft.getInstance().gameMode, 0);
-        // Minecraft.getInstance().gameMode.blockBreakingCooldown = 1;
+        // MCReflection.PlayerController_blockHitDelay.set(this.mc.gameMode, 0);
+        // this.mc.gameMode.blockBreakingCooldown = 1;
     }
 
     /**

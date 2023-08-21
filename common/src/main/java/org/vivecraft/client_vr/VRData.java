@@ -14,6 +14,10 @@ import org.vivecraft.common.utils.MathUtils;
 
 import javax.annotation.Nullable;
 import java.lang.Math;
+import org.joml.Quaternionf;
+import org.vivecraft.api.data.VRPose;
+import org.vivecraft.common.api_impl.data.VRDataImpl;
+import org.vivecraft.common.api_impl.data.VRPoseImpl;
 
 public class VRData {
     // headset center
@@ -358,6 +362,19 @@ public class VRData {
         };
     }
 
+    /**
+     * @return this data in a manner better-suited for the API
+     */
+    public org.vivecraft.api.data.VRData asVRData() {
+        return new VRDataImpl(
+            this.hmd.asVRPose(),
+            this.c0.asVRPose(),
+            this.c1.asVRPose(),
+            ClientDataHolderVR.getInstance().vrSettings.seated,
+            ClientDataHolderVR.getInstance().vrSettings.reverseHands
+        );
+    }
+
     @Override
     public String toString() {
         return """
@@ -500,6 +517,16 @@ public class VRData {
          */
         public Matrix4f getMatrix() {
             return new Matrix4f().rotationY(VRData.this.rotation_radians).mul(this.matrix);
+        }
+
+        public VRPose asVRPose() {
+            Quaternionf quat = new Quaternionf();
+            quat.setFromUnnormalized(getMatrix());
+            return new VRPoseImpl(
+                getPosition(),
+                new Vec3(getDirection()),
+                quat
+            );
         }
 
         @Override

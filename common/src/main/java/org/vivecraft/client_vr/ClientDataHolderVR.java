@@ -1,8 +1,10 @@
 package org.vivecraft.client_vr;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
+import org.vivecraft.api.client.Tracker;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.gameplay.trackers.*;
 import org.vivecraft.client_vr.menuworlds.MenuWorldRenderer;
@@ -86,6 +88,25 @@ public class ClientDataHolderVR {
     public boolean showedStencilMessage;
     public boolean showedFbtCalibrationNotification;
 
+    private ClientDataHolderVR() {
+        registerTracker(backpackTracker);
+        registerTracker(bowTracker);
+        registerTracker(swingTracker);
+        registerTracker(eatingTracker);
+        registerTracker(jumpTracker);
+        registerTracker(sneakTracker);
+        registerTracker(climbTracker);
+        registerTracker(runTracker);
+        registerTracker(rowTracker);
+        registerTracker(teleportTracker);
+        registerTracker(horseTracker);
+        registerTracker(vehicleTracker);
+        registerTracker(interactTracker);
+        registerTracker(crawlTracker);
+        registerTracker(cameraTracker);
+        registerTracker(telescopeTracker);
+    }
+
     public static ClientDataHolderVR getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new ClientDataHolderVR();
@@ -138,5 +159,13 @@ public class ClientDataHolderVR {
      */
     public List<Tracker> getTrackers() {
         return Collections.unmodifiableList(this.trackers);
+    }
+
+    /**
+     * @param player Current local player.
+     * @return Whether some tracker is currently using an item.
+     */
+    public boolean isTrackerUsingItem(LocalPlayer player) {
+        return ClientDataHolderVR.getInstance().getTrackers().stream().anyMatch(tracker -> tracker.itemInUse(player));
     }
 }

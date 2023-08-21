@@ -15,6 +15,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
+import org.vivecraft.api.client.Tracker;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -27,7 +28,7 @@ import org.vivecraft.data.BlockTags;
 
 import java.util.Random;
 
-public class TeleportTracker extends Tracker {
+public class TeleportTracker implements Tracker {
     private float teleportEnergy;
     private Vec3 movementTeleportDestination = Vec3.ZERO;
     private Direction movementTeleportDestinationSideHit;
@@ -38,9 +39,12 @@ public class TeleportTracker extends Tracker {
     public int movementTeleportArcSteps = 0;
     public double lastTeleportArcDisplayOffset = 0.0D;
     public VRMovementStyle vrMovementStyle;
+    protected Minecraft mc;
+    protected ClientDataHolderVR dh;
 
     public TeleportTracker(Minecraft mc, ClientDataHolderVR dh) {
-        super(mc, dh);
+        this.mc = mc;
+        this.dh = dh;
         this.vrMovementStyle = new VRMovementStyle();
     }
 
@@ -498,5 +502,10 @@ public class TeleportTracker extends Tracker {
                 this.movementTeleportArc[step].y + deltaY * stepProgress,
                 this.movementTeleportArc[step].z + deltaZ * stepProgress);
         }
+    }
+
+    @Override
+    public TrackerTickType tickType() {
+        return TrackerTickType.PER_TICK;
     }
 }

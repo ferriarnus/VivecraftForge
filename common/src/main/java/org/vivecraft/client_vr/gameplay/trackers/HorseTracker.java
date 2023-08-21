@@ -1,17 +1,19 @@
 package org.vivecraft.client_vr.gameplay.trackers;
 
+import org.vivecraft.api.client.Tracker;
+import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.gameplay.VRPlayer;
+import org.vivecraft.client_vr.settings.VRSettings;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
-import org.vivecraft.client_vr.ClientDataHolderVR;
-import org.vivecraft.client_vr.gameplay.VRPlayer;
-import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.utils.MathUtils;
 
-public class HorseTracker extends Tracker {
+public class HorseTracker implements Tracker {
     private static final double BOOST_TRIGGER = 1.4D;
     private static final double PULL_TRIGGER = 0.8D;
     private static final int MAX_SPEED_LEVEL = 3;
@@ -25,8 +27,12 @@ public class HorseTracker extends Tracker {
     private Horse horse = null;
     private final ModelInfo info = new ModelInfo();
 
+    protected Minecraft mc;
+    protected ClientDataHolderVR dh;
+
     public HorseTracker(Minecraft mc, ClientDataHolderVR dh) {
-        super(mc, dh);
+        this.mc = mc;
+        this.dh = dh;
     }
 
     @Override
@@ -121,6 +127,11 @@ public class HorseTracker extends Tracker {
 
         Vec3 movement = new Vec3(0.0D, 0.0D, this.speedLevel * BASE_SPEED).yRot(-this.horse.yBodyRot);
         this.horse.setDeltaMovement(movement.x, this.horse.getDeltaMovement().y, movement.z);
+    }
+
+    @Override
+    public TrackerTickType tickType() {
+        return TrackerTickType.PER_TICK;
     }
 
     private boolean doBoost() {
