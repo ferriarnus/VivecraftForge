@@ -178,8 +178,8 @@ public class VRArmHelper {
             item = override;
         }
 
-        // climbey override
-        if (DATA_HOLDER.climbTracker.isClimbeyClimb() && !ClimbTracker.isClaws(item) && override == null) {
+        if (DATA_HOLDER.climbTracker.isClimbeyClimb() && ClimbTracker.hasClimbeyClimbEquipped(MC.player) &&
+            !DATA_HOLDER.climbTracker.isClaws(item) && override == null) {
             item = MC.player.getOffhandItem();
         }
 
@@ -233,8 +233,8 @@ public class VRArmHelper {
                 item = override;
             }
 
-            // climbey override
-            if (DATA_HOLDER.climbTracker.isClimbeyClimb() && !ClimbTracker.isClaws(item) && override == null) {
+            if (DATA_HOLDER.climbTracker.isClimbeyClimb() && ClimbTracker.hasClimbeyClimbEquipped(MC.player) &&
+                !DATA_HOLDER.climbTracker.isClaws(item) && override == null) {
                 item = MC.player.getMainHandItem();
             }
 
