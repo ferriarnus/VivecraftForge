@@ -1,4 +1,4 @@
-package org.vivecraft.client.utils;
+package org.vivecraft.common.utils;
 
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;

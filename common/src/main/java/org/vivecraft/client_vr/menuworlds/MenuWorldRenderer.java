@@ -43,7 +43,7 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.vivecraft.client.Xplat;
 import org.vivecraft.client.extensions.BufferBuilderExtension;
-import org.vivecraft.client.utils.Utils;
+import org.vivecraft.client.utils.ClientUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.mixin.client.renderer.RenderStateShardAccessor;
@@ -308,7 +308,7 @@ public class MenuWorldRenderer {
                 return;
             }
 
-            this.buildStartTime = Utils.milliTime();
+            this.buildStartTime = ClientUtils.milliTime();
             this.building = true;
         }
     }
@@ -328,7 +328,7 @@ public class MenuWorldRenderer {
             return;
         }
 
-        long startTime = Utils.milliTime();
+        long startTime = ClientUtils.milliTime();
         for (var pair : this.bufferBuilders.keySet()) {
             if (this.currentPositions.get(pair).getY() < Math.min(this.segmentSize.getY() + pair.getRight().getY(), this.blockAccess.getYSize() - (int) this.blockAccess.getGround())) {
                 if (FIRST_RENDER_DONE || !SodiumHelper.isLoaded() || !SodiumHelper.hasIssuesWithParallelBlockBuilding()) {
@@ -348,14 +348,14 @@ public class MenuWorldRenderer {
     }
 
     private void buildGeometry(Pair<RenderType, BlockPos> pair, long startTime, int maxTime) {
-        if (Utils.milliTime() - startTime >= maxTime) {
+        if (ClientUtils.milliTime() - startTime >= maxTime) {
             return;
         }
 
         RenderType layer = pair.getLeft();
         BlockPos offset = pair.getRight();
         this.builderThreads.add(Thread.currentThread());
-        long realStartTime = Utils.milliTime();
+        long realStartTime = ClientUtils.milliTime();
 
         try {
             PoseStack thisPose = new PoseStack();
@@ -366,7 +366,8 @@ public class MenuWorldRenderer {
             RandomSource randomSource = RandomSource.create();
 
             int count = 0;
-            while (Utils.milliTime() - startTime < maxTime && pos.getY() < Math.min(this.segmentSize.getY() + offset.getY(), this.blockAccess.getYSize() - (int) this.blockAccess.getGround()) && this.building) {
+            while (
+                ClientUtils.milliTime() - startTime < maxTime && pos.getY() < Math.min(this.segmentSize.getY() + offset.getY(), this.blockAccess.getYSize() - (int) this.blockAccess.getGround()) && this.building) {
                 // only build blocks not obscured by fog
                 if (Mth.abs(pos.getY()) <= this.renderDistance + 1 && Mth.lengthSquared(pos.getX(), pos.getZ()) <= renderDistSquare) {
                     BlockState state = this.blockAccess.getBlockState(pos);
@@ -411,7 +412,7 @@ public class MenuWorldRenderer {
 
             //VRSettings.logger.info("Vivecraft: MenuWorlds: Built segment of {} blocks in {} layer.", count, ((RenderStateShardAccessor) layer).getName());
             this.blockCounts.put(pair, this.blockCounts.getOrDefault(pair, 0) + count);
-            this.renderTimes.put(pair, this.renderTimes.getOrDefault(pair, 0L) + (Utils.milliTime() - realStartTime));
+            this.renderTimes.put(pair, this.renderTimes.getOrDefault(pair, 0L) + (ClientUtils.milliTime() - realStartTime));
 
             if (pos.getY() >= Math.min(this.segmentSize.getY() + offset.getY(), this.blockAccess.getYSize() - (int) this.blockAccess.getGround())) {
                 VRSettings.LOGGER.debug("Vivecraft: MenuWorlds: Built {} blocks on {} layer at {},{},{} in {} ms",
@@ -460,7 +461,7 @@ public class MenuWorldRenderer {
         this.ready = true;
         VRSettings.LOGGER.info("Vivecraft: MenuWorlds: Built {} blocks in {} ms ({} ms CPU time)",
             this.blockCounts.values().stream().reduce(Integer::sum).orElse(0),
-            Utils.milliTime() - this.buildStartTime,
+            ClientUtils.milliTime() - this.buildStartTime,
             this.renderTimes.values().stream().reduce(Long::sum).orElse(0L));
         VRSettings.LOGGER.info("Vivecraft: MenuWorlds: Used {} temporary buffers ({} MiB), uploaded {} non-empty buffers",
             entryList.size(),

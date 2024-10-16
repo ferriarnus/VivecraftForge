@@ -14,7 +14,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Random;
 
-public class Utils {
+public class ClientUtils {
 
     private static final Random AV_RANDOMIZER = new Random();
 

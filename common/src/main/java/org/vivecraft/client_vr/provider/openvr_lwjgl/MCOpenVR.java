@@ -20,8 +20,8 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.utils.FileUtils;
-import org.vivecraft.client.utils.MathUtils;
-import org.vivecraft.client.utils.Utils;
+import org.vivecraft.common.utils.MathUtils;
+import org.vivecraft.client.utils.ClientUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
@@ -597,7 +597,7 @@ public class MCOpenVR extends MCVR {
         boolean gotRegistryValue = false;
         if (Util.getPlatform() == Util.OS.WINDOWS) {
             // Try to read the user's Steam language setting from the registry
-            String language = Utils.readWinRegistry("HKCU\\SOFTWARE\\Valve\\Steam\\Language");
+            String language = ClientUtils.readWinRegistry("HKCU\\SOFTWARE\\Valve\\Steam\\Language");
             if (language != null) {
                 gotRegistryValue = true;
                 VRSettings.LOGGER.info("Vivecraft: Steam language setting: {}", language);

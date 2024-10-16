@@ -10,7 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL13C;
 import org.lwjgl.opengl.GL30C;
-import org.vivecraft.client.utils.Utils;
+import org.vivecraft.client.utils.ClientUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.extensions.MinecraftExtension;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
@@ -231,7 +231,7 @@ public class VRPassHelper {
                     }
 
                     MC.mainRenderTarget.unbindWrite();
-                    Utils.takeScreenshot(rendertarget);
+                    ClientUtils.takeScreenshot(rendertarget);
                     MC.getWindow().updateDisplay();
                     DATA_HOLDER.grabScreenShot = false;
                 }

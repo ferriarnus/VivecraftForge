@@ -21,7 +21,7 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
-import org.vivecraft.client.utils.Utils;
+import org.vivecraft.client.utils.ClientUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.gameplay.trackers.CameraTracker;
@@ -142,7 +142,7 @@ public class VRWidgetHelper {
 
         // lighting for the model
         BlockPos blockpos = BlockPos.containing(DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(renderPass).getPosition());
-        int combinedLight = Utils.getCombinedLightWithMin(MC.level, blockpos, 0);
+        int combinedLight = ClientUtils.getCombinedLightWithMin(MC.level, blockpos, 0);
 
         RenderSystem.enableDepthTest();
         RenderSystem.defaultBlendFunc();

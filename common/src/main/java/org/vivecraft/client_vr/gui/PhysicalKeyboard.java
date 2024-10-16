@@ -21,7 +21,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
-import org.vivecraft.client.utils.Utils;
+import org.vivecraft.client.utils.ClientUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
@@ -160,14 +160,14 @@ public class PhysicalKeyboard {
                 @Override
                 public void onPressed() {
                     if (PhysicalKeyboard.this.shift && !PhysicalKeyboard.this.shiftSticky &&
-                        Utils.milliTime() - PhysicalKeyboard.this.shiftPressTime < 400L)
+                        ClientUtils.milliTime() - PhysicalKeyboard.this.shiftPressTime < 400L)
                     {
                         setShift(true, true);
                     } else {
                         setShift(!PhysicalKeyboard.this.shift, false);
                     }
 
-                    PhysicalKeyboard.this.shiftPressTime = Utils.milliTime();
+                    PhysicalKeyboard.this.shiftPressTime = ClientUtils.milliTime();
                 }
 
                 @Override
@@ -350,7 +350,7 @@ public class PhysicalKeyboard {
             ControllerType controller = ControllerType.values()[c];
             KeyButton key = this.findTouchedKey(controller);
 
-            long milliTime = Utils.milliTime();
+            long milliTime = ClientUtils.milliTime();
             if (key != null) {
                 if (key != this.pressedKey[c] && milliTime - this.pressTime[c] >= 150L) {
                     if (this.pressedKey[c] != null) {
