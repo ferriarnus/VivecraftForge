@@ -6,7 +6,8 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.ItemTags;
 import org.vivecraft.client_vr.VRData;
@@ -14,10 +15,10 @@ import org.vivecraft.client_vr.render.RenderPass;
 
 public class TelescopeTracker extends Tracker {
     public static final ModelResourceLocation SCOPE_MODEL = new ModelResourceLocation("vivecraft", "spyglass_in_hand", "inventory");
-    private static final double LENS_DIST_MAX = 0.05D;
-    private static final double LENS_DIST_MIN = 0.185D;
-    private static final double LENS_DOT_MAX = 0.9D;
-    private static final double LENS_DOT_MIN = 0.75D;
+    private static final float LENS_DIST_MAX = 0.05F;
+    private static final float LENS_DIST_MIN = 0.185F;
+    private static final float LENS_DOT_MAX = 0.9F;
+    private static final float LENS_DOT_MIN = 0.75F;
 
     public TelescopeTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -60,13 +61,14 @@ public class TelescopeTracker extends Tracker {
         }
     }
 
-    private static Vec3 getLensOrigin(int controller) {
+    private static Vector3f getLensOrigin(int controller) {
         VRData.VRDevicePose con = ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_pre.getController(controller);
-        return con.getPosition().add(getViewVector(controller).scale(-0.2D).add(con.getDirection().scale(0.05F)));
+        return con.getPositionF().add(getViewVector(controller).mul(-0.2F).add(con.getDirection().mul(0.05F)));
     }
 
-    private static Vec3 getViewVector(int controller) {
-        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_pre.getController(controller).getCustomVector(new Vec3(0.0D, -1.0D, 0.0D));
+    private static Vector3f getViewVector(int controller) {
+        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_pre.getController(controller).getCustomVector(
+            MathUtils.DOWN);
     }
 
     public static boolean isViewing(int controller) {
@@ -86,32 +88,27 @@ public class TelescopeTracker extends Tracker {
 
         float out = 0.0F;
 
-        for (int e = 0; e < 2; e++) {
-            float tmp = viewPercent(controller, e);
-
-            if (tmp > out) {
-                out = tmp;
-            }
-        }
+        out = Math.max(out, viewPercent(controller, RenderPass.LEFT));
+        out = Math.max(out, viewPercent(controller, RenderPass.RIGHT));
 
         return out;
     }
 
-    private static float viewPercent(int controller, int e) {
-        if (e == -1 || ClientDataHolderVR.getInstance().vrPlayer == null) {
+    private static float viewPercent(int controller, RenderPass renderPass) {
+        if (ClientDataHolderVR.getInstance().vrPlayer == null) {
             return 0.0F;
         } else {
-            VRData.VRDevicePose eye = ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_pre.getEye(RenderPass.values()[e]);
-            double dist = eye.getPosition().subtract(getLensOrigin(controller)).length();
-            Vec3 look = eye.getDirection();
-            double dot = Math.abs(look.dot(getViewVector(controller)));
+            VRData.VRDevicePose eyeRoom = ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_pre.getEye(renderPass);
+            float dist = eyeRoom.getPositionF().sub(getLensOrigin(controller)).length();
+            Vector3f look = eyeRoom.getDirection();
+            float dot = Math.abs(look.dot(getViewVector(controller)));
 
-            double dfact = 0.0D;
-            double distfact = 0.0D;
+            float dfact = 0.0F;
+            float distfact = 0.0F;
 
             if (dot > LENS_DOT_MIN) {
                 if (dot > LENS_DOT_MAX) {
-                    dfact = 1.0D;
+                    dfact = 1.0F;
                 } else {
                     dfact = (dot - LENS_DOT_MIN) / (LENS_DOT_MAX - LENS_DOT_MIN);
                 }
@@ -119,13 +116,13 @@ public class TelescopeTracker extends Tracker {
 
             if (dist < LENS_DIST_MIN) {
                 if (dist < LENS_DIST_MAX) {
-                    distfact = 1.0D;
+                    distfact = 1.0F;
                 } else {
-                    distfact = 1.0D - (dist - LENS_DIST_MAX) / (LENS_DIST_MIN - LENS_DIST_MAX);
+                    distfact = 1.0F - (dist - LENS_DIST_MAX) / (LENS_DIST_MIN - LENS_DIST_MAX);
                 }
             }
 
-            return (float) Math.min(dfact, distfact);
+            return Math.min(dfact, distfact);
         }
     }
 }

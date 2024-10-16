@@ -9,6 +9,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -45,7 +47,7 @@ public abstract class AbstractClientPlayerMixin extends LivingEntityMixin {
         if ((Object) this == Minecraft.getInstance().player && VRState.VR_RUNNING) {
             // local player
             Vec3 pos = RenderHelper.getControllerRenderPos(this.getUsedItemHand() == InteractionHand.MAIN_HAND ? 0 : 1);
-            Vec3 dir = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().hmd.getDirection();
+            Vector3f dir = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().hmd.getDirection();
 
             vivecraft$particlesWithRandomOffset(instance, particleData, original, pos, dir);
         } else {
@@ -54,12 +56,12 @@ public abstract class AbstractClientPlayerMixin extends LivingEntityMixin {
             if (rotInfo != null) {
                 Vec3 pos;
                 if (this.getUsedItemHand() == InteractionHand.MAIN_HAND && !rotInfo.reverse) {
-                    pos = rotInfo.rightArmPos.add(this.position());
+                    pos = this.position().add(rotInfo.rightArmPos.x(), rotInfo.rightArmPos.y(), rotInfo.rightArmPos.z());
                 } else {
-                    pos = rotInfo.leftArmPos.add(this.position());
+                    pos = this.position().add(rotInfo.leftArmPos.x(), rotInfo.leftArmPos.y(), rotInfo.leftArmPos.z());
                 }
 
-                Vec3 dir = rotInfo.headRot;
+                Vector3fc dir = rotInfo.headRot;
 
                 vivecraft$particlesWithRandomOffset(instance, particleData, original, pos, dir);
             } else {
@@ -70,16 +72,16 @@ public abstract class AbstractClientPlayerMixin extends LivingEntityMixin {
 
     @Unique
     private void vivecraft$particlesWithRandomOffset(
-        Level instance, ParticleOptions particleData, Operation<Void> original, Vec3 pos, Vec3 dir)
+        Level instance, ParticleOptions particleData, Operation<Void> original, Vec3 pos, Vector3fc dir)
     {
         float yOffset = this.random.nextFloat() * 0.2F - 0.1F;
         float xOffset = this.random.nextFloat() * 0.2F - 0.1F;
         float zOffset = this.random.nextFloat() * 0.2F - 0.1F;
 
-        dir = dir.scale(0.1);
-
         original.call(instance, particleData,
             pos.x + yOffset, pos.y + xOffset, pos.z + zOffset,
-            dir.x + yOffset * 0.5F, dir.y + xOffset * 0.5F + 0.1F, dir.z + zOffset * 0.5F);
+            (double) (dir.x() * 0.1F + yOffset * 0.5F),
+            (double) (dir.y() * 0.1F + xOffset * 0.5F + 0.1F),
+            (double) (dir.z() * 0.1F + zOffset * 0.5F));
     }
 }

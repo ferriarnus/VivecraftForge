@@ -15,7 +15,7 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.vivecraft.client.utils.ScaleHelper;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 import org.vivecraft.mod_compat_vr.sodium.SodiumHelper;
@@ -160,13 +160,13 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             return;
         }
 
-        double handsYOffset = -1.501F * this.rotInfo.heightScale;
+        float handsYOffset = -1.501F * this.rotInfo.heightScale;
 
-        float leftControllerYaw = (float) Math.atan2(-this.rotInfo.leftArmRot.x, -this.rotInfo.leftArmRot.z);
-        float leftControllerPitch = (float) Math.asin(this.rotInfo.leftArmRot.y / this.rotInfo.leftArmRot.length());
-        float rightControllerYaw = (float) Math.atan2(-this.rotInfo.rightArmRot.x, -this.rotInfo.rightArmRot.z);
-        float rightControllerPitch = (float) Math.asin(this.rotInfo.rightArmRot.y / this.rotInfo.rightArmRot.length());
-        double bodyYaw = this.rotInfo.getBodyYawRadians();
+        float leftControllerYaw = (float) Math.atan2(-this.rotInfo.leftArmRot.x(), -this.rotInfo.leftArmRot.z());
+        float leftControllerPitch = (float) Math.asin(this.rotInfo.leftArmRot.y() / this.rotInfo.leftArmRot.length());
+        float rightControllerYaw = (float) Math.atan2(-this.rotInfo.rightArmRot.x(), -this.rotInfo.rightArmRot.z());
+        float rightControllerPitch = (float) Math.asin(this.rotInfo.rightArmRot.y() / this.rotInfo.rightArmRot.length());
+        float bodyYaw = (float) this.rotInfo.getBodyYawRadians();
 
         this.laying = this.swimAmount > 0.0F || player.isFallFlying() && !player.isAutoSpinAttack();
 
@@ -183,71 +183,67 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             this.leftShoulder.y += 3.2F;
         }
 
-        Vec3 leftArmPos = this.rotInfo.leftArmPos;
-        Vec3 rightArmPos = this.rotInfo.rightArmPos;
+        Vector3f leftArmPos = new Vector3f(this.rotInfo.leftArmPos);
+        Vector3f rightArmPos = new Vector3f(this.rotInfo.rightArmPos);
 
         // remove entity scale from that, since the whole entity is scaled
         float inverseScale = 1F / ScaleHelper.getEntityEyeHeightScale(player, Minecraft.getInstance().getFrameTime());
-        leftArmPos = leftArmPos.scale(inverseScale);
-        rightArmPos = rightArmPos.scale(inverseScale);
+        leftArmPos = leftArmPos.mul(inverseScale);
+        rightArmPos = rightArmPos.mul(inverseScale);
 
         // Left Arm
-        leftArmPos = leftArmPos.add(0.0D, handsYOffset, 0.0D);
-        leftArmPos = leftArmPos.yRot((float) (-Math.PI + bodyYaw));
-        leftArmPos = leftArmPos.scale(16.0F / this.rotInfo.heightScale);
-        this.leftHand.setPos((float) -leftArmPos.x, (float) -leftArmPos.y, (float) leftArmPos.z);
-        this.leftHand.xRot = -leftControllerPitch + (float) Math.PI * 1.5F;
-        this.leftHand.yRot = (float) (Math.PI - (double) leftControllerYaw - bodyYaw);
+        leftArmPos.add(0.0F, handsYOffset, 0.0F);
+        leftArmPos.rotateY(-Mth.PI + bodyYaw);
+        leftArmPos.mul(16.0F / this.rotInfo.heightScale);
+        this.leftHand.setPos(-leftArmPos.x, -leftArmPos.y, leftArmPos.z);
+        this.leftHand.xRot = -leftControllerPitch + Mth.PI * 1.5F;
+        this.leftHand.yRot = Mth.PI - leftControllerYaw - bodyYaw;
         this.leftHand.zRot = 0.0F;
         if (this.leftArmPose == ArmPose.THROW_SPEAR) {
-            this.leftHand.xRot =  this.leftHand.xRot - (float) Math.PI * 0.5F;
+            this.leftHand.xRot -= Mth.PI * 0.5F;
         }
 
         // left shoulder
-        Vec3 leftShoulderPos = new Vec3(
+        Vector3f leftShoulderPos = new Vector3f(
             this.leftShoulder.x + leftArmPos.x,
             this.leftShoulder.y + leftArmPos.y,
             this.leftShoulder.z - leftArmPos.z);
 
-        float leftShoulderYaw = (float) Math.atan2(leftShoulderPos.x, leftShoulderPos.z);
-        float leftShoulderPitch = (float) ((Math.PI * 1.5D) - Math.asin(leftShoulderPos.y / leftShoulderPos.length()));
+        this.leftShoulder.xRot = Mth.PI * 1.5F - (float) Math.asin(leftShoulderPos.y / leftShoulderPos.length());
+        this.leftShoulder.yRot = (float) Math.atan2(leftShoulderPos.x, leftShoulderPos.z);
         this.leftShoulder.zRot = 0.0F;
-        this.leftShoulder.xRot = leftShoulderPitch;
-        this.leftShoulder.yRot = leftShoulderYaw;
         if (this.leftShoulder.yRot > 0.0F) {
             this.leftShoulder.yRot = 0.0F;
         }
 
         // Right arm
-        rightArmPos = rightArmPos.add(0.0D, handsYOffset, 0.0D);
-        rightArmPos = rightArmPos.yRot((float) (-Math.PI + bodyYaw));
-        rightArmPos = rightArmPos.scale(16.0F / this.rotInfo.heightScale);
-        this.rightHand.setPos((float) -rightArmPos.x, (float) -rightArmPos.y, (float) rightArmPos.z);
-        this.rightHand.xRot = -rightControllerPitch + (float) Math.PI * 1.5F;
-        this.rightHand.yRot = (float) (Math.PI - (double) rightControllerYaw - bodyYaw);
+        rightArmPos.add(0.0F, handsYOffset, 0.0F);
+        rightArmPos.rotateY(-Mth.PI + bodyYaw);
+        rightArmPos.mul(16.0F / this.rotInfo.heightScale);
+        this.rightHand.setPos(-rightArmPos.x, -rightArmPos.y, rightArmPos.z);
+        this.rightHand.xRot = -rightControllerPitch + Mth.PI * 1.5F;
+        this.rightHand.yRot = Mth.PI - rightControllerYaw - bodyYaw;
         this.rightHand.zRot = 0.0F;
         if (this.rightArmPose == ArmPose.THROW_SPEAR) {
-            this.rightHand.xRot = this.rightHand.xRot - (float) Math.PI * 0.5F;
+            this.rightHand.xRot -= Mth.PI * 0.5F;
         }
 
         // Right shoulder
-        Vec3 rightShoulderPos = new Vec3(
+        Vector3f rightShoulderPos = new Vector3f(
             this.rightShoulder.x + rightArmPos.x,
             this.rightShoulder.y + rightArmPos.y,
             this.rightShoulder.z - rightArmPos.z);
 
-        float rightShoulderYaw = (float) Math.atan2(rightShoulderPos.x, rightShoulderPos.z);
-        float rightShoulderPitch = (float) ((Math.PI * 1.5D) - Math.asin(rightShoulderPos.y / rightShoulderPos.length()));
+        this.rightShoulder.xRot = Mth.PI * 1.5F - (float) Math.asin(rightShoulderPos.y / rightShoulderPos.length());
+        this.rightShoulder.yRot = (float) Math.atan2(rightShoulderPos.x, rightShoulderPos.z);
         this.rightShoulder.zRot = 0.0F;
-        this.rightShoulder.xRot = rightShoulderPitch;
-        this.rightShoulder.yRot = rightShoulderYaw;
         if (this.rightShoulder.yRot < 0.0F) {
             this.rightShoulder.yRot = 0.0F;
         }
 
         if (this.laying) {
-            this.rightShoulder.xRot = this.rightShoulder.xRot - (float) Math.PI * 0.5F;
-            this.leftShoulder.xRot = this.leftShoulder.xRot - (float) Math.PI * 0.5F;
+            this.rightShoulder.xRot = this.rightShoulder.xRot - Mth.PI * 0.5F;
+            this.leftShoulder.xRot = this.leftShoulder.xRot - Mth.PI * 0.5F;
         }
 
         this.leftSleeve.copyFrom(this.leftHand);

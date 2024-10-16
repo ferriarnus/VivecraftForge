@@ -464,7 +464,8 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
     @Override
     @Unique
     public float vivecraft$getMuhSpeedFactor() {
-        return this.vivecraft$moveMulIn.lengthSqr() > 0.0D ?
+        // this shouldn't ever be null, but mixins doesn't always apply the default value
+        return this.vivecraft$moveMulIn != null && this.vivecraft$moveMulIn.lengthSqr() > 0.0D ?
             this.getBlockSpeedFactor() * (float) (this.vivecraft$moveMulIn.x + this.vivecraft$moveMulIn.z) * 0.5F :
             this.getBlockSpeedFactor();
     }
@@ -472,7 +473,8 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
     @Override
     @Unique
     public float vivecraft$getMuhJumpFactor() {
-        return this.vivecraft$moveMulIn.lengthSqr() > 0.0D ?
+        // this shouldn't ever be null, but mixins doesn't always apply the default value
+        return this.vivecraft$moveMulIn != null && this.vivecraft$moveMulIn.lengthSqr() > 0.0D ?
             this.getBlockJumpFactor() * (float) this.vivecraft$moveMulIn.y : this.getBlockJumpFactor();
     }
 

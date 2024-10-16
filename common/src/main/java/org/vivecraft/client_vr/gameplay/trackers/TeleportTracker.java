@@ -14,25 +14,22 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client_vr.BlockTags;
 import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.extensions.PlayerExtension;
 import org.vivecraft.client_vr.gameplay.VRMovementStyle;
-import org.vivecraft.client_vr.provider.openvr_lwjgl.OpenVRUtil;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
-import org.vivecraft.common.utils.math.Angle;
-import org.vivecraft.common.utils.math.Matrix4f;
-import org.vivecraft.common.utils.math.Quaternion;
-import org.vivecraft.common.utils.math.Vector3;
 
 import java.util.Random;
 
 public class TeleportTracker extends Tracker {
     private float teleportEnergy;
-    private Vec3 movementTeleportDestination = new Vec3(0.0D, 0.0D, 0.0D);
+    private Vec3 movementTeleportDestination = Vec3.ZERO;
     private Direction movementTeleportDestinationSideHit;
     public double movementTeleportProgress;
     public double movementTeleportDistance;
@@ -74,7 +71,7 @@ public class TeleportTracker extends Tracker {
 
     @Override
     public void reset(LocalPlayer player) {
-        this.movementTeleportDestination = new Vec3(0.0D, 0.0D, 0.0D);
+        this.movementTeleportDestination = Vec3.ZERO;
         this.movementTeleportArcSteps = 0;
         this.movementTeleportProgress = 0.0D;
     }
@@ -138,7 +135,7 @@ public class TeleportTracker extends Tracker {
                             Vec3 motionDir = destination.subtract(eyeCenterPos).normalize();
                             Vec3 forward = player.getLookAngle();
 
-                            Vec3 right = forward.cross(new Vec3(0.0D, 1.0D, 0.0D));
+                            Vec3 right = forward.cross(MathUtils.UP_D);
                             Vec3 up = right.cross(forward);
 
                             for (int iParticle = 0; iParticle < 3; iParticle++) {
@@ -217,7 +214,7 @@ public class TeleportTracker extends Tracker {
         // no teleporting if on a server that disallows teleporting
 
         if (this.vrMovementStyle.arcAiming) {
-            this.movementTeleportDestination = new Vec3(0.0D, 0.0D, 0.0D);
+            this.movementTeleportDestination = Vec3.ZERO;
 
             if (this.movementTeleportProgress > 0.0D) {
                 this.updateTeleportArc(player);
@@ -254,24 +251,12 @@ public class TeleportTracker extends Tracker {
     }
 
     private void updateTeleportArc(LocalPlayer player) {
-        Vec3 start = this.dh.vrPlayer.vrdata_world_render.getController(1).getPosition();
-        Vec3 tiltedAim = this.dh.vrPlayer.vrdata_world_render.getController(1).getDirection();
-        Matrix4f handRotation = this.dh.vr.getAimRotation(1);
 
-        if (this.dh.vrSettings.seated) {
-            start = RenderHelper.getControllerRenderPos(0);
-            tiltedAim = this.dh.vrPlayer.vrdata_world_render.getController(0).getDirection();
-            handRotation = this.dh.vr.getAimRotation(0);
-        }
+        int controller = this.dh.vrSettings.seated ? 0 : 1;
 
-        Matrix4f rot = Matrix4f.rotationY(this.dh.vrPlayer.vrdata_world_render.rotation_radians);
-        handRotation = Matrix4f.multiply(rot, handRotation);
+        Vec3 start = RenderHelper.getControllerRenderPos(controller);
 
-
-        // extract hand roll
-        // TODO: use vrdata for this
-        Quaternion handQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(handRotation);
-        Angle euler = handQuat.toEuler();
+        VRData.VRDevicePose controllerWorld = this.dh.vrPlayer.vrdata_world_render.getController(controller);
 
         int maxSteps = 50;
         this.movementTeleportArc[0] = new Vec3(
@@ -282,23 +267,14 @@ public class TeleportTracker extends Tracker {
         this.movementTeleportArcSteps = 1;
 
         // calculate gravity vector for arc
-        float gravityAcceleration = 0.098F;
-        Matrix4f rollCounter = MathUtils.rotationZMatrix((float) Math.toRadians(-euler.getRoll()));
-        Matrix4f gravityTilt = MathUtils.rotationXMatrix((float) Math.PI * -0.8F);
-        Matrix4f gravityRotation = Matrix4f.multiply(handRotation, rollCounter);
+        final float gravityAcceleration = 0.098F;
 
-        Vector3 forward = new Vector3(0.0F, 1.0F, 0.0F);
-        Vector3 gravityDirection = gravityRotation.transform(forward);
-        Vec3 gravity = gravityDirection.negate().toVector3d();
-
-        gravity = gravity.scale(gravityAcceleration);
+        Vector3f gravity = controllerWorld.getMatrix().rotateZ(controllerWorld.getRollRad())
+            .transformDirection(MathUtils.DOWN, new Vector3f()).mul(gravityAcceleration);
 
         // calculate initial move step
-        float speed = 0.5F;
-        Vec3 velocity = new Vec3(
-            tiltedAim.x * speed,
-            tiltedAim.y * speed,
-            tiltedAim.z * speed);
+        final float speed = 0.5F;
+        Vector3f velocity = controllerWorld.getDirection().mul(speed);
 
         Vec3 pos = new Vec3(start.x, start.y, start.z);
 

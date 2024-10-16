@@ -3,6 +3,7 @@ package org.vivecraft.client_vr.gameplay.trackers;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,13 +11,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.network.ClientNetworking;
+import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client.utils.ScaleHelper;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.extensions.PlayerExtension;
 import org.vivecraft.client_vr.provider.ControllerType;
+import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.network.packet.c2s.DrawPayloadC2S;
 
@@ -30,9 +35,9 @@ public class BowTracker extends Tracker {
 
     private boolean pressed;
     private boolean canDraw;
-    private double currentDraw;
-    private double maxDraw;
-    private Vec3 aim;
+    private float currentDraw;
+    private float maxDraw;
+    private Vector3f aim;
 
     // when the arrow was nocked,
     private float tsNotch = 0.0F;
@@ -43,12 +48,12 @@ public class BowTracker extends Tracker {
         super(mc, dh);
     }
 
-    public Vec3 getAimVector() {
+    public Vector3fc getAimVector() {
         return this.aim;
     }
 
     public float getDrawPercent() {
-        return (float) (this.currentDraw / this.maxDraw);
+        return this.currentDraw / this.maxDraw;
     }
 
     public boolean isNotched() {
@@ -72,7 +77,7 @@ public class BowTracker extends Tracker {
     }
 
     public static boolean isHoldingBow(LivingEntity entity, InteractionHand hand) {
-        return !ClientDataHolderVR.getInstance().vrSettings.seated && isBow(entity.getItemInHand(hand));
+        return /*!ClientDataHolderVR.getInstance().vrSettings.seated && */isBow(entity.getItemInHand(hand));
     }
 
     public static boolean isHoldingBowEither(LivingEntity entity) {
@@ -114,12 +119,12 @@ public class BowTracker extends Tracker {
         }
 
         if (this.dh.vrSettings.seated) {
-            this.aim = vrData.getController(0).getCustomVector(new Vec3(0.0D, 0.0D, 1.0D));
+            this.aim = vrData.getController(0).getCustomVector(MathUtils.FORWARD);
         } else {
             boolean lastPressed = this.pressed;
             boolean lastCanDraw = this.canDraw;
 
-            this.maxDraw = (double) this.mc.player.getBbHeight() * 0.22D;
+            this.maxDraw = this.mc.player.getBbHeight() * 0.22F;
 
             // this is meant to be relative to the base Bb height, not the scaled one
             this.maxDraw /= ScaleHelper.getEntityBbScale(player, this.mc.getFrameTime());
@@ -138,18 +143,17 @@ public class BowTracker extends Tracker {
             Vec3 bowPos = vrData.getController(bowHand).getPosition();
             //
 
-            double controllersDist = bowPos.distanceTo(arrowPos);
-            Vec3 up = new Vec3(0.0D, 1.0D * vrData.worldScale, 0.0D);
+            float controllersDist = (float) bowPos.distanceTo(arrowPos);
+            Vector3f up = new Vector3f(0.0F, vrData.worldScale, 0.0F);
 
-            Vec3 stringPos = vrData.getHand(bowHand).getCustomVector(up).scale(this.maxDraw * 0.5D).add(bowPos);
+            Vec3 stringPos = new Vec3(vrData.getHand(bowHand).getCustomVector(up).mul(this.maxDraw * 0.5F)).add(bowPos);
 
             double notchDist = arrowPos.distanceTo(stringPos);
 
-            this.aim = arrowPos.subtract(bowPos).normalize();
+            this.aim = MathUtils.subtractToVector3f(arrowPos, bowPos).normalize();
 
-            Vec3 arrowAim = vrData.getController(arrowHand).getCustomVector(new Vec3(0.0D, 0.0D, -1.0D));
-
-            Vec3 bowAim = vrData.getHand(bowHand).getCustomVector(new Vec3(0.0D, -1.0D, 0.0D));
+            Vector3f arrowAim = vrData.getController(arrowHand).getCustomVector(MathUtils.BACK);
+            Vector3f bowAim = vrData.getHand(bowHand).getCustomVector(MathUtils.DOWN);
 
             double controllersDot = Math.toDegrees(Math.acos(bowAim.dot(arrowAim)));
 
@@ -208,7 +212,7 @@ public class BowTracker extends Tracker {
                 this.mc.gameMode.useItem(player, hand); // server
             }
 
-            if (this.isDrawing && !this.pressed && lastPressed && (double) this.getDrawPercent() > 0.0D) {
+            if (this.isDrawing && !this.pressed && lastPressed && this.getDrawPercent() > 0.0F) {
                 // fire!
                 this.dh.vr.triggerHapticPulse(arrowHand, 500);
                 this.dh.vr.triggerHapticPulse(bowHand, 3000);
@@ -235,7 +239,7 @@ public class BowTracker extends Tracker {
             }
 
             if (this.isDrawing) {
-                this.currentDraw = (controllersDist - (double) notchDistThreshold) / vrData.worldScale;
+                this.currentDraw = (controllersDist - notchDistThreshold) / vrData.worldScale;
 
                 if (this.currentDraw > this.maxDraw) {
                     this.currentDraw = this.maxDraw;
@@ -280,5 +284,8 @@ public class BowTracker extends Tracker {
                 this.lastHapStep = 0;
             }
         }
+        Vector3f dir = this.aim.mul(2, new Vector3f());
+        Vec3 cPos = RenderHelper.getControllerRenderPos(0).add(new Vec3(dir));
+        player.level().addParticle(new DustParticleOptions(DustParticleOptions.REDSTONE_PARTICLE_COLOR, 0.1F), cPos.x, cPos.y, cPos.z, dir.x, dir.y, dir.z);
     }
 }

@@ -1725,8 +1725,7 @@ public class MenuWorldRenderer {
 
             if (this.menuWorldRenderer.renderDistanceChunks >= 4) {
                 float d0 = Mth.sin(this.menuWorldRenderer.getSunAngle()) > 0.0F ? -1.0F : 1.0F;
-                Vec3 vec3d2 = new Vec3(d0, 0.0F, 0.0F).yRot(0);
-                float f5 = (float) ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_post.hmd.getDirection().yRot(this.menuWorldRenderer.worldRotation).dot(vec3d2);
+                float f5 = ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_post.hmd.getDirection().rotateY(this.menuWorldRenderer.worldRotation).dot(d0, 0, 0);
 
                 if (f5 < 0.0F) {
                     f5 = 0.0F;

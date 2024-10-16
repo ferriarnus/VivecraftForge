@@ -5,8 +5,10 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
-import org.vivecraft.common.utils.math.Quaternion;
 
 public class RowTracker extends Tracker {
     private static final double TRANSMISSION_EFFICIENCY = 0.9D;
@@ -54,14 +56,14 @@ public class RowTracker extends Tracker {
 
     @Override
     public void doProcess(LocalPlayer player) {
-        double c0Move = this.dh.vr.controllerHistory[0].averageSpeed(0.5D);
-        double c1Move = this.dh.vr.controllerHistory[1].averageSpeed(0.5D);
+        float c0Move = this.dh.vr.controllerHistory[0].averageSpeed(0.5D);
+        float c1Move = this.dh.vr.controllerHistory[1].averageSpeed(0.5D);
 
         final float minSpeed = 0.5F;
         final float maxSpeed = 2.0F;
 
-        this.ROar = (float) Math.max(c0Move - minSpeed, 0.0D);
-        this.LOar = (float) Math.max(c1Move - minSpeed, 0.0D);
+        this.ROar = Math.max(c0Move - minSpeed, 0.0F);
+        this.LOar = Math.max(c1Move - minSpeed, 0.0F);
 
         this.FOar = this.ROar > 0.0F && this.LOar > 0.0F ? (this.ROar + this.LOar) / 2.0F : 0.0F;
 
@@ -82,7 +84,10 @@ public class RowTracker extends Tracker {
 
     public void doProcessFinaltransmithastofixthis(LocalPlayer player) {
         Boat boat = (Boat) player.getVehicle();
-        Quaternion boatRot = (new Quaternion(boat.getXRot(), -(boat.getYRot() % 360.0F), 0.0F)).normalized();
+        Quaternionf boatRot = new Quaternionf().rotationYXZ(
+            (float) Math.toRadians(-(boat.getYRot() % 360.0F)),
+            (float) Math.toRadians(boat.getXRot()),
+            0.0F).normalize();
 
         for (int paddle = 0; paddle <= 1; paddle++) {
             if (this.isPaddleUnderWater(paddle, boat)) {
@@ -91,10 +96,13 @@ public class RowTracker extends Tracker {
                 Vec3 underWaterPoint = attach.add(arm2Pad.normalize()).subtract(boat.position());
 
                 if (this.lastUWPs[paddle] != null) {
-                    Vec3 forceVector = this.lastUWPs[paddle].subtract(underWaterPoint); // intentionally reverse
-                    forceVector = forceVector.subtract(boat.getDeltaMovement());
+                    Vector3f forceVector = MathUtils.subtractToVector3f(this.lastUWPs[paddle], underWaterPoint); // intentionally reverse
+                    forceVector = forceVector.sub(
+                        (float) boat.getDeltaMovement().x,
+                        (float) boat.getDeltaMovement().y,
+                        (float) boat.getDeltaMovement().z);
 
-                    Vec3 forward = boatRot.multiply(new Vec3(0.0D, 0.0D, 1.0D));
+                    Vector3f forward = boatRot.transform(MathUtils.FORWARD, new Vector3f());
 
                     //scalar projection onto forward vector
                     double force = forceVector.dot(forward) * TRANSMISSION_EFFICIENCY / 5.0D;
@@ -121,15 +129,17 @@ public class RowTracker extends Tracker {
     }
 
     private Vec3 getAttachmentPoint(int paddle, Boat boat) {
-        Vec3 attachmentPoint = new Vec3((paddle == 0 ? 9.0F : -9.0F) / 16.0F, 0.625D, 0.1875D); // values from ModelBoat
-        Quaternion boatRot = (new Quaternion(boat.getXRot(), -(boat.getYRot() % 360.0F), 0.0F)).normalized();
-        return boat.position().add(boatRot.multiply(attachmentPoint));
+        Vector3f attachmentPoint = new Vector3f((paddle == 0 ? 9.0F : -9.0F) / 16.0F, 0.625F, 0.1875F); // values from ModelBoat
+        Quaternionf boatRot = new Quaternionf().rotationYXZ(
+            (float) Math.toRadians(-(boat.getYRot() % 360.0F)),
+            (float) Math.toRadians(boat.getXRot()),
+            0.0F).normalize();
+        return boat.position().add(new Vec3(boatRot.transform(attachmentPoint)));
     }
 
     private Vec3 getAbsArmPos(int side) {
-        Vec3 arm = this.dh.vr.controllerHistory[side].averagePosition(0.1D);
-        Quaternion worldRot = new Quaternion(0.0F, this.dh.vrSettings.worldRotation, 0.0F);
-        return this.dh.vrPlayer.roomOrigin.add(worldRot.multiply(arm));
+        Vector3f arm = this.dh.vr.controllerHistory[side].averagePosition(0.1D).rotateY((float) Math.toRadians(this.dh.vrSettings.worldRotation));
+        return this.dh.vrPlayer.roomOrigin.add(arm.x, arm.y, arm.z);
     }
 
     private boolean isPaddleUnderWater(int paddle, Boat boat) {

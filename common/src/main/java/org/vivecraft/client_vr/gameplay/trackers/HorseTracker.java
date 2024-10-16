@@ -5,11 +5,11 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.settings.VRSettings;
-import org.vivecraft.common.utils.math.Quaternion;
 
 public class HorseTracker extends Tracker {
     private static final double BOOST_TRIGGER = 1.4D;
@@ -65,26 +65,28 @@ public class HorseTracker extends Tracker {
         float absYaw = (this.horse.getYRot() + 360.0F) % 360.0F;
         float absYawOffset = (this.horse.yBodyRot + 360.0F) % 360.0F;
 
-        Vec3 speedLeft = this.dh.vr.controllerHistory[1].netMovement(0.1D).scale(10.0D);
-        Vec3 speedRight = this.dh.vr.controllerHistory[0].netMovement(0.1D).scale(10.0D);
-        double speedDown = Math.min(-speedLeft.y, -speedRight.y);
+        Vector3f speedLeft = this.dh.vr.controllerHistory[1].netMovement(0.1D).mul(10.0F);
+        Vector3f speedRight = this.dh.vr.controllerHistory[0].netMovement(0.1D).mul(10.0F);
+        float speedDown = Math.min(-speedLeft.y, -speedRight.y);
 
         if (speedDown > BOOST_TRIGGER) {
             this.doBoost();
         }
 
-        Quaternion horseRot = new Quaternion(0.0F, -this.horse.yBodyRot, 0.0F);
-        Vec3 back = horseRot.multiply(new Vec3(0.0D, 0.0D, -1.0D));
-        Vec3 left = horseRot.multiply(new Vec3(1.0D, 0.0D, 0.0D));
-        Vec3 right = horseRot.multiply(new Vec3(-1.0D, 0.0D, 0.0D));
+        Vector3f back = MathUtils.BACK.rotateY(-this.horse.yBodyRot, new Vector3f());
+        Vector3f left = MathUtils.LEFT.rotateY(-this.horse.yBodyRot, new Vector3f());
+        Vector3f right = MathUtils.RIGHT.rotateY(-this.horse.yBodyRot, new Vector3f());
 
-        Quaternion worldRot = new Quaternion(0.0F, VRSettings.INSTANCE.worldRotation, 0.0F);
+        Vector3f roomPosL = this.dh.vr.controllerHistory[1].latest().rotateY(VRSettings.INSTANCE.worldRotation, new Vector3f());
+        Vector3f roomPosR = this.dh.vr.controllerHistory[0].latest().rotateY(VRSettings.INSTANCE.worldRotation, new Vector3f());
+        Vec3 posL = VRPlayer.get().roomOrigin.add(roomPosL.x, roomPosL.y, roomPosL.z);
+        Vec3 posR = VRPlayer.get().roomOrigin.add(roomPosR.x, roomPosR.y, roomPosR.z);
 
-        Vec3 posL = VRPlayer.get().roomOrigin.add(worldRot.multiply(this.dh.vr.controllerHistory[1].latest()));
-        Vec3 posR = VRPlayer.get().roomOrigin.add(worldRot.multiply(this.dh.vr.controllerHistory[0].latest()));
+        Vector3f offsetL = MathUtils.subtractToVector3f(posL, this.info.leftReinPos);
+        Vector3f offsetR = MathUtils.subtractToVector3f(posR, this.info.leftReinPos);
 
-        double distanceL = posL.subtract(this.info.leftReinPos).dot(back) + posL.subtract(this.info.leftReinPos).dot(left);
-        double distanceR = posR.subtract(this.info.rightReinPos).dot(back) + posR.subtract(this.info.rightReinPos).dot(right);
+        double distanceL = offsetL.dot(back) + offsetL.dot(left);
+        double distanceR = offsetR.dot(back) + offsetR.dot(right);
 
         if (this.speedLevel < 0) {
             this.speedLevel = 0;
@@ -117,7 +119,7 @@ public class HorseTracker extends Tracker {
         this.horse.yBodyRot = (float) MathUtils.lerpMod(absYawOffset, absYaw, BODY_TURN_SPEED, 360.0D);
         this.horse.yHeadRot = absYaw;
 
-        Vec3 movement = horseRot.multiply(new Vec3(0.0D, 0.0D, this.speedLevel * BASE_SPEED));
+        Vec3 movement = new Vec3(0.0D, 0.0D, this.speedLevel * BASE_SPEED).yRot(-this.horse.yBodyRot);
         this.horse.setDeltaMovement(movement.x, this.horse.getDeltaMovement().y, movement.z);
     }
 

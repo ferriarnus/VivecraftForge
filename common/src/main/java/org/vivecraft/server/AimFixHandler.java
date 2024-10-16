@@ -118,7 +118,7 @@ public class AimFixHandler extends ChannelInboundHandlerAdapter {
 
             // Reset offset
             if (vivePlayer != null) {
-                vivePlayer.offset = new Vec3(0.0D, 0.0D, 0.0D);
+                vivePlayer.offset = Vec3.ZERO;
             }
         });
     }

@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL43;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
@@ -22,7 +23,6 @@ import org.vivecraft.client_vr.render.MirrorNotification;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.render.VRShaders;
 import org.vivecraft.client_vr.settings.VRSettings;
-import org.vivecraft.common.utils.math.Vector3;
 import org.vivecraft.mod_compat_vr.iris.IrisHelper;
 
 public class ShaderHelper {
@@ -322,10 +322,10 @@ public class ShaderHelper {
 
         Vec3 camPlayer = DATA_HOLDER.vrPlayer.vrdata_room_pre.getHeadPivot()
             .subtract(DATA_HOLDER.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD).getPosition());
-        Matrix4f viewMatrix = DATA_HOLDER.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD)
-            .getMatrix().transposed().toMCMatrix();
-        Vector3 cameraLook = DATA_HOLDER.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD).getMatrix()
-            .transform(Vector3.forward());
+
+        // transpose, because camera rotations are transposed
+        Matrix4f viewMatrix = DATA_HOLDER.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD).getMatrix().transpose();
+        Vector3f cameraLook = DATA_HOLDER.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD).getDirection();
 
         // set uniforms
         VRShaders.MIXED_REALITY_PROJECTION_MATRIX_UNIFORM.set(
@@ -333,7 +333,7 @@ public class ShaderHelper {
         VRShaders.MIXED_REALITY_VIEW_MATRIX_UNIFORM.set(viewMatrix);
 
         VRShaders.MIXED_REALITY_HMD_VIEW_POSITION_UNIFORM.set((float) camPlayer.x, (float) camPlayer.y, (float) camPlayer.z);
-        VRShaders.MIXED_REALITY_HMD_PLANE_NORMAL_UNIFORM.set(-cameraLook.getX(), 0.0F, -cameraLook.getZ());
+        VRShaders.MIXED_REALITY_HMD_PLANE_NORMAL_UNIFORM.set(-cameraLook.x, 0.0F, -cameraLook.z);
 
         boolean alphaMask = DATA_HOLDER.vrSettings.mixedRealityUnityLike && DATA_HOLDER.vrSettings.mixedRealityAlphaMask;
 

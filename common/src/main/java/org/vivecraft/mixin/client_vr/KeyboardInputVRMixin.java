@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.KeyboardInput;
+import org.joml.Vector2fc;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,7 +22,6 @@ import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.VRInputAction;
-import org.vivecraft.common.utils.math.Vector2;
 
 @Mixin(KeyboardInput.class)
 public class KeyboardInputVRMixin extends Input {
@@ -85,32 +85,32 @@ public class KeyboardInputVRMixin extends Input {
             !KeyboardHandler.SHOWING)
         {
             // override everything
-            Vector2 moveStrafe = dataHolder.vr.getInputAction(VivecraftVRMod.INSTANCE.keyFreeMoveStrafe).getAxis2DUseTracked();
-            Vector2 moveRotate = dataHolder.vr.getInputAction(VivecraftVRMod.INSTANCE.keyFreeMoveRotate).getAxis2DUseTracked();
+            Vector2fc moveStrafe = dataHolder.vr.getInputAction(VivecraftVRMod.INSTANCE.keyFreeMoveStrafe).getAxis2DUseTracked();
+            Vector2fc moveRotate = dataHolder.vr.getInputAction(VivecraftVRMod.INSTANCE.keyFreeMoveRotate).getAxis2DUseTracked();
 
-            if (moveStrafe.getX() != 0.0F || moveStrafe.getY() != 0.0F) {
+            if (moveStrafe.x() != 0.0F || moveStrafe.y() != 0.0F) {
                 setMovement = true;
-                forwardAxis = moveStrafe.getY();
+                forwardAxis = moveStrafe.y();
 
                 if (dataHolder.vrSettings.analogMovement) {
-                    this.forwardImpulse = moveStrafe.getY();
-                    this.leftImpulse = -moveStrafe.getX();
+                    this.forwardImpulse = moveStrafe.y();
+                    this.leftImpulse = -moveStrafe.x();
                 } else {
-                    this.forwardImpulse = this.vivecraft$axisToDigital(moveStrafe.getY());
-                    this.leftImpulse = this.vivecraft$axisToDigital(-moveStrafe.getX());
+                    this.forwardImpulse = this.vivecraft$axisToDigital(moveStrafe.y());
+                    this.leftImpulse = this.vivecraft$axisToDigital(-moveStrafe.x());
                 }
-            } else if (moveRotate.getY() != 0.0F) {
+            } else if (moveRotate.y() != 0.0F) {
                 setMovement = true;
-                forwardAxis = moveRotate.getY();
+                forwardAxis = moveRotate.y();
 
                 if (dataHolder.vrSettings.analogMovement) {
-                    this.forwardImpulse = moveRotate.getY();
+                    this.forwardImpulse = moveRotate.y();
                     // use left/right key as fallback
                     this.leftImpulse = 0.0F;
                     this.leftImpulse -= vivecraft$getAxisValue(this.options.keyRight);
                     this.leftImpulse += vivecraft$getAxisValue(this.options.keyLeft);
                 } else {
-                    this.forwardImpulse = this.vivecraft$axisToDigital(moveRotate.getY());
+                    this.forwardImpulse = this.vivecraft$axisToDigital(moveRotate.y());
                 }
             } else if (dataHolder.vrSettings.analogMovement) {
                 // neither axis input active, use single key values

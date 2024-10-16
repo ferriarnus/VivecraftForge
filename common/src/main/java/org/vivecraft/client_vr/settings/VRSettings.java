@@ -13,6 +13,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import org.apache.commons.lang3.tuple.Pair;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +25,7 @@ import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.gui.PhysicalKeyboard;
-import org.vivecraft.common.utils.math.Angle;
-import org.vivecraft.common.utils.math.Quaternion;
-import org.vivecraft.common.utils.math.Vector3;
+import org.vivecraft.common.utils.math.AngleOrder;
 
 import java.awt.*;
 import java.io.*;
@@ -303,7 +303,7 @@ public class VRSettings {
     @SettingField(VrOptions.AUTO_SPRINT_THRESHOLD)
     public float autoSprintThreshold = 0.9f;
     @SettingField
-    public Vector3 originOffset = new Vector3(0.0F, 0.0F, 0.0F);
+    public Vector3f originOffset = new Vector3f(0.0F, 0.0F, 0.0F);
     @SettingField(VrOptions.ALLOW_STANDING_ORIGIN_OFFSET)
     public boolean allowStandingOriginOffset = false;
     @SettingField(VrOptions.SEATED_FREE_MOVE)
@@ -373,24 +373,16 @@ public class VRSettings {
     public boolean mixedRealityAlphaMask = false;
     @SettingField(VrOptions.MIXED_REALITY_FOV)
     public float mixedRealityFov = 40;
-    @SettingField
-    public float vrFixedCamposX = -1.0f;
-    @SettingField
-    public float vrFixedCamposY = 2.4f;
-    @SettingField
-    public float vrFixedCamposZ = 2.7f;
+    @SettingField(separate = true)
+    public Vector3f vrFixedCampos = new Vector3f(-1.0F, 2.5F, 2.7F);
     @SettingField(config = "vrFixedCamrot", separate = true)
-    public Quaternion vrFixedCamrotQuat = new Quaternion(.962f, .125f, .239f, .041f);
-    @SettingField
-    public float mrMovingCamOffsetX = 0;
-    @SettingField
-    public float mrMovingCamOffsetY = 0;
-    @SettingField
-    public float mrMovingCamOffsetZ = 0;
+    public Quaternionf vrFixedCamrotQuat = new Quaternionf(.962f, .125f, .239f, .041f);
+    @SettingField(separate = true)
+    public Vector3f mrMovingCamOffset = new Vector3f(0F, 0F, 0F);
     @SettingField(config = "mrMovingCamOffsetRot", separate = true)
-    public Quaternion mrMovingCamOffsetRotQuat = new Quaternion();
+    public Quaternionf mrMovingCamOffsetRotQuat = new Quaternionf();
     @SettingField
-    public Angle.Order externalCameraAngleOrder = Angle.Order.XZY;
+    public AngleOrder externalCameraAngleOrder = AngleOrder.XZY;
     @SettingField(VrOptions.HANDHELD_CAMERA_FOV)
     public float handCameraFov = 70;
     @SettingField(VrOptions.HANDHELD_CAMERA_RENDER_SCALE)
@@ -500,6 +492,11 @@ public class VRSettings {
     @SettingField
     public boolean selfButtSparklesInFirstPerson = false;
 
+    //debug settings
+    @SettingField
+    // when set attaches the 3rd person camera tracker to the right controller
+    public boolean debugCameraTracker;
+
     /**
      * This isn't actually used, it's only a dummy field to save the value from vanilla Options.
      */
@@ -570,10 +567,10 @@ public class VRSettings {
                     if (ann.separate() && field.getType().isArray()) {
                         int len = Array.getLength(field.get(this));
                         IntStream.range(0, len).forEach(i -> this.fieldConfigMap.put(config + "_" + i, configEntry));
-                    } else if (ann.separate() && Quaternion.class.isAssignableFrom(field.getType())) {
+                    } else if (ann.separate() && Quaternionf.class.isAssignableFrom(field.getType())) {
                         Stream.of('W', 'X', 'Y', 'Z')
                             .forEach(suffix -> this.fieldConfigMap.put(config + suffix, configEntry));
-                    } else if (ann.separate() && Vector3.class.isAssignableFrom(field.getType())) {
+                    } else if (ann.separate() && Vector3f.class.isAssignableFrom(field.getType())) {
                         Stream.of('X', 'Y', 'Z').forEach(suffix -> this.fieldConfigMap.put(config + suffix, configEntry));
                     } else {
                         this.fieldConfigMap.put(config, configEntry);
@@ -626,15 +623,15 @@ public class VRSettings {
         } else if (type.isEnum()) {
             Method m = type.getMethod("valueOf", String.class);
             return m.invoke(null, value);
-        } else if (Quaternion.class.isAssignableFrom(type)) {
-            Quaternion quat = ((Quaternion) currentValue).copy();
+        } else if (Quaternionf.class.isAssignableFrom(type)) {
+            Quaternionf quat = new Quaternionf((Quaternionf) currentValue);
             if (separate) {
                 float f = Float.parseFloat(value);
                 switch (name.charAt(name.length() - 1)) {
                     case 'W' -> quat.w = f;
-                    case 'X' -> quat.x = f;
-                    case 'Y' -> quat.y = f;
-                    case 'Z' -> quat.z = f;
+                    case 'X' -> quat.x = -f;
+                    case 'Y' -> quat.y = -f;
+                    case 'Z' -> quat.z = -f;
                 }
             } else {
                 String[] split = value.split(",");
@@ -644,8 +641,8 @@ public class VRSettings {
                 quat.z = Float.parseFloat(split[3]);
             }
             return quat;
-        } else if (Vector3.class.isAssignableFrom(type)) {
-            Vector3 vec = ((Vector3) currentValue).copy();
+        } else if (Vector3f.class.isAssignableFrom(type)) {
+            Vector3f vec = new Vector3f((Vector3f) currentValue);
             if (separate) {
                 float f = Float.parseFloat(value);
                 switch (name.charAt(name.length() - 1)) {
@@ -692,21 +689,21 @@ public class VRSettings {
             return obj.toString();
         } else if (type.isEnum()) {
             return ((Enum<?>) obj).name();
-        } else if (Quaternion.class.isAssignableFrom(type)) {
-            Quaternion quat = (Quaternion) obj;
+        } else if (Quaternionf.class.isAssignableFrom(type)) {
+            Quaternionf quat = (Quaternionf) obj;
             if (separate) {
                 return Float.toString(switch (name.charAt(name.length() - 1)) {
                     case 'W' -> quat.w;
-                    case 'X' -> quat.x;
-                    case 'Y' -> quat.y;
-                    case 'Z' -> quat.z;
+                    case 'X' -> -quat.x;
+                    case 'Y' -> -quat.y;
+                    case 'Z' -> -quat.z;
                     default -> 0; // shouldn't happen
                 });
             } else {
                 return quat.w + "," + quat.x + "," + quat.y + "," + quat.z;
             }
-        } else if (Vector3.class.isAssignableFrom(type)) {
-            Vector3 vec = (Vector3) obj;
+        } else if (Vector3f.class.isAssignableFrom(type)) {
+            Vector3f vec = (Vector3f) obj;
             if (separate) {
                 return Float.toString(switch (name.charAt(name.length() - 1)) {
                     case 'X' -> vec.x;
@@ -765,17 +762,17 @@ public class VRSettings {
         } else if (type.isEnum()) {
             Method m = type.getMethod("valueOf", String.class);
             return m.invoke(null, value);
-        } else if (Quaternion.class.isAssignableFrom(type)) {
-            Quaternion quat = new Quaternion();
+        } else if (Quaternionf.class.isAssignableFrom(type)) {
+            Quaternionf quat = new Quaternionf();
             if (separate) {
                 Stream.of('W', 'X', 'Y', 'Z').forEach(suffix -> {
                     String str = settingsMap.get(name + suffix);
                     float f = Float.parseFloat(str);
                     switch (suffix) {
                         case 'W' -> quat.w = f;
-                        case 'X' -> quat.x = f;
-                        case 'Y' -> quat.y = f;
-                        case 'Z' -> quat.z = f;
+                        case 'X' -> quat.x = -f;
+                        case 'Y' -> quat.y = -f;
+                        case 'Z' -> quat.z = -f;
                     }
                 });
             } else {
@@ -786,8 +783,8 @@ public class VRSettings {
                 quat.z = Float.parseFloat(split[3]);
             }
             return quat;
-        } else if (Vector3.class.isAssignableFrom(type)) {
-            Vector3 vec = new Vector3();
+        } else if (Vector3f.class.isAssignableFrom(type)) {
+            Vector3f vec = new Vector3f();
             if (separate) {
                 Stream.of('X', 'Y', 'Z').forEach(suffix -> {
                     String str = settingsMap.get(name + suffix);

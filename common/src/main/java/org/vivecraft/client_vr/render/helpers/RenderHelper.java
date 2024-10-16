@@ -57,8 +57,7 @@ public class RenderHelper {
             modelView = new Matrix4f().rotation(MCVR.get().hmdRotHistory
                 .averageRotation(DATA_HOLDER.vrSettings.displayMirrorCenterSmooth));
         } else {
-            modelView = DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(renderPass)
-                .getMatrix().transposed().toMCMatrix();
+            modelView = DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(renderPass).getMatrix().transpose();
         }
         poseStack.last().pose().mul(modelView);
         poseStack.last().normal().mul(new Matrix3f(modelView));
@@ -73,10 +72,10 @@ public class RenderHelper {
      */
     public static Vec3 getSmoothCameraPosition(RenderPass renderPass, VRData vrData) {
         if (DATA_HOLDER.currentPass == RenderPass.CENTER && DATA_HOLDER.vrSettings.displayMirrorCenterSmooth > 0.0F) {
-            return MCVR.get().hmdHistory.averagePosition(DATA_HOLDER.vrSettings.displayMirrorCenterSmooth)
-                .scale(vrData.worldScale)
-                .yRot(vrData.rotation_radians)
-                .add(vrData.origin);
+            Vector3f pos = MCVR.get().hmdHistory.averagePosition(DATA_HOLDER.vrSettings.displayMirrorCenterSmooth)
+                .mul(vrData.worldScale)
+                .rotateY(vrData.rotation_radians);
+            return new Vec3(pos.x + vrData.origin.x, pos.y + vrData.origin.y, pos.z + vrData.origin.z);
         } else {
             return vrData.getEye(renderPass).getPosition();
         }
@@ -123,19 +122,20 @@ public class RenderHelper {
                 VRData.VRDevicePose eye = c == 0 ? DATA_HOLDER.vrPlayer.vrdata_world_render.eye0 :
                     DATA_HOLDER.vrPlayer.vrdata_world_render.eye1;
 
-                return eye.getPosition()
-                    .add(DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getDirection()
-                        .scale(0.2 * DATA_HOLDER.vrPlayer.vrdata_world_render.worldScale));
+                Vector3f dir = DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getDirection()
+                    .mul(0.2F * DATA_HOLDER.vrPlayer.vrdata_world_render.worldScale);
+
+                return eye.getPosition().add(dir.x, dir.y, dir.z);
             } else {
                 // general case
                 // no worldScale in the main menu
                 float worldScale = MC.player != null && MC.level != null ?
                     DATA_HOLDER.vrPlayer.vrdata_world_render.worldScale : 1.0F;
 
-                Vec3 dir = DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getDirection();
-                dir = dir.yRot((float) Math.toRadians(c == 0 ? -35.0D : 35.0D));
-                dir = new Vec3(dir.x, 0.0D, dir.z);
-                dir = dir.normalize();
+                Vector3f dir = DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getDirection();
+                dir.rotateY((float) Math.toRadians(c == 0 ? -35.0D : 35.0D));
+                dir.y = 0F;
+                dir.normalize();
                 return DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getPosition().add(
                     dir.x * 0.3D * worldScale,
                     -0.4D * worldScale,
@@ -165,16 +165,14 @@ public class RenderHelper {
             TelescopeTracker.isTelescope(MC.player.getUseItem()) &&
             TelescopeTracker.isTelescope(c == 0 ? MC.player.getMainHandItem() : MC.player.getOffhandItem()))
         {
-            poseStack.mulPoseMatrix(DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getMatrix().inverted()
-                .transposed().toMCMatrix());
+            poseStack.mulPoseMatrix(DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getMatrix().invert().transpose());
             poseStack.mulPose(Axis.XP.rotationDegrees(90F));
             // move to the eye center, seems to be magic numbers that work for the vive at least
             poseStack.translate((c == (DATA_HOLDER.vrSettings.reverseHands ? 1 : 0) ? 0.075F : -0.075F) * sc,
                 -0.025F * sc,
                 0.0325F * sc);
         } else {
-            poseStack.mulPoseMatrix(DATA_HOLDER.vrPlayer.vrdata_world_render.getController(c)
-                .getMatrix().inverted().transposed().toMCMatrix());
+            poseStack.mulPoseMatrix(DATA_HOLDER.vrPlayer.vrdata_world_render.getController(c).getMatrix().invert().transpose());
         }
 
         poseStack.scale(sc, sc, sc);

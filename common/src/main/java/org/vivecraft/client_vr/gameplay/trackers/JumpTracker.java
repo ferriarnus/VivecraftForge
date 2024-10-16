@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -160,25 +161,25 @@ public class JumpTracker extends Tracker {
 
             if (jump) {
                 this.dh.climbTracker.forceActivate = true;
-                Vec3 movement = this.dh.vr.controllerHistory[0].netMovement(0.3D)
+                Vector3f movement = this.dh.vr.controllerHistory[0].netMovement(0.3D)
                     .add(this.dh.vr.controllerHistory[1].netMovement(0.3D));
 
-                double speed = (this.dh.vr.controllerHistory[0].averageSpeed(0.3D) + this.dh.vr.controllerHistory[1].averageSpeed(0.3D)) / 2.0D;
+                float speed = this.dh.vr.controllerHistory[0].averageSpeed(0.3D) + this.dh.vr.controllerHistory[1].averageSpeed(0.3D) * 0.5F;
 
-                movement = movement.scale((double) 0.33F * speed);
+                movement.mul(0.33F * speed);
 
                 // cap
                 final float limit = 0.66F;
 
                 if (movement.length() > limit) {
-                    movement = movement.scale(limit / movement.length());
+                    movement.mul(limit / movement.length());
                 }
 
                 if (player.hasEffect(MobEffects.JUMP)) {
-                    movement = movement.scale((double) player.getEffect(MobEffects.JUMP).getAmplifier() + 1.5D);
+                    movement.mul(player.getEffect(MobEffects.JUMP).getAmplifier() + 1.5F);
                 }
 
-                movement = movement.yRot(this.dh.vrPlayer.vrdata_world_pre.rotation_radians);
+                movement.rotateY(this.dh.vrPlayer.vrdata_world_pre.rotation_radians);
                 Vec3 lastPosition = this.mc.player.position().subtract(delta);
 
                 if (delta.y < 0.0D && movement.y < 0.0D) {
@@ -211,7 +212,7 @@ public class JumpTracker extends Tracker {
         }
         if ((!climbeyEquipped || ClientDataHolderVR.getInstance().vrSettings.realisticJumpEnabled == VRSettings.RealisticJump.ON) &&
             this.dh.vr.hmdPivotHistory.netMovement(0.25D).y > 0.1D &&
-            this.dh.vr.hmdPivotHistory.latest().y - AutoCalibration.getPlayerHeight() > this.dh.vrSettings.jumpThreshold)
+            this.dh.vr.hmdPivotHistory.latest().y() - AutoCalibration.getPlayerHeight() > this.dh.vrSettings.jumpThreshold)
         {
             player.jumpFromGround();
         }

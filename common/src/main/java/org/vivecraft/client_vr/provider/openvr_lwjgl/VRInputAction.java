@@ -2,6 +2,10 @@ package org.vivecraft.client_vr.provider.openvr_lwjgl;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
+import org.joml.Vector2f;
+import org.joml.Vector2fc;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.Xplat;
 import org.vivecraft.client_vr.provider.ControllerType;
@@ -9,8 +13,6 @@ import org.vivecraft.client_vr.provider.HandedKeyBinding;
 import org.vivecraft.client_vr.provider.InputSimulator;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.control.VRInputActionSet;
-import org.vivecraft.common.utils.math.Vector2;
-import org.vivecraft.common.utils.math.Vector3;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -57,8 +59,8 @@ public class VRInputAction {
         if (this.type.equals("boolean")) {
             return this.digitalData().state;
         } else {
-            Vector3 axis = this.getAxis3D(false);
-            return Math.abs(axis.getX()) > 0.5F || Math.abs(axis.getY()) > 0.5F || Math.abs(axis.getZ()) > 0.5F;
+            Vector3fc axis = this.getAxis3D(false);
+            return Math.abs(axis.x()) > 0.5F || Math.abs(axis.y()) > 0.5F || Math.abs(axis.z()) > 0.5F;
         }
     }
 
@@ -66,11 +68,11 @@ public class VRInputAction {
         if (this.type.equals("boolean")) {
             return this.digitalData().isChanged;
         } else {
-            Vector3 axis = this.getAxis3D(false);
-            Vector3 delta = this.getAxis3D(true);
-            return Math.abs(axis.getX() - delta.getX()) > 0.5F != Math.abs(axis.getX()) > 0.5F ||
-                Math.abs(axis.getY() - delta.getY()) > 0.5F != Math.abs(axis.getY()) > 0.5F ||
-                Math.abs(axis.getZ() - delta.getZ()) > 0.5F != Math.abs(axis.getZ()) > 0.5F;
+            Vector3fc axis = this.getAxis3D(false);
+            Vector3fc delta = this.getAxis3D(true);
+            return Math.abs(axis.x() - delta.x()) > 0.5F != Math.abs(axis.x()) > 0.5F ||
+                Math.abs(axis.y() - delta.y()) > 0.5F != Math.abs(axis.y()) > 0.5F ||
+                Math.abs(axis.z() - delta.z()) > 0.5F != Math.abs(axis.z()) > 0.5F;
         }
     }
 
@@ -83,29 +85,29 @@ public class VRInputAction {
         };
     }
 
-    public Vector2 getAxis2D(boolean delta) {
+    public Vector2fc getAxis2D(boolean delta) {
         return switch (this.type) {
-            case "boolean" -> new Vector2(this.digitalToAnalog(delta), 0.0F);
+            case "boolean" -> new Vector2f(this.digitalToAnalog(delta), 0.0F);
             case "vector1" ->
-                delta ? new Vector2(this.analogData().deltaX, 0.0F) : new Vector2(this.analogData().x, 0.0F);
+                delta ? new Vector2f(this.analogData().deltaX, 0.0F) : new Vector2f(this.analogData().x, 0.0F);
             case "vector2", "vector3" ->
-                delta ? new Vector2(this.analogData().deltaX, this.analogData().deltaY) :
-                new Vector2(this.analogData().x, this.analogData().y);
-            default -> new Vector2();
+                delta ? new Vector2f(this.analogData().deltaX, this.analogData().deltaY) :
+                new Vector2f(this.analogData().x, this.analogData().y);
+            default -> new Vector2f();
         };
     }
 
-    public Vector3 getAxis3D(boolean delta) {
+    public Vector3fc getAxis3D(boolean delta) {
         return switch (this.type) {
-            case "boolean" -> new Vector3(this.digitalToAnalog(delta), 0.0F, 0.0F);
-            case "vector1" -> delta ? new Vector3(this.analogData().deltaX, 0.0F, 0.0F) :
-                new Vector3(this.analogData().x, 0.0F, 0.0F);
-            case "vector2" -> delta ? new Vector3(this.analogData().deltaX, this.analogData().deltaY, 0.0F) :
-                new Vector3(this.analogData().x, this.analogData().y, 0.0F);
+            case "boolean" -> new Vector3f(this.digitalToAnalog(delta), 0.0F, 0.0F);
+            case "vector1" -> delta ? new Vector3f(this.analogData().deltaX, 0.0F, 0.0F) :
+                new Vector3f(this.analogData().x, 0.0F, 0.0F);
+            case "vector2" -> delta ? new Vector3f(this.analogData().deltaX, this.analogData().deltaY, 0.0F) :
+                new Vector3f(this.analogData().x, this.analogData().y, 0.0F);
             case "vector3" ->
-                delta ? new Vector3(this.analogData().deltaX, this.analogData().deltaY, this.analogData().deltaZ) :
-                    new Vector3(this.analogData().x, this.analogData().y, this.analogData().z);
-            default -> new Vector3();
+                delta ? new Vector3f(this.analogData().deltaX, this.analogData().deltaY, this.analogData().deltaZ) :
+                    new Vector3f(this.analogData().x, this.analogData().y, this.analogData().z);
+            default -> new Vector3f();
         };
     }
 
@@ -129,13 +131,13 @@ public class VRInputAction {
      * to give an output even after disabled until the user lets go of the input.
      * Cannot provide delta values as it wouldn't make any sense.
      */
-    public Vector2 getAxis2DUseTracked() {
+    public Vector2fc getAxis2DUseTracked() {
         if (this.currentlyInUse || this.isEnabled()) {
-            Vector2 axis = this.getAxis2D(false);
-            this.currentlyInUse = axis.getX() != 0.0F || axis.getY() != 0.0F;
+            Vector2fc axis = this.getAxis2D(false);
+            this.currentlyInUse = axis.x() != 0.0F || axis.y() != 0.0F;
             return axis;
         } else {
-            return new Vector2();
+            return new Vector2f();
         }
     }
 
@@ -144,13 +146,13 @@ public class VRInputAction {
      * to give an output even after disabled until the user lets go of the input.
      * Cannot provide delta values as it wouldn't make any sense.
      */
-    Vector3 getAxis3DUseTracked() {
+    public Vector3fc getAxis3DUseTracked() {
         if (this.currentlyInUse || this.isEnabled()) {
-            Vector3 axis = this.getAxis3D(false);
-            this.currentlyInUse = axis.getX() != 0.0F || axis.getY() != 0.0F || axis.getZ() != 0.0F;
+            Vector3fc axis = this.getAxis3D(false);
+            this.currentlyInUse = axis.x() != 0.0F || axis.y() != 0.0F || axis.z() != 0.0F;
             return axis;
         } else {
-            return new Vector3();
+            return new Vector3f();
         }
     }
 

@@ -12,8 +12,7 @@ import net.minecraft.client.resources.language.ClientLanguage;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Vector2f;
+import org.joml.*;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.openvr.*;
@@ -24,6 +23,7 @@ import org.vivecraft.client.utils.FileUtils;
 import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client.utils.Utils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.gameplay.screenhandlers.RadialHandler;
@@ -34,13 +34,12 @@ import org.vivecraft.client_vr.render.RenderConfigException;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_vr.utils.external.jinfinadeck;
 import org.vivecraft.client_vr.utils.external.jkatvr;
-import org.vivecraft.common.utils.math.Matrix4f;
-import org.vivecraft.common.utils.math.Vector3;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.OutputStreamWriter;
+import java.lang.Math;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
@@ -204,11 +203,11 @@ public class MCOpenVR extends MCVR {
         }
 
         this.poseMatrices = new Matrix4f[k_unMaxTrackedDeviceCount];
-        this.deviceVelocity = new Vec3[k_unMaxTrackedDeviceCount];
+        this.deviceVelocity = new Vector3f[k_unMaxTrackedDeviceCount];
 
         for (int i = 0; i < k_unMaxTrackedDeviceCount; i++) {
             this.poseMatrices[i] = new Matrix4f();
-            this.deviceVelocity[i] = new Vec3(0.0D, 0.0D, 0.0D);
+            this.deviceVelocity[i] = new Vector3f();
         }
 
         // allocate memory
@@ -301,7 +300,7 @@ public class MCOpenVR extends MCVR {
     }
 
     @Override
-    public Vector2f getPlayAreaSize() {
+    public Vector2fc getPlayAreaSize() {
         if (OpenVR.VRChaperone == null || OpenVR.VRChaperone.GetPlayAreaSize == 0L) {
             return null;
         } else {
@@ -746,7 +745,7 @@ public class MCOpenVR extends MCVR {
     }
 
     @Override
-    public Matrix4f getControllerComponentTransform(int controllerIndex, String componentName) {
+    public Matrix4fc getControllerComponentTransform(int controllerIndex, String componentName) {
         return this.controllerComponentTransforms != null &&
             this.controllerComponentTransforms.containsKey(componentName) &&
             this.controllerComponentTransforms.get(componentName)[controllerIndex] != null ?
@@ -754,7 +753,7 @@ public class MCOpenVR extends MCVR {
             new Matrix4f();
     }
 
-    private Matrix4f getControllerComponentTransformFromButton(int controllerIndex, long button) {
+    private Matrix4fc getControllerComponentTransformFromButton(int controllerIndex, long button) {
         return this.controllerComponentNames != null && this.controllerComponentNames.containsKey(button) ?
             this.getControllerComponentTransform(controllerIndex, this.controllerComponentNames.get(button)) :
             new Matrix4f();
@@ -862,8 +861,8 @@ public class MCOpenVR extends MCVR {
                         continue;
                     }
 
-                    Matrix4f localTransform = new Matrix4f();
-                    OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(renderModelComponentState.mTrackingToComponentLocal(), localTransform);
+                    Matrix4f localTransform = OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(
+                        renderModelComponentState.mTrackingToComponentLocal(), new Matrix4f());
                     this.controllerComponentTransforms.get(component)[c] = localTransform;
 
                     if (c == LEFT_CONTROLLER && isRifts && component.equals(k_pch_Controller_Component_HandGrip)) {
@@ -874,18 +873,18 @@ public class MCOpenVR extends MCVR {
                     if (!failed && c == RIGHT_CONTROLLER) {
                         // calculate gun angle
                         try {
-                            Matrix4f tip = this.getControllerComponentTransform(RIGHT_CONTROLLER, k_pch_Controller_Component_Tip);
-                            Matrix4f hand = this.getControllerComponentTransform(RIGHT_CONTROLLER, k_pch_Controller_Component_HandGrip);
+                            Matrix4fc tip = this.getControllerComponentTransform(RIGHT_CONTROLLER, k_pch_Controller_Component_Tip);
+                            Matrix4fc hand = this.getControllerComponentTransform(RIGHT_CONTROLLER, k_pch_Controller_Component_HandGrip);
 
-                            Vector3 tipVec = tip.transform(FORWARD);
-                            Vector3 handVec = hand.transform(FORWARD);
+                            Vector3f tipVec = tip.transformDirection(MathUtils.BACK, new Vector3f());
+                            Vector3f handVec = hand.transformDirection(MathUtils.BACK, new Vector3f());
 
-                            double dot = Math.abs(tipVec.normalized().dot(handVec.normalized()));
+                            float dot = Math.abs(tipVec.dot(handVec));
 
-                            double angleRad = Math.acos(dot);
-                            double angleDeg = Math.toDegrees(angleRad);
+                            float angleRad = (float) Math.acos(dot);
+                            float angleDeg = (float) Math.toDegrees(angleRad);
 
-                            this.gunStyle = angleDeg > 10.0D;
+                            this.gunStyle = angleDeg > 10.0F;
                             this.gunAngle = angleDeg;
                         } catch (Exception exception) {
                             failed = true;
@@ -1146,7 +1145,7 @@ public class MCOpenVR extends MCVR {
         VRInputAction action = this.getInputAction(keyMapping);
 
         if (action.isEnabled() && action.getLastOrigin() != k_ulInvalidInputValueHandle) {
-            float value = action.getAxis2D(false).getY();
+            float value = action.getAxis2D(false).y();
             if (value != 0.0F) {
                 if (value > 0.0F) {
                     upCallback.run();
@@ -1233,7 +1232,12 @@ public class MCOpenVR extends MCVR {
                          EVREventType_VREvent_TrackedDeviceRoleChanged,
                          EVREventType_VREvent_ModelSkinSettingsHaveChanged -> this.getXforms = true;
                     // OpenVR closed / told the app to exit
-                    case EVREventType_VREvent_Quit -> this.mc.stop();
+                    case EVREventType_VREvent_Quit -> {
+                        //this.mc.stop();
+                        VRState.VR_ENABLED = !VRState.VR_ENABLED;
+                        ClientDataHolderVR.getInstance().vrSettings.vrEnabled = VRState.VR_ENABLED;
+                        ClientDataHolderVR.getInstance().vrSettings.saveOptions();
+                    }
                 }
             }
         }
@@ -1290,11 +1294,11 @@ public class MCOpenVR extends MCVR {
                 if (pose.bPoseIsValid()) {
                     OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(pose.mDeviceToAbsoluteTracking(), this.poseMatrices[deviceIndex]);
                     HmdVector3 velocity = pose.vVelocity();
-                    this.deviceVelocity[deviceIndex] = new Vec3(
+                    this.deviceVelocity[deviceIndex].set(
                         velocity.v(0),
                         velocity.v(1),
                         velocity.v(2));
-                    MathUtils.Matrix4fCopy(this.poseMatrices[deviceIndex], this.controllerPose[controller]);
+                    this.controllerPose[controller].set(this.poseMatrices[deviceIndex]);
                     this.controllerTracking[controller] = true;
                     // controller is tracking, don't execute the code below
                     return;
@@ -1352,7 +1356,7 @@ public class MCOpenVR extends MCVR {
             if (pose.bPoseIsValid()) {
                 OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(pose.mDeviceToAbsoluteTracking(), this.poseMatrices[device]);
                 HmdVector3 velocity = pose.vVelocity();
-                this.deviceVelocity[device] = new Vec3(
+                this.deviceVelocity[device].set(
                     velocity.v(0),
                     velocity.v(1),
                     velocity.v(2));
@@ -1361,12 +1365,12 @@ public class MCOpenVR extends MCVR {
 
         // check headset tracking state
         if (this.hmdTrackedDevicePoses.get(k_unTrackedDeviceIndex_Hmd).bPoseIsValid()) {
-            MathUtils.Matrix4fCopy(this.poseMatrices[k_unTrackedDeviceIndex_Hmd], this.hmdPose);
+            this.hmdPose.set(this.poseMatrices[k_unTrackedDeviceIndex_Hmd]);
             this.headIsTracking = true;
         } else {
             this.headIsTracking = false;
-            this.hmdPose.SetIdentity();
-            this.hmdPose.M[1][3] = 1.62F;
+            this.hmdPose.identity();
+            this.hmdPose.m31(1.62F);
         }
 
         // Gotta do this here so we can get the poses

@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.joml.Vector3f;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client_vr.BlockTags;
@@ -35,9 +36,9 @@ public class ClimbTracker extends Tracker {
     public ClimbeyBlockmode serverBlockmode = ClimbeyBlockmode.DISABLED;
     public boolean forceActivate = false;
     public int latchStartController = -1;
-    public Vec3[] latchStart = new Vec3[]{new Vec3(0.0D, 0.0D, 0.0D), new Vec3(0.0D, 0.0D, 0.0D)};
-    public Vec3[] latchStart_room = new Vec3[]{new Vec3(0.0D, 0.0D, 0.0D), new Vec3(0.0D, 0.0D, 0.0D)};
-    public Vec3[] latchStartBody = new Vec3[]{new Vec3(0.0D, 0.0D, 0.0D), new Vec3(0.0D, 0.0D, 0.0D)};
+    public Vec3[] latchStart = new Vec3[]{Vec3.ZERO, Vec3.ZERO};
+    public Vector3f[] latchStart_room = new Vector3f[]{new Vector3f(), new Vector3f()};
+    public Vec3[] latchStartBody = new Vec3[]{Vec3.ZERO, Vec3.ZERO};
 
     private boolean gravityOverride = false;
     private boolean wantJump = false;
@@ -196,7 +197,7 @@ public class ClimbTracker extends Tracker {
 
         for (int c = 0; c < 2; c++) {
             controllerPos[c] = this.dh.vrPlayer.vrdata_world_pre.getController(c).getPosition();
-            Vec3 controllerDir = this.dh.vrPlayer.vrdata_world_pre.getController(c).getDirection();
+            Vector3f controllerDir = this.dh.vrPlayer.vrdata_world_pre.getController(c).getDirection();
             this.inBlock[c] = false;
 
             BlockPos blockPos = BlockPos.containing(controllerPos[c]);
@@ -212,7 +213,8 @@ public class ClimbTracker extends Tracker {
 
             if (!this.dh.climbTracker.isClimbeyClimb()) {
                 // roomscale climbable
-                Vec3 controllerPosNear = this.dh.vrPlayer.vrdata_world_pre.getController(c).getPosition().subtract(controllerDir.scale(0.2D));
+                Vec3 controllerPosNear = this.dh.vrPlayer.vrdata_world_pre.getController(c).getPosition()
+                    .subtract(controllerDir.x * 0.2F, controllerDir.y * 0.2F, controllerDir.z * 0.2F);
                 AABB controllerBB = new AABB(controllerPos[c], controllerPosNear);
                 ladder = true;
                 boolean ok = block instanceof LadderBlock ||
@@ -369,7 +371,7 @@ public class ClimbTracker extends Tracker {
                     grabbed = true;
                     this.wantJump = false;
                     this.latchStart[c] = controllerPos[c];
-                    this.latchStart_room[c] = this.dh.vrPlayer.vrdata_room_pre.getController(c).getPosition();
+                    this.latchStart_room[c] = this.dh.vrPlayer.vrdata_room_pre.getController(c).getPositionF();
                     this.latchStartBody[c] = player.position();
                     this.latchStartController = c;
                     this.latchBox[c] = this.box[c];
@@ -401,7 +403,7 @@ public class ClimbTracker extends Tracker {
                 if (this.inBlock[c] && button[c] && allowed[c]) {
                     grabbed = true;
                     this.latchStart[c] = controllerPos[c];
-                    this.latchStart_room[c] = this.dh.vrPlayer.vrdata_room_pre.getController(c).getPosition();
+                    this.latchStart_room[c] = this.dh.vrPlayer.vrdata_room_pre.getController(c).getPositionF();
                     this.latchStartBody[c] = player.position();
                     this.latchStartController = c;
                     this.latched[c] = true;
@@ -456,11 +458,11 @@ public class ClimbTracker extends Tracker {
         }
 
         Vec3 now = this.dh.vrPlayer.vrdata_world_pre.getController(this.latchStartController).getPosition();
-        Vec3 start = VRPlayer.room_to_world_pos(this.latchStart_room[this.latchStartController], this.dh.vrPlayer.vrdata_world_pre);
+        Vec3 start = VRPlayer.roomToWorldPos(this.latchStart_room[this.latchStartController], this.dh.vrPlayer.vrdata_world_pre);
 
         Vec3 delta = now.subtract(start);
 
-        this.latchStart_room[this.latchStartController] = this.dh.vrPlayer.vrdata_room_pre.getController(this.latchStartController).getPosition();
+        this.latchStart_room[this.latchStartController] = this.dh.vrPlayer.vrdata_room_pre.getController(this.latchStartController).getPositionF();
 
         if (this.wantJump) {
             // bzzzzzz
@@ -516,14 +518,18 @@ public class ClimbTracker extends Tracker {
                 controller <= hmd / 2.0D && // hands down below waist
                 this.latchStart[this.latchStartController].y > this.latchBox[this.latchStartController].maxY * 0.8D + blockPos.getY() // latched onto top 20% of block
             ) {
-                Vec3 dir = this.dh.vrPlayer.vrdata_world_pre.hmd.getDirection().scale(0.1F);
-                Vec3 horizontalDir = (new Vec3(dir.x, 0.0D, dir.z)).normalize().scale(0.1D); // check if free spot
+                Vector3f horizontalDir = this.dh.vrPlayer.vrdata_world_pre.hmd.getDirection();
+                horizontalDir.y = 0.0F;
+                horizontalDir.normalize().mul(0.1F); // check if free spot
 
-                boolean ok = this.mc.level.noCollision(player, player.getBoundingBox().move(horizontalDir.x, this.latchBox[this.latchStartController].maxY + (double) blockPos.getY() - player.getY(), horizontalDir.z));
+                boolean ok = this.mc.level.noCollision(player, player.getBoundingBox()
+                    .move(horizontalDir.x,
+                        this.latchBox[this.latchStartController].maxY + blockPos.getY() - player.getY(),
+                        horizontalDir.z));
 
                 if (ok) {
                     newX = player.getX() + horizontalDir.x;
-                    newY = this.latchBox[this.latchStartController].maxY + (double) blockPos.getY();
+                    newY = this.latchBox[this.latchStartController].maxY + blockPos.getY();
                     newZ = player.getZ() + horizontalDir.z;
                     this.latchStartController = -1;
                     this.latched[0] = false;
@@ -588,22 +594,22 @@ public class ClimbTracker extends Tracker {
             // jump!
             this.wantJump = false;
             Vec3 p1 = player.position().subtract(delta);
-            Vec3 movement = this.dh.vr.controllerHistory[this.latchStartController].netMovement(0.3D);
-            double speed = this.dh.vr.controllerHistory[this.latchStartController].averageSpeed(0.3F);
-            movement = movement.scale(0.66D * speed);
+            Vector3f movement = this.dh.vr.controllerHistory[this.latchStartController].netMovement(0.3D);
+            float speed = this.dh.vr.controllerHistory[this.latchStartController].averageSpeed(0.3F);
+            movement.mul(0.66F * speed);
 
             final float limit = 0.66F;
 
             if (movement.length() > limit) {
-                movement = movement.scale(limit / movement.length());
+                 movement.mul(limit / movement.length());
             }
 
             if (player.hasEffect(MobEffects.JUMP)) {
-                movement = movement.scale(player.getEffect(MobEffects.JUMP).getAmplifier() + 1.5D);
+                 movement.mul(player.getEffect(MobEffects.JUMP).getAmplifier() + 1.5F);
             }
 
-            movement = movement.yRot(this.dh.vrPlayer.vrdata_world_pre.rotation_radians);
-            player.setDeltaMovement(movement.multiply(-1.0D, -1.0D, -1.0D));
+            movement.rotateY(this.dh.vrPlayer.vrdata_world_pre.rotation_radians);
+            player.setDeltaMovement(-movement.x, -movement.y, -movement.z);
             player.xOld = p1.x;
             player.yOld = p1.y;
             player.zOld = p1.z;

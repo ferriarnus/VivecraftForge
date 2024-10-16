@@ -3,16 +3,19 @@ package org.vivecraft.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.vivecraft.client.extensions.SparkParticleExtension;
 import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRData;
 import org.vivecraft.common.network.VrPlayerState;
-import org.vivecraft.common.utils.math.Quaternion;
-import org.vivecraft.common.utils.math.Vector3;
 
 import java.util.*;
 
@@ -62,10 +65,9 @@ public class VRPlayersClient {
         if (!localPlayer && this.mc.player.getUUID().equals(uuid))
             return; // Don't update local player from server packet
 
-        Vector3 forward = new Vector3(0.0F, 0.0F, -1.0F);
-        Vector3 hmdDir = vrPlayerState.hmd().orientation().multiply(forward);
-        Vector3 controller0Dir = vrPlayerState.controller0().orientation().multiply(forward);
-        Vector3 controller1Dir = vrPlayerState.controller1().orientation().multiply(forward);
+        Vector3fc hmdDir = vrPlayerState.hmd().orientation().transform(MathUtils.BACK, new Vector3f());
+        Vector3fc controller0Dir = vrPlayerState.controller0().orientation().transform(MathUtils.BACK, new Vector3f());
+        Vector3fc controller1Dir = vrPlayerState.controller1().orientation().transform(MathUtils.BACK, new Vector3f());
 
         RotInfo rotInfo = new RotInfo();
         rotInfo.reverse = vrPlayerState.reverseHands();
@@ -73,9 +75,9 @@ public class VRPlayersClient {
 
         rotInfo.hmd = this.donors.getOrDefault(uuid, 0);
 
-        rotInfo.leftArmRot = new Vec3(controller1Dir.getX(), controller1Dir.getY(), controller1Dir.getZ());
-        rotInfo.rightArmRot = new Vec3(controller0Dir.getX(), controller0Dir.getY(), controller0Dir.getZ());
-        rotInfo.headRot = new Vec3(hmdDir.getX(), hmdDir.getY(), hmdDir.getZ());
+        rotInfo.leftArmRot = controller1Dir;
+        rotInfo.rightArmRot = controller0Dir;
+        rotInfo.headRot = hmdDir;
         rotInfo.Headpos = vrPlayerState.hmd().position();
         rotInfo.leftArmPos = vrPlayerState.controller1().position();
         rotInfo.rightArmPos = vrPlayerState.controller0().position();
@@ -130,27 +132,27 @@ public class VRPlayersClient {
                     // donor butt sparkles
                     if (this.donors.getOrDefault(player.getUUID(), 0) > 3 && this.rand.nextInt(10) < 4) {
                         RotInfo rotInfo = this.vivePlayers.get(player.getUUID());
-                        Vec3 look = player.getLookAngle();
-
+                        Vector3f look = player.getLookAngle().toVector3f();
                         if (rotInfo != null) {
-                            look = rotInfo.leftArmPos.subtract(rotInfo.rightArmPos).yRot((-(float) Math.PI / 2F));
+                            look = rotInfo.leftArmPos.sub(rotInfo.rightArmPos, look).rotateY(-Mth.PI * 0.5F);
 
                             if (rotInfo.reverse) {
-                                look = look.scale(-1.0D);
+                                look = look.mul(-1.0F);
                             } else if (rotInfo.seated) {
-                                look = rotInfo.rightArmRot;
+                                look.set(rotInfo.rightArmRot);
                             }
 
                             // Hands are at origin or something, usually happens if they don't track
                             if (look.length() < 1.0E-4F) {
-                                look = rotInfo.headRot;
+                                look.set(rotInfo.headRot);
                             }
                         }
-                        look = look.scale(0.1F);
+                        look = look.mul(0.1F);
 
                         // Use hmd pos for self, so we don't have butt sparkles in face
                         Vec3 pos = rotInfo != null && player == this.mc.player ?
-                            rotInfo.Headpos.add(player.position()) : player.getEyePosition(1.0F);
+                            player.position().add(rotInfo.Headpos.x(), rotInfo.Headpos.y(), rotInfo.Headpos.z()) :
+                            player.getEyePosition(1.0F);
 
                         Particle particle = this.mc.particleEngine.createParticle(
                             ParticleTypes.FIREWORK,
@@ -160,9 +162,9 @@ public class VRPlayersClient {
                                 (this.rand.nextFloat() - 0.5F) * 0.02F,
                             pos.z + (player.isShiftKeyDown() ? -look.z * 3.0D : 0.0D) +
                                 (this.rand.nextFloat() - 0.5F) * 0.02F,
-                            -look.x + (this.rand.nextFloat() - 0.5D) * 0.01F,
+                            -look.x + (this.rand.nextFloat() - 0.5F) * 0.01F,
                             (this.rand.nextFloat() - 0.05F) * 0.05F,
-                            -look.z + (this.rand.nextFloat() - 0.5D) * 0.01F);
+                            -look.z + (this.rand.nextFloat() - 0.5F) * 0.01F);
 
                         if (particle != null) {
                             particle.setColor(0.5F + this.rand.nextFloat() * 0.5F,
@@ -190,52 +192,46 @@ public class VRPlayersClient {
             uuid = this.mc.player.getUUID();
         }
 
-        RotInfo rotInfo = this.vivePlayers.get(uuid);
+        RotInfo newRotInfo = this.vivePlayers.get(uuid);
 
-        if (rotInfo != null && this.vivePlayersLast.containsKey(uuid)) {
+        if (newRotInfo != null && this.vivePlayersLast.containsKey(uuid)) {
             RotInfo lastRotInfo = this.vivePlayersLast.get(uuid);
             RotInfo lerpRotInfo = new RotInfo();
             float partialTick = Minecraft.getInstance().getFrameTime();
 
-            lerpRotInfo.reverse = rotInfo.reverse;
-            lerpRotInfo.seated = rotInfo.seated;
-            lerpRotInfo.hmd = rotInfo.hmd;
-            lerpRotInfo.leftArmPos = MathUtils.vecLerp(lastRotInfo.leftArmPos, rotInfo.leftArmPos, partialTick);
-            lerpRotInfo.rightArmPos = MathUtils.vecLerp(lastRotInfo.rightArmPos, rotInfo.rightArmPos, partialTick);
-            lerpRotInfo.Headpos = MathUtils.vecLerp(lastRotInfo.Headpos, rotInfo.Headpos, partialTick);
-            lerpRotInfo.leftArmQuat = rotInfo.leftArmQuat;
-            lerpRotInfo.rightArmQuat = rotInfo.rightArmQuat;
-            lerpRotInfo.headQuat = rotInfo.headQuat;
+            lerpRotInfo.reverse = newRotInfo.reverse;
+            lerpRotInfo.seated = newRotInfo.seated;
+            lerpRotInfo.hmd = newRotInfo.hmd;
+            lerpRotInfo.leftArmPos = lastRotInfo.leftArmPos.lerp(newRotInfo.leftArmPos, partialTick, new Vector3f());
+            lerpRotInfo.rightArmPos = lastRotInfo.rightArmPos.lerp(newRotInfo.rightArmPos, partialTick, new Vector3f());
+            lerpRotInfo.Headpos = lastRotInfo.Headpos.lerp(newRotInfo.Headpos, partialTick, new Vector3f());
+            lerpRotInfo.leftArmQuat = newRotInfo.leftArmQuat;
+            lerpRotInfo.rightArmQuat = newRotInfo.rightArmQuat;
+            lerpRotInfo.headQuat = newRotInfo.headQuat;
 
-            Vector3 forward = new Vector3(0.0F, 0.0F, -1.0F);
-            lerpRotInfo.leftArmRot = MathUtils.vecLerp(lastRotInfo.leftArmRot,
-                MathUtils.convertToVector3d(lerpRotInfo.leftArmQuat.multiply(forward)), partialTick);
-            lerpRotInfo.rightArmRot = MathUtils.vecLerp(lastRotInfo.rightArmRot,
-                MathUtils.convertToVector3d(lerpRotInfo.rightArmQuat.multiply(forward)), partialTick);
-            lerpRotInfo.headRot = MathUtils.vecLerp(lastRotInfo.headRot,
-                MathUtils.convertToVector3d(lerpRotInfo.headQuat.multiply(forward)), partialTick);
-            lerpRotInfo.heightScale = rotInfo.heightScale;
-            lerpRotInfo.worldScale = rotInfo.worldScale;
+            lerpRotInfo.leftArmRot = lastRotInfo.leftArmRot.lerp(newRotInfo.leftArmRot, partialTick, new Vector3f());
+            lerpRotInfo.rightArmRot = lastRotInfo.rightArmRot.lerp(newRotInfo.rightArmRot, partialTick, new Vector3f());
+            lerpRotInfo.headRot = lastRotInfo.headRot.lerp(newRotInfo.headRot, partialTick, new Vector3f());
+
+            lerpRotInfo.heightScale = newRotInfo.heightScale;
+            lerpRotInfo.worldScale = newRotInfo.worldScale;
             return lerpRotInfo;
         } else {
-            return rotInfo;
+            return newRotInfo;
         }
     }
 
     public static RotInfo getMainPlayerRotInfo(VRData data) {
         RotInfo rotInfo = new RotInfo();
-        Quaternion leftQuat = new Quaternion(data.getController(1).getMatrix());
-        Quaternion rightQuat = new Quaternion(data.getController(0).getMatrix());
-        Quaternion hmdQuat = new Quaternion(data.hmd.getMatrix());
 
-        rotInfo.headQuat = hmdQuat;
-        rotInfo.leftArmQuat = leftQuat;
-        rotInfo.rightArmQuat = rightQuat;
+        rotInfo.headQuat = data.hmd.getMatrix().getNormalizedRotation(new Quaternionf());
+        rotInfo.leftArmQuat = data.getController(1).getMatrix().getNormalizedRotation(new Quaternionf());
+        rotInfo.rightArmQuat = data.getController(0).getMatrix().getNormalizedRotation(new Quaternionf());
         rotInfo.seated = ClientDataHolderVR.getInstance().vrSettings.seated;
 
-        rotInfo.leftArmPos = data.getController(1).getPosition();
-        rotInfo.rightArmPos = data.getController(0).getPosition();
-        rotInfo.Headpos = data.hmd.getPosition();
+        rotInfo.leftArmPos = data.getController(1).getPositionF();
+        rotInfo.rightArmPos = data.getController(0).getPositionF();
+        rotInfo.Headpos = data.hmd.getPositionF();
         return rotInfo;
     }
 
@@ -250,45 +246,50 @@ public class VRPlayersClient {
      * Simplified: Takes hmd-forward when looking at horizon, takes hmd-up when looking at ground.
      * */
     public static float getFacingYaw(RotInfo rotInfo) {
-        Vec3 facingVec = getOrientVec(rotInfo.headQuat);
+        Vector3f facingVec = getOrientVec(rotInfo.headQuat);
         return (float) Math.toDegrees(Math.atan2(facingVec.x, facingVec.z));
     }
 
-    public static Vec3 getOrientVec(Quaternion quat) {
-        Vec3 facingPlaneNormal = quat.multiply(new Vec3(0.0D, 0.0D, -1.0D))
-            .cross(quat.multiply(new Vec3(0.0D, 1.0D, 0.0D))).normalize();
-        return (new Vec3(0.0D, 1.0D, 0.0D)).cross(facingPlaneNormal).normalize();
+    public static Vector3f getOrientVec(Quaternionfc quat) {
+        Vector3f localFwd = quat.transform(MathUtils.BACK, new Vector3f());
+        Vector3f localUp = quat.transform(MathUtils.UP, new Vector3f());
+
+        Vector3f facingPlaneNormal = localFwd.cross(localUp).normalize();
+        return MathUtils.UP.cross(facingPlaneNormal, new Vector3f()).normalize();
     }
 
     public static class RotInfo {
         public boolean seated;
         public boolean reverse;
         public int hmd = 0;
-        public Quaternion leftArmQuat;
-        public Quaternion rightArmQuat;
-        public Quaternion headQuat;
-        public Vec3 leftArmRot;
-        public Vec3 rightArmRot;
-        public Vec3 headRot;
-        public Vec3 leftArmPos;
-        public Vec3 rightArmPos;
-        public Vec3 Headpos;
+        public Quaternionfc leftArmQuat;
+        public Quaternionfc rightArmQuat;
+        public Quaternionfc headQuat;
+        // body rotations in world space
+        public Vector3fc leftArmRot;
+        public Vector3fc rightArmRot;
+        public Vector3fc headRot;
+        // body positions in player local world space
+        public Vector3fc leftArmPos;
+        public Vector3fc rightArmPos;
+        public Vector3fc Headpos;
         public float worldScale;
         public float heightScale;
 
+        // TODO MATH make the same for VRDATA and this
         public double getBodyYawRadians() {
-            Vec3 diff = this.leftArmPos.subtract(this.rightArmPos).yRot((-(float) Math.PI / 2F));
+            Vector3f diff = this.leftArmPos.sub(this.rightArmPos, new Vector3f()).rotateY(-Mth.PI * 0.5F);
 
             if (this.reverse) {
-                diff = diff.scale(-1.0D);
+                diff = diff.mul(-1.0F);
             }
 
             if (this.seated) {
-                diff = this.rightArmRot;
+                diff.set(this.rightArmRot);
             }
 
-            Vec3 avg = MathUtils.vecLerp(diff, this.headRot, 0.5D);
-            return Math.atan2(-avg.x, avg.z);
+            diff.lerp(this.headRot, 0.5F, diff);
+            return Math.atan2(-diff.x, diff.z);
         }
     }
 }

@@ -2,7 +2,7 @@ package org.vivecraft.client_vr.provider.nullvr;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import org.joml.Vector2f;
+import org.joml.*;
 import org.lwjgl.glfw.GLFW;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -13,7 +13,6 @@ import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.provider.VRRenderer;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.VRInputAction;
 import org.vivecraft.client_vr.settings.VRSettings;
-import org.vivecraft.common.utils.math.Matrix4f;
 
 import java.util.List;
 
@@ -48,7 +47,7 @@ public class NullVR extends MCVR {
     }
 
     @Override
-    public Vector2f getPlayAreaSize() {
+    public Vector2fc getPlayAreaSize() {
         return new Vector2f(2);
     }
 
@@ -62,12 +61,12 @@ public class NullVR extends MCVR {
             this.dh.vrSettings.seated = true;
 
             this.headIsTracking = true;
-            this.hmdPose.SetIdentity();
-            this.hmdPose.M[1][3] = 1.62F;
+            this.hmdPose.identity();
+            this.hmdPose.m31(1.62F);
 
             // eye offset, 10cm total distance
-            this.hmdPoseLeftEye.M[0][3] = -IPD * 0.5F;
-            this.hmdPoseRightEye.M[0][3] = IPD * 0.5F;
+            this.hmdPoseLeftEye.m30(-IPD * 0.5F);
+            this.hmdPoseRightEye.m30(IPD * 0.5F);
 
             this.populateInputActions();
 
@@ -94,40 +93,26 @@ public class NullVR extends MCVR {
 
             this.updateAim();
 
-            this.controllerPose[0].M[0][3] = this.dh.vrSettings.reverseHands ? -0.3F : 0.3F;
-            this.controllerPose[0].M[1][3] = 1.2F;
-            this.controllerPose[0].M[2][3] = -0.5F;
+            this.controllerPose[0].setTranslation(
+                this.dh.vrSettings.reverseHands ? -0.3F : 0.3F,
+                1.2F,
+                -0.5F);
 
-            this.controllerPose[1].M[0][3] =  this.dh.vrSettings.reverseHands ? 0.3F : -0.3F;
-            this.controllerPose[1].M[1][3] = 1.2F;
-            this.controllerPose[1].M[2][3] = -0.5F;
+            this.controllerPose[1].setTranslation(
+                this.dh.vrSettings.reverseHands ? 0.3F : -0.3F,
+                1.2F,
+                -0.5F);
 
             this.dh.vrSettings.xSensitivity = xSens;
             this.dh.vrSettings.keyholeX = xKey;
 
 
             // point head in cursor direction
-            this.hmdRotation.M[0][0] = this.handRotation[0].M[0][0];
-            this.hmdRotation.M[0][1] = this.handRotation[0].M[0][1];
-            this.hmdRotation.M[0][2] = this.handRotation[0].M[0][2];
-            this.hmdRotation.M[1][0] = this.handRotation[0].M[1][0];
-            this.hmdRotation.M[1][1] = this.handRotation[0].M[1][1];
-            this.hmdRotation.M[1][2] = this.handRotation[0].M[1][2];
-            this.hmdRotation.M[2][0] = this.handRotation[0].M[2][0];
-            this.hmdRotation.M[2][1] = this.handRotation[0].M[2][1];
-            this.hmdRotation.M[2][2] = this.handRotation[0].M[2][2];
+            this.hmdRotation.set3x3(this.handRotation[0]);
 
             if (GuiHandler.GUI_ROTATION_ROOM != null) {
                 // look at screen, so that it's centered
-                this.hmdRotation.M[0][0] = GuiHandler.GUI_ROTATION_ROOM.M[0][0];
-                this.hmdRotation.M[0][1] = GuiHandler.GUI_ROTATION_ROOM.M[0][1];
-                this.hmdRotation.M[0][2] = GuiHandler.GUI_ROTATION_ROOM.M[0][2];
-                this.hmdRotation.M[1][0] = GuiHandler.GUI_ROTATION_ROOM.M[1][0];
-                this.hmdRotation.M[1][1] = GuiHandler.GUI_ROTATION_ROOM.M[1][1];
-                this.hmdRotation.M[1][2] = GuiHandler.GUI_ROTATION_ROOM.M[1][2];
-                this.hmdRotation.M[2][0] = GuiHandler.GUI_ROTATION_ROOM.M[2][0];
-                this.hmdRotation.M[2][1] = GuiHandler.GUI_ROTATION_ROOM.M[2][1];
-                this.hmdRotation.M[2][2] = GuiHandler.GUI_ROTATION_ROOM.M[2][2];
+                this.hmdRotation.set3x3(GuiHandler.GUI_ROTATION_ROOM);
             }
             this.mc.getProfiler().popPush("hmdSampling");
             this.hmdSampling();
@@ -145,7 +130,7 @@ public class NullVR extends MCVR {
     }
 
     @Override
-    public Matrix4f getControllerComponentTransform(int controllerIndex, String componentName) {
+    public Matrix4fc getControllerComponentTransform(int controllerIndex, String componentName) {
         return new Matrix4f();
     }
 

@@ -7,13 +7,16 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.TorchBlock;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
+import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.ItemTags;
 import org.vivecraft.client_vr.gameplay.trackers.ClimbTracker;
@@ -170,45 +173,42 @@ public class VivecraftItemRendering {
                     bowHand = 0;
                 }
 
-                Vec3 aim = DH.bowTracker.getAimVector();
+                Vector3fc aim = DH.bowTracker.getAimVector();
 
-                Vec3 localBack = DH.vrPlayer.vrdata_world_render.getHand(bowHand)
-                    .getCustomVector(new Vec3(0.0D, 0.0D, -1.0D));
+                Vector3f localBack = DH.vrPlayer.vrdata_world_render.getHand(bowHand).getCustomVector(MathUtils.BACK);
 
-                float aimPitch = (float) Math.toDegrees(Math.asin(aim.y / aim.length()));
-                float yaw = (float) Math.toDegrees(Math.atan2(aim.x, aim.z));
-
-                Vec3 up = new Vec3(0.0D, 1.0D, 0.0D);
+                float aimPitch = (float) Math.toDegrees(Math.asin(aim.y() / aim.length()));
+                float yaw = (float) Math.toDegrees(Math.atan2(aim.x(), aim.z()));
 
                 // we want the normal to aim aiming plane, but vertical.
-                Vec3 aimHorizontal = new Vec3(aim.x, 0.0D, aim.z);
+                Vector3f aimHorizontal = new Vector3f(aim.x(), 0.0F, aim.z());
 
-                Vec3 pAim2 = Vec3.ZERO;
+                Vector3f pAim2 = new Vector3f();
                 // angle between controller up and aim, just for ortho check
-                double aimProj = localBack.dot(aimHorizontal);
+                float aimProj = localBack.dot(aimHorizontal);
 
                 // check to make sure we aren't holding the bow perfectly straight up.
-                if (aimProj != 0.0D) {
+                if (aimProj != 0.0F) {
                     // projection of l_controller_up onto aim vector ... why is there no multiply?
-                    pAim2 = aimHorizontal.scale(aimProj);
+                    aimHorizontal.mul(aimProj, pAim2);
                 }
 
-                Vec3 proj = localBack.subtract(pAim2).normalize();
+                Vector3f proj = localBack.sub(pAim2, new Vector3f()).normalize();
                 // angle between our projection and straight up (the default bow render pos.)
-                double dot = proj.dot(up);
+                float dot = proj.dot(MathUtils.UP);
 
                 // angle sign test, negative is left roll
-                double dot2 = aimHorizontal.dot(proj.cross(up));
+                float dot2 = aimHorizontal.dot(proj.cross(MathUtils.UP, new Vector3f()));
 
                 float angle;
-                if (dot2 < 0.0D) {
+                if (dot2 < 0.0F) {
                     angle = (float) -Math.acos(dot);
                 } else {
                     angle = (float) Math.acos(dot);
                 }
 
                 // calculate bow model roll.
-                float roll = (180F / (float) Math.PI) * angle;
+                float roll = 180F / Mth.PI * angle;
 
                 if (DH.bowTracker.isCharged()) {
                     // bow jitter
@@ -219,7 +219,7 @@ public class VivecraftItemRendering {
                 poseStack.translate(0.0F, 0.0F, 0.1F);
                 // un-do controller tracking
                 poseStack.last().pose()
-                    .mul(DH.vrPlayer.vrdata_world_render.getController(bowHand).getMatrix().transposed().toMCMatrix());
+                    .mul(DH.vrPlayer.vrdata_world_render.getController(bowHand).getMatrix().transpose());
 
                 // rotate in world coords
                 rotation.mul(Axis.YP.rotationDegrees(yaw));

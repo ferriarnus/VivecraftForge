@@ -1,15 +1,15 @@
 package org.vivecraft.common.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.phys.Vec3;
-import org.vivecraft.common.utils.math.Quaternion;
+import org.joml.Quaternionfc;
+import org.joml.Vector3fc;
 
 /**
  * holds a device Pose
  * @param position position of the device in player local space
  * @param orientation orientation of the device in world space
  */
-public record Pose(Vec3 position, Quaternion orientation) {
+public record Pose(Vector3fc position, Quaternionfc orientation) {
 
     /**
      * @param buffer buffer to read from

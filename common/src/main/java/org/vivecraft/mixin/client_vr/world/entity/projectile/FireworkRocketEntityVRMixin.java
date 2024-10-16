@@ -9,6 +9,8 @@ import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
+
+import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,7 +34,8 @@ public class FireworkRocketEntityVRMixin {
                 !localPlayer.getOffhandItem().is(Items.FIREWORK_ROCKET);
             VRData.VRDevicePose controller = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld()
                 .getHand(fireworkInMainHand ? 0 : 1);
-            handPos.set(controller.getPosition().add(controller.getDirection().scale(0.25)));
+            Vector3f offset = controller.getDirection().mul(0.25F);
+            handPos.set(controller.getPosition().add(offset.x, offset.y, offset.z));
             return handPos.get().x;
         }
         return x;

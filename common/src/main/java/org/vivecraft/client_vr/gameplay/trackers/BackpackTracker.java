@@ -6,13 +6,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
 
 public class BackpackTracker extends Tracker {
     public boolean[] wasIn = new boolean[2];
     public int previousSlot = 0;
-    private final Vec3 down = new Vec3(0.0D, -1.0D, 0.0D);
 
     public BackpackTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -44,11 +45,11 @@ public class BackpackTracker extends Tracker {
 
         for (int c = 0; c < 2; c++) {
             Vec3 controllerPos = provider.vrdata_room_pre.getController(c).getPosition();
-            Vec3 controllerDir = provider.vrdata_room_pre.getHand(c).getDirection();
-            Vec3 hmdDir = provider.vrdata_room_pre.hmd.getDirection();
-            Vec3 delta = hmdPos.subtract(controllerPos);
+            Vector3f controllerDir = provider.vrdata_room_pre.getHand(c).getDirection();
+            Vector3f hmdDir = provider.vrdata_room_pre.hmd.getDirection();
+            Vector3f delta = MathUtils.subtractToVector3f(hmdPos, controllerPos);
 
-            double dot = controllerDir.dot(this.down);
+            double dot = controllerDir.dot(MathUtils.DOWN);
             double dotDelta = delta.dot(hmdDir);
 
             boolean below = Math.abs(hmdPos.y - controllerPos.y) < 0.25D;

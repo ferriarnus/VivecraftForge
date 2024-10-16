@@ -21,8 +21,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.network.ClientNetworking;
+import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client.utils.ScaleHelper;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.ItemTags;
@@ -66,7 +69,7 @@ public class VRPlayer {
     public boolean teleportWarning = false;
     public boolean vrSwitchWarning = false;
     public int chatWarningTimer = -1;
-    public Vec3 roomOrigin = new Vec3(0.0D, 0.0D, 0.0D);
+    public Vec3 roomOrigin = Vec3.ZERO;
 
     // based on a heuristic of which locomotion type was last used
     private boolean isFreeMoveCurrent = true;
@@ -85,22 +88,22 @@ public class VRPlayer {
 
     public VRPlayer() {
         this.vrdata_room_pre = new VRData(
-            new Vec3(0.0D, 0.0D, 0.0D),
+            Vec3.ZERO,
             this.dh.vrSettings.walkMultiplier,
             1.0F,
             0.0F);
         this.vrdata_room_post = new VRData(
-            new Vec3(0.0D, 0.0D, 0.0D),
+            Vec3.ZERO,
             this.dh.vrSettings.walkMultiplier,
             1.0F,
             0.0F);
         this.vrdata_world_post = new VRData(
-            new Vec3(0.0D, 0.0D, 0.0D),
+            Vec3.ZERO,
             this.dh.vrSettings.walkMultiplier,
             1.0F,
             0.0F);
         this.vrdata_world_pre = new VRData(
-            new Vec3(0.0D, 0.0D, 0.0D),
+            Vec3.ZERO,
             this.dh.vrSettings.walkMultiplier,
             1.0F,
             0.0F);
@@ -114,21 +117,21 @@ public class VRPlayer {
         return ClientDataHolderVR.getInstance().vrPlayer;
     }
 
-    public static Vec3 room_to_world_pos(Vec3 pos, VRData data) {
-        Vec3 out = pos.scale(data.worldScale);
-        out = out.yRot(data.rotation_radians);
-        return out.add(data.origin);
+    public static Vec3 roomToWorldPos(Vector3fc pos, VRData data) {
+        Vector3f out = pos.mul(data.worldScale, new Vector3f());
+        out = out.rotateY(data.rotation_radians);
+        return data.origin.add(out.x, out.y, out.z);
     }
 
-    public static Vec3 world_to_room_pos(Vec3 pos, VRData data) {
-        Vec3 out = pos.subtract(data.origin);
-        out = out.scale(1.0F / data.worldScale);
-        return out.yRot(-data.rotation_radians);
+    public static Vector3f worldToRoomPos(Vec3 pos, VRData data) {
+        Vector3f out = MathUtils.subtractToVector3f(pos, data.origin);
+        out = out.div(data.worldScale);
+        return out.rotateY(-data.rotation_radians);
     }
 
     public void postPoll() {
         this.vrdata_room_pre = new VRData(
-            new Vec3(0.0D, 0.0D, 0.0D),
+            Vec3.ZERO,
             this.dh.vrSettings.walkMultiplier,
             1.0F,
             0.0F);
@@ -198,7 +201,8 @@ public class VRPlayer {
             // check that nobody tries to bypass the server set worldscale limit it with a runtime worldscale
             if (this.mc.level != null && this.mc.isLocalServer() && (worldScaleOverride.isValueMinOverridden() || worldScaleOverride.isValueMaxOverridden())) {
                 // a vr runtime worldscale also scales the distance between the eyes, so that can be used to calculate it
-                float measuredIPD = (float) ClientDataHolderVR.getInstance().vr.getEyePosition(RenderPass.LEFT).subtract(ClientDataHolderVR.getInstance().vr.getEyePosition(RenderPass.RIGHT)).length();
+                float measuredIPD = ClientDataHolderVR.getInstance().vr.getEyePosition(RenderPass.LEFT)
+                    .sub(ClientDataHolderVR.getInstance().vr.getEyePosition(RenderPass.RIGHT)).length();
                 float queriedIPD = ClientDataHolderVR.getInstance().vr.getIPD();
 
                 float runtimeWorldScale = queriedIPD / measuredIPD;
@@ -226,35 +230,18 @@ public class VRPlayer {
 
     public void postTick() {
         // translational position change due only to scale. - move room to fix entity in place during scale changes.
-        VRData tempps = new VRData(
-            this.vrdata_world_pre.origin,
-            this.dh.vrSettings.walkMultiplier,
-            this.vrdata_world_pre.worldScale,
-            this.vrdata_world_pre.rotation_radians);
-        VRData temps = new VRData(
-            this.vrdata_world_pre.origin,
-            this.dh.vrSettings.walkMultiplier,
-            this.worldScale,
-            this.vrdata_world_pre.rotation_radians);
-
-        Vec3 scaleOffset = temps.hmd.getPosition().subtract(tempps.hmd.getPosition());
-        this.roomOrigin = this.roomOrigin.subtract(scaleOffset);
+        Vector3f scaleOffset = this.vrdata_world_pre.hmd.getScalePositionOffset(this.worldScale);
+        this.roomOrigin = this.roomOrigin.subtract(scaleOffset.x, scaleOffset.y, scaleOffset.z);
         //
 
         // Handle all room translations up to this point and then rotate it around the hmd.
-        VRData temp = new VRData(
-            this.roomOrigin,
-            this.dh.vrSettings.walkMultiplier,
-            this.worldScale,
-            this.vrdata_world_pre.rotation_radians);
-
         float end = this.dh.vrSettings.worldRotation;
         float start = (float) Math.toDegrees(this.vrdata_world_pre.rotation_radians);
-        this.rotateOriginAround(-end + start, temp.getHeadPivot());
+        this.rotateOriginAround(-end + start, this.vrdata_world_pre.getNewHeadPivot(this.roomOrigin, this.worldScale));
         //
 
         this.vrdata_room_post = new VRData(
-            new Vec3(0.0D, 0.0D, 0.0D),
+            Vec3.ZERO,
             this.dh.vrSettings.walkMultiplier,
             1.0F,
             0.0F);
@@ -275,8 +262,8 @@ public class VRPlayer {
     public void preRender(float partialTick) {
         // do some interpolatin'
 
-        float interpolatedWorldScale =
-            this.vrdata_world_post.worldScale * partialTick + this.vrdata_world_pre.worldScale * (1.0F - partialTick);
+        float interpolatedWorldScale = Mth.lerp(partialTick, this.vrdata_world_pre.worldScale,
+            this.vrdata_world_post.worldScale);
 
         float end = this.vrdata_world_post.rotation_radians;
         float start = this.vrdata_world_pre.rotation_radians;
@@ -285,24 +272,19 @@ public class VRPlayer {
 
         if (difference > Math.PI) {
             if (end > start) {
-                start = (float) (start + Math.PI * 2.0D);
+                start = start + Mth.PI * 2.0F;
             } else {
-                end = (float) (end + Math.PI * 2.0D);
+                end = end + Mth.PI * 2.0F;
             }
         }
 
-        float interpolatedWorldRotation_Radians = end * partialTick + start * (1.0F - partialTick);
+        float interpolatedWorldRotation_Radians = Mth.lerp(partialTick, start,
+            end);
 
-        Vec3 interPolatedRoomOrigin = new Vec3(
-            this.vrdata_world_pre.origin.x +
-                (this.vrdata_world_post.origin.x - this.vrdata_world_pre.origin.x) * partialTick,
-            this.vrdata_world_pre.origin.y +
-                (this.vrdata_world_post.origin.y - this.vrdata_world_pre.origin.y) * partialTick,
-            this.vrdata_world_pre.origin.z +
-                (this.vrdata_world_post.origin.z - this.vrdata_world_pre.origin.z) * partialTick);
+        Vec3 interpolatedRoomOrigin = MathUtils.vecLerp(this.vrdata_world_pre.origin, this.vrdata_world_post.origin, partialTick);
 
         this.vrdata_world_render = new VRData(
-            interPolatedRoomOrigin,
+            interpolatedRoomOrigin,
             this.dh.vrSettings.walkMultiplier,
             interpolatedWorldScale,
             interpolatedWorldRotation_Radians);
@@ -341,17 +323,14 @@ public class VRPlayer {
         {
             return;
         }
-        VRData temp = this.vrdata_world_pre;
 
+        Vec3 camPos;
         if (instant) {
-            temp = new VRData(
-                this.roomOrigin,
-                this.dh.vrSettings.walkMultiplier,
-                this.worldScale,
-                (float) Math.toRadians(this.dh.vrSettings.worldRotation));
+            camPos = this.vrdata_world_pre.getNewHeadPivot(this.roomOrigin, this.worldScale).subtract(this.roomOrigin);
+        } else {
+            camPos = this.vrdata_world_pre.getHeadPivot().subtract(this.vrdata_world_pre.origin);
         }
 
-        Vec3 camPos = temp.getHeadPivot().subtract(temp.origin);
         double x = player.getX() - camPos.x;
         double y = player.getZ() - camPos.z;
         double z = player.getY() + ((PlayerExtension) player).vivecraft$getRoomYOffsetFromPose();
@@ -365,7 +344,7 @@ public class VRPlayer {
         return (float) Math.toDegrees(Math.atan2(Math.sin(x - y), Math.cos(x - y)));
     }
 
-    public void rotateOriginAround(float degrees, Vec3 o) {
+    public void rotateOriginAround(float degrees, Vec3 origin) {
         Vec3 point = this.roomOrigin;
 
         // reverse rotate.
@@ -373,9 +352,9 @@ public class VRPlayer {
 
         if (rads != 0.0F) {
             this.setRoomOrigin(
-                Math.cos(rads) * (point.x - o.x) - Math.sin(rads) * (point.z - o.z) + o.x,
+                Math.cos(rads) * (point.x - origin.x) - Math.sin(rads) * (point.z - origin.z) + origin.x,
                 point.y,
-                Math.sin(rads) * (point.x - o.x) + Math.cos(rads) * (point.z - o.z) + o.z,
+                Math.sin(rads) * (point.x - origin.x) + Math.cos(rads) * (point.z - origin.z) + origin.z,
                 false);
         }
     }
@@ -453,17 +432,12 @@ public class VRPlayer {
             return;
         }
 
-        VRData temp = new VRData(
-            this.roomOrigin,
-            this.dh.vrSettings.walkMultiplier,
-            this.worldScale,
-            this.vrdata_world_pre.rotation_radians);
+        Vec3 newHeadPivot = this.vrdata_world_pre.getNewHeadPivot(this.roomOrigin, this.worldScale);
 
         if (this.dh.vrSettings.realisticDismountEnabled && this.dh.vehicleTracker.canRoomscaleDismount(player)) {
             Vec3 mountPos = player.getVehicle().position();
-            Vec3 head = temp.getHeadPivot();
-            double distance = Math.sqrt(
-                (head.x - mountPos.x) * (head.x - mountPos.x) + (head.z - mountPos.z) * (head.z - mountPos.z));
+            double distance = Math.sqrt((newHeadPivot.x - mountPos.x) * (newHeadPivot.x - mountPos.x) +
+                (newHeadPivot.z - mountPos.z) * (newHeadPivot.z - mountPos.z));
 
             if (distance > 1.0D) {
                 this.dh.sneakTracker.sneakCounter = 5;
@@ -476,11 +450,9 @@ public class VRPlayer {
         float playerHeight = player.getBbHeight();
 
         // OK this is the first place I've found where we really need to update the VR data before doing this calculation.
-        Vec3 eyePos = temp.getHeadPivot();
-
-        double x = eyePos.x;
+        double x = newHeadPivot.x;
         double y = player.getY();
-        double z = eyePos.z;
+        double z = newHeadPivot.z;
 
         // create bounding box at dest position
         AABB bb = new AABB(
@@ -639,11 +611,11 @@ public class VRPlayer {
             //use r_hand aim
 
             VRData data = this.dh.vrPlayer.vrdata_world_pre;
-            out = data.getController(c).getDirection();
-            Vec3 aim = this.dh.bowTracker.getAimVector();
+            out = new Vec3(data.getController(c).getDirection());
+            Vector3fc aim = this.dh.bowTracker.getAimVector();
 
-            if (this.dh.bowTracker.isNotched() && aim != null && aim.lengthSqr() > 0.0D) {
-                out = aim.reverse();
+            if (this.dh.bowTracker.isNotched() && aim != null && aim.lengthSquared() > 0.0F) {
+                out = new Vec3(-aim.x(), -aim.y(), -aim.z());
             }
         } else if (itemStack.getItem() == Items.BUCKET && this.dh.interactTracker.bukkit[c]) {
             out = entity.getEyePosition(1.0F)
@@ -664,7 +636,7 @@ public class VRPlayer {
         if (player.isPassenger()) {
             // Server-side movement
             // when a passanger make the player look in the vehicle forward direction
-            Vec3 dir = VehicleTracker.getSteeringDirection(player);
+            Vector3f dir = VehicleTracker.getSteeringDirection(player);
 
             if (dir != null) {
                 player.setXRot((float) Math.toDegrees(Math.asin(-dir.y / dir.length())));
@@ -727,7 +699,7 @@ public class VRPlayer {
 
     public Vec3 AimedPointAtDistance(VRData source, int controller, double distance) {
         Vec3 controllerPos = source.getController(controller).getPosition();
-        Vec3 controllerDir = source.getController(controller).getDirection();
+        Vector3f controllerDir = source.getController(controller).getDirection();
         return controllerPos.add(controllerDir.x * distance, controllerDir.y * distance, controllerDir.z * distance);
     }
 

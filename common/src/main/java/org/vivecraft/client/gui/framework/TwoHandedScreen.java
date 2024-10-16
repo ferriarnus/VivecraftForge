@@ -5,14 +5,14 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.phys.Vec2;
-import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
-import org.vivecraft.common.utils.math.Matrix4f;
 
 public abstract class TwoHandedScreen extends Screen {
     protected ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
@@ -82,8 +82,8 @@ public abstract class TwoHandedScreen extends Screen {
         RenderHelper.drawMouseMenuQuad(guiGraphics, (int) x2, (int) y2);
     }
 
-    public boolean processCursor(Vec3 Pos_room, Matrix4f Rotation_room, boolean mainCursor) {
-        Vec2 tex = GuiHandler.getTexCoordsForCursor(Pos_room, Rotation_room, GuiHandler.GUI_SCALE, this.dh.vrPlayer.vrdata_room_pre.getController(mainCursor ? 1 : 0));
+    public boolean processCursor(Vector3f Pos_room, Matrix4f Rotation_room, boolean mainCursor) {
+        Vector2f tex = GuiHandler.getTexCoordsForCursor(Pos_room, Rotation_room, GuiHandler.GUI_SCALE, this.dh.vrPlayer.vrdata_room_pre.getController(mainCursor ? 1 : 0));
 
         // main hand
         float u = tex.x;

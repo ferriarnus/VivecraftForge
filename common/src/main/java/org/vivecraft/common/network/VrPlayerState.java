@@ -2,15 +2,12 @@ package org.vivecraft.common.network;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.render.RenderPass;
-import org.vivecraft.common.utils.lwjgl.Matrix4f;
-import org.vivecraft.common.utils.math.Quaternion;
-
-import java.nio.Buffer;
-import java.nio.FloatBuffer;
 
 /**
  * holds all data from a player
@@ -41,14 +38,11 @@ public record VrPlayerState(boolean seated, Pose hmd, boolean reverseHands, Pose
      * @return headset Pose object of the current state
      */
     private static Pose hmdPose(VRPlayer vrPlayer) {
-        FloatBuffer tempBuffer = vrPlayer.vrdata_world_post.hmd.getMatrix().toFloatBuffer();
-        ((Buffer) tempBuffer).rewind();
-        Matrix4f matrix4f = new Matrix4f();
-        matrix4f.load(tempBuffer);
+        Vector3f position = MathUtils.subtractToVector3f(
+            vrPlayer.vrdata_world_post.getEye(RenderPass.CENTER).getPosition(),
+            Minecraft.getInstance().player.position());
 
-        Vec3 position = vrPlayer.vrdata_world_post.getEye(RenderPass.CENTER).getPosition()
-            .subtract(Minecraft.getInstance().player.position());
-        Quaternion orientation = new Quaternion(matrix4f);
+        Quaternionf orientation = vrPlayer.vrdata_world_post.hmd.getMatrix().getNormalizedRotation(new Quaternionf());
         return new Pose(position, orientation);
     }
 
@@ -59,14 +53,12 @@ public record VrPlayerState(boolean seated, Pose hmd, boolean reverseHands, Pose
      * @return headset Pose object of the current state
      */
     private static Pose controllerPose(VRPlayer vrPlayer, int controller) {
-        FloatBuffer tempBuffer = vrPlayer.vrdata_world_post.getController(controller).getMatrix().toFloatBuffer();
-        ((Buffer) tempBuffer).rewind();
-        Matrix4f matrix4f1 = new Matrix4f();
-        matrix4f1.load(tempBuffer);
+        Vector3f position = MathUtils.subtractToVector3f(
+            vrPlayer.vrdata_world_post.getController(controller).getPosition(),
+            Minecraft.getInstance().player.position());
 
-        Vec3 position = vrPlayer.vrdata_world_post.getController(controller).getPosition()
-            .subtract(Minecraft.getInstance().player.position());
-        Quaternion orientation = new Quaternion(matrix4f1);
+        Quaternionf orientation = vrPlayer.vrdata_world_post.getController(controller)
+            .getMatrix().getNormalizedRotation(new Quaternionf());
         return new Pose(position, orientation);
     }
 

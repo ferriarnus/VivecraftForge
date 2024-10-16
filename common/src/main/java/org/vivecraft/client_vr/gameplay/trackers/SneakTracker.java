@@ -41,6 +41,7 @@ public class SneakTracker extends Tracker {
             this.dh.sneakTracker.sneakCounter--;
         }
 
-        this.sneakOverride = AutoCalibration.getPlayerHeight() - this.dh.vr.hmdPivotHistory.latest().y > this.dh.vrSettings.sneakThreshold;
+        this.sneakOverride = AutoCalibration.getPlayerHeight() - this.dh.vr.hmdPivotHistory.latest().y() >
+            this.dh.vrSettings.sneakThreshold;
     }
 }

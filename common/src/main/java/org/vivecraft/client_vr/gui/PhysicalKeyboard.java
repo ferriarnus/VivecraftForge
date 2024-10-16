@@ -17,10 +17,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
-import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client.utils.Utils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
@@ -31,8 +31,6 @@ import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.settings.OptionEnum;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_vr.utils.RGBAColor;
-import org.vivecraft.common.utils.lwjgl.Matrix4f;
-import org.vivecraft.common.utils.lwjgl.Vector3f;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -403,16 +401,14 @@ public class PhysicalKeyboard {
         // Transform the controller into keyboard space
         Matrix4f matrix = new Matrix4f();
         matrix.translate(this.getCenterPos());
-        Matrix4f.mul(matrix, (Matrix4f) MathUtils.convertOVRMatrix(KeyboardHandler.ROTATION_ROOM).invert(), matrix);
-        matrix.translate((Vector3f) MathUtils.convertToVector3f(KeyboardHandler.POS_ROOM).negate());
+        matrix.mul(new Matrix4f(KeyboardHandler.ROTATION_ROOM).invert());
+        matrix.translate(-KeyboardHandler.POS_ROOM.x, -KeyboardHandler.POS_ROOM.y, -KeyboardHandler.POS_ROOM.z);
 
-        Vec3 pos = MathUtils.convertToVector3d(MathUtils.transformVector(matrix,
-            MathUtils.convertToVector3f(this.dh.vrPlayer.vrdata_room_pre.getController(controller.ordinal()).getPosition()),
-            true));
+        Vector3f pos = matrix.transformPosition(this.dh.vrPlayer.vrdata_room_pre.getController(controller.ordinal()).getPositionF());
 
         // Do intersection checks
         for (KeyButton key : this.keys) {
-            if (key.getCollisionBoundingBox().contains(pos)) {
+            if (key.getCollisionBoundingBox().contains(pos.x, pos.y, pos.z)) {
                 return key;
             }
         }

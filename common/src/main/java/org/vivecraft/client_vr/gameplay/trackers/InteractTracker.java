@@ -18,8 +18,10 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.Xplat;
+import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.provider.ControllerType;
@@ -134,8 +136,6 @@ public class InteractTracker extends Tracker {
             this.rightClickable.remove(BlockBehaviour.BlockStateBase.class);
         }
 
-        Vec3 forward = new Vec3(0.0D, 0.0D, -1.0D);
-
         for (int c = 0; c < 2; c++) {
             if ((this.inCamera[c] || this.inHandheldCamera[c] || this.inBow[c]) &&
                 VivecraftVRMod.INSTANCE.keyVRInteract.isDown(ControllerType.values()[c])) {
@@ -160,7 +160,7 @@ public class InteractTracker extends Tracker {
 
             Vec3 hmdPos = this.dh.vrPlayer.vrdata_world_pre.getHeadPivot();
             Vec3 handPos = this.dh.vrPlayer.vrdata_world_pre.getController(c).getPosition();
-            Vec3 handDirection = this.dh.vrPlayer.vrdata_world_pre.getHand(c).getCustomVector(forward);
+            Vector3f handDirection = this.dh.vrPlayer.vrdata_world_pre.getHand(c).getCustomVector(MathUtils.BACK);
             ItemStack handItem = player.getItemInHand(c == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
 
             // third person camera movement
@@ -170,12 +170,13 @@ public class InteractTracker extends Tracker {
 
                 VRData.VRDevicePose camData = this.dh.vrPlayer.vrdata_world_pre.getEye(RenderPass.THIRD);
                 Vec3 camPos = camData.getPosition();
-                camPos = camPos.subtract(
-                    camData.getCustomVector(new Vec3(0.0D, 0.0D, -1.0D))
-                        .scale((double) 0.15F * this.dh.vrPlayer.vrdata_world_pre.worldScale));
-                camPos = camPos.subtract(
-                    camData.getCustomVector(new Vec3(0.0D, -1.0D, 0.0D))
-                        .scale((double) 0.05F * this.dh.vrPlayer.vrdata_world_pre.worldScale));
+
+                Vector3f offset = camData.getCustomVector(MathUtils.BACK)
+                    .mul(0.15F * this.dh.vrPlayer.vrdata_world_pre.worldScale);
+                offset.add(camData.getCustomVector(MathUtils.DOWN)
+                    .mul(0.05F * this.dh.vrPlayer.vrdata_world_pre.worldScale));
+
+                camPos = camPos.subtract(offset.x, offset.y, offset.z);
 
                 if (handPos.distanceTo(camPos) < (double) 0.15F * this.dh.vrPlayer.vrdata_world_pre.worldScale) {
                     this.inCamera[c] = true;
@@ -186,10 +187,13 @@ public class InteractTracker extends Tracker {
             // screenshot camera movement
             if (!this.active[c] && this.dh.cameraTracker.isVisible() && !this.dh.cameraTracker.isQuickMode()) {
                 VRData.VRDevicePose camData = this.dh.vrPlayer.vrdata_world_pre.getEye(RenderPass.CAMERA);
-                Vec3 vec36 = camData.getPosition();
-                vec36 = vec36.subtract(camData.getCustomVector(new Vec3(0.0D, 0.0D, -1.0D)).scale((double) 0.08F * this.dh.vrPlayer.vrdata_world_pre.worldScale));
+                Vec3 camPos = camData.getPosition();
 
-                if (handPos.distanceTo(vec36) < (double) 0.11F * this.dh.vrPlayer.vrdata_world_pre.worldScale) {
+                Vector3f offset = camData.getCustomVector(MathUtils.BACK).mul(0.08F * this.dh.vrPlayer.vrdata_world_pre.worldScale);
+
+                camPos = camPos.subtract(offset.x, offset.y, offset.z);
+
+                if (handPos.distanceTo(camPos) < (double) 0.11F * this.dh.vrPlayer.vrdata_world_pre.worldScale) {
                     this.inHandheldCamera[c] = true;
                     this.active[c] = true;
                 }
@@ -198,9 +202,9 @@ public class InteractTracker extends Tracker {
             // entity interaction
             if (this.dh.vrSettings.realisticEntityInteractEnabled && !this.active[c]) {
                 Vec3 extWeapon = new Vec3(
-                    handPos.x + handDirection.x * -0.1D,
-                    handPos.y + handDirection.y * -0.1D,
-                    handPos.z + handDirection.z * -0.1D);
+                    handPos.x + handDirection.x * -0.1F,
+                    handPos.y + handDirection.y * -0.1F,
+                    handPos.z + handDirection.z * -0.1F);
 
                 AABB weaponBB = new AABB(handPos, extWeapon);
                 this.inEntityHit[c] = ProjectileUtil.getEntityHitResult(this.mc.getCameraEntity(), hmdPos, handPos, weaponBB, (e) -> {

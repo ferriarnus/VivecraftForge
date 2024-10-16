@@ -9,6 +9,8 @@ import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.item.FoodOnAStickItem;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.ItemTags;
 import org.vivecraft.client_vr.VRData;
@@ -52,7 +54,7 @@ public class VehicleTracker extends Tracker {
 //        }
     }
 
-    public static Vec3 getSteeringDirection(LocalPlayer player) {
+    public static Vector3f getSteeringDirection(LocalPlayer player) {
         Entity entity = player.getVehicle();
         ClientDataHolderVR dataHolder = ClientDataHolderVR.getInstance();
 
@@ -70,9 +72,8 @@ public class VehicleTracker extends Tracker {
                 player.getMainHandItem().is(ItemTags.VIVECRAFT_FOOD_STICKS)
             ) ? 0 : 1;
             VRData.VRDevicePose con = dataHolder.vrPlayer.vrdata_world_pre.getController(c);
-            return con.getPosition()
-                .add(con.getDirection().scale(0.3))
-                .subtract(entity.position())
+            return MathUtils.subtractToVector3f(con.getPosition(), entity.position())
+                .add(con.getDirection().mul(0.3F))
                 .normalize();
         }
 

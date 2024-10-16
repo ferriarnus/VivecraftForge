@@ -124,7 +124,8 @@ public class VRWidgetHelper {
 
         // orient and scale model
         poseStack.translate(widgetOffset.x, widgetOffset.y, widgetOffset.z);
-        poseStack.mulPoseMatrix(DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(renderPass).getMatrix().toMCMatrix());
+
+        poseStack.mulPoseMatrix(DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(renderPass).getMatrix());
         scale = scale * DATA_HOLDER.vrPlayer.vrdata_world_render.worldScale;
         poseStack.scale(scale, scale, scale);
 
@@ -164,8 +165,7 @@ public class VRWidgetHelper {
         PoseStack poseStack2 = new PoseStack();
         RenderHelper.applyVRModelView(DATA_HOLDER.currentPass, poseStack2);
         poseStack2.last().pose().identity();
-        poseStack2.last().normal().mul(new Matrix3f(
-            DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(renderPass).getMatrix().toMCMatrix()));
+        poseStack2.last().normal().mul(new Matrix3f(DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(renderPass).getMatrix()));
 
         MC.getBlockRenderer().getModelRenderer().renderModel(poseStack2.last(), bufferBuilder, null, MC.getModelManager().getModel(model), 1.0F, 1.0F, 1.0F, combinedLight, OverlayTexture.NO_OVERLAY);
         tesselator.end();

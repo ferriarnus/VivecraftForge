@@ -2,10 +2,12 @@ package org.vivecraft.server;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
+import org.vivecraft.client.utils.MathUtils;
 import org.vivecraft.common.network.CommonNetworkHelper;
 import org.vivecraft.common.network.Pose;
 import org.vivecraft.common.network.VrPlayerState;
-import org.vivecraft.common.utils.math.Vector3;
 
 import javax.annotation.Nullable;
 
@@ -25,7 +27,6 @@ public class ServerVivePlayer {
     public Vec3 offset = new Vec3(0.0D, 0.0D, 0.0D);
     // player this data belongs to
     public ServerPlayer player;
-    final Vector3 forward = new Vector3(0.0F, 0.0F, -1.0F);
     // network protocol this player is communicating with
     public int networkVersion = CommonNetworkHelper.MAX_SUPPORTED_NETWORK_VERSION;
 
@@ -39,15 +40,14 @@ public class ServerVivePlayer {
      * @param direction local direction to transform
      * @return direction in world space
      */
-    public Vec3 getControllerVectorCustom(int controller, Vector3 direction) {
+    public Vec3 getControllerVectorCustom(int controller, Vector3fc direction) {
         if (this.isSeated()) {
             controller = 0;
         }
 
         if (this.vrPlayerState != null) {
             Pose controllerPose = controller == 0 ? this.vrPlayerState.controller0() : this.vrPlayerState.controller1();
-            Vector3 out = controllerPose.orientation().multiply(direction);
-            return new Vec3(out.getX(), out.getY(), out.getZ());
+            return new Vec3(controllerPose.orientation().transform(direction, new Vector3f()));
         } else {
             return this.player.getLookAngle();
         }
@@ -58,7 +58,7 @@ public class ServerVivePlayer {
      * @return forward direction of the given controller
      */
     public Vec3 getControllerDir(int controller) {
-        return this.getControllerVectorCustom(controller, this.forward);
+        return this.getControllerVectorCustom(controller, MathUtils.BACK);
     }
 
     /**
@@ -66,19 +66,22 @@ public class ServerVivePlayer {
      */
     public Vec3 getHMDDir() {
         if (this.vrPlayerState != null) {
-            Vector3 out = this.vrPlayerState.hmd().orientation().multiply(this.forward);
-            return new Vec3(out.getX(), out.getY(), out.getZ());
+            return new Vec3(this.vrPlayerState.hmd().orientation().transform(MathUtils.BACK, new Vector3f()));
         } else {
             return this.player.getLookAngle();
         }
     }
 
     /**
-     * @return position of the head
+     * @return position of the head, in world space
      */
     public Vec3 getHMDPos() {
         if (this.vrPlayerState != null) {
-            return this.vrPlayerState.hmd().position().add(this.player.position()).add(this.offset);
+            Vector3fc hmdPos = this.vrPlayerState.hmd().position();
+            return this.player.position().add(
+                this.offset.x + hmdPos.x(),
+                this.offset.y + hmdPos.y(),
+                this.offset.z + hmdPos.z());
         } else {
             return this.player.position().add(0.0D, 1.62D, 0.0D);
         }
@@ -100,14 +103,19 @@ public class ServerVivePlayer {
                 dir = new Vec3(dir.x, 0.0D, dir.z);
                 dir = dir.normalize();
                 return this.getHMDPos().add(
-                    dir.x * 0.3D * this.worldScale,
-                    -0.4D * this.worldScale,
-                    dir.z * 0.3D * this.worldScale);
+                    dir.x * 0.3F * this.worldScale,
+                    -0.4F * this.worldScale,
+                    dir.z * 0.3F * this.worldScale);
             }
 
-            Pose controllerState = c == 0 ? this.vrPlayerState.controller0() : this.vrPlayerState.controller1();
+            Vector3fc conPos = c == 0 ?
+                this.vrPlayerState.controller0().position() :
+                this.vrPlayerState.controller1().position();
 
-            return controllerState.position().add(this.player.position()).add(this.offset);
+            return this.player.position().add(
+                this.offset.x + conPos.x(),
+                this.offset.y + conPos.y(),
+                this.offset.z + conPos.z());
         } else {
             return this.player.position().add(0.0D, 1.62D, 0.0D);
         }

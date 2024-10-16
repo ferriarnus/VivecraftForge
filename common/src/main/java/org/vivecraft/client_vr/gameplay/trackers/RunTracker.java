@@ -2,13 +2,13 @@ package org.vivecraft.client_vr.gameplay.trackers;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.settings.VRSettings;
 
 public class RunTracker extends Tracker {
     private double direction = 0.0D;
-    private double speed = 0.0D;
+    private float speed = 0.0F;
 
     public RunTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -46,42 +46,43 @@ public class RunTracker extends Tracker {
 
     @Override
     public void reset(LocalPlayer player) {
-        this.speed = 0.0D;
+        this.speed = 0.0F;
     }
 
     @Override
     public void doProcess(LocalPlayer player) {
 
-        double c0Move = this.dh.vr.controllerHistory[0].averageSpeed(0.33D);
-        double c1Move = this.dh.vr.controllerHistory[1].averageSpeed(0.33D);
+        float c0Move = this.dh.vr.controllerHistory[0].averageSpeed(0.33D);
+        float c1Move = this.dh.vr.controllerHistory[1].averageSpeed(0.33D);
 
-        if (this.speed > 0.0D) {
-            if (c0Move < 0.1D && c1Move < 0.1D) {
-                this.speed = 0.0D;
+        if (this.speed > 0.0F) {
+            if (c0Move < 0.1F && c1Move < 0.1F) {
+                this.speed = 0.0F;
                 return;
             }
-        } else if (c0Move < 0.6D && c1Move < 0.6D) {
-            this.speed = 0.0D;
+        } else if (c0Move < 0.6F && c1Move < 0.6F) {
+            this.speed = 0.0F;
             return;
         }
 
-        if (Math.abs(c0Move - c1Move) > 0.5D) {
-            this.speed = 0.0D;
+        if (Math.abs(c0Move - c1Move) > 0.5F) {
+            this.speed = 0.0F;
             return;
         }
 
-        Vec3 v = this.dh.vrPlayer.vrdata_world_pre.getController(0).getDirection()
+        Vector3f v = this.dh.vrPlayer.vrdata_world_pre.getController(0).getDirection()
             .add(this.dh.vrPlayer.vrdata_world_pre.getController(1).getDirection())
-            .scale(0.5D);
+            .mul(0.5F);
         this.direction = Math.atan2(-v.x, v.z);
-        double spd = (c0Move + c1Move) / 2.0D;
-        this.speed = spd * 1.0D * 1.3D;
+        float spd = (c0Move + c1Move) * 0.5F;
+        this.speed = spd * 1.3F;
 
-        if (this.speed > 0.1D) {
-            this.speed = 1.0D;
+        if (this.speed > 0.1F) {
+            this.speed = 1.0F;
         }
 
-        if (this.speed > 1.0D) {
+        // TODO MATH should this be before?
+        if (this.speed > 1.0F) {
             this.speed = 1.3F;
         }
     }

@@ -38,8 +38,8 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             return; //how
         }
 
-        float hmdYaw = (float) Math.atan2(-this.rotInfo.headRot.x, -this.rotInfo.headRot.z);
-        float hmdPitch = (float) Math.asin(this.rotInfo.headRot.y / this.rotInfo.headRot.length());
+        float hmdYaw = (float) Math.atan2(-this.rotInfo.headRot.x(), -this.rotInfo.headRot.z());
+        float hmdPitch = (float) Math.asin(this.rotInfo.headRot.y() / this.rotInfo.headRot.length());
         double bodyYaw = this.rotInfo.getBodyYawRadians();
 
         this.head.xRot = -hmdPitch;

@@ -11,6 +11,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -45,15 +47,16 @@ public abstract class FishingHookRendererVRMixin {
             // own player
             int c = player.getMainHandItem().getItem() instanceof FishingRodItem ? 0 : 1;
             Vec3 aimSource = RenderHelper.getControllerRenderPos(c);
-            Vec3 aimDirection = ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_render.getHand(c).getDirection();
-            linePos.set(aimSource.add(aimDirection.scale(0.47 * ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_render.worldScale)));
+            Vector3f aimDirection = ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_render.getHand(c).getDirection();
+            aimDirection.mul(0.47F * ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_render.worldScale);
+
+            linePos.set(aimSource.add(aimDirection.x, aimDirection.y, aimDirection.z));
             return linePos.get().x;
         } else if (VRPlayersClient.getInstance().isVRPlayer(player) && !(info = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID())).seated) {
             // other players in standing mode
-            int c = player.getMainHandItem().getItem() instanceof FishingRodItem ? 0 : 1;
-            Vec3 aimSource = c == 0 ? info.rightArmPos : info.leftArmPos;
+            Vector3fc aimSource = player.getMainHandItem().getItem() instanceof FishingRodItem ? info.rightArmPos : info.leftArmPos;
             // just set it to the hand, everything else looks silly
-            linePos.set(aimSource.add(player.getPosition(partialTick)));
+            linePos.set(player.getPosition(partialTick).add(aimSource.x(), aimSource.y(), aimSource.z()));
             return linePos.get().x;
         } else {
             return value;
