@@ -101,11 +101,11 @@ public class VRData {
             this.t0 = new VRDevicePose(this,
                 scopeMain,
                 mainAimSource,
-                scopeMain.normalizedPositiveZ(new Vector3f()));
+                scopeMain.transformDirection(MathUtils.BACK, new Vector3f()));
             this.t1 = new VRDevicePose(this,
                 scopeOff,
                 offAimSource,
-                scopeOff.normalizedPositiveZ(new Vector3f()));
+                scopeOff.transformDirection(MathUtils.BACK, new Vector3f()));
         }
 
         // screenshot camera
@@ -146,11 +146,8 @@ public class VRData {
         Vector3f forward = dataHolder.vr.controllerForwardHistory[c].averagePosition(lenSec);
         Vector3f up = dataHolder.vr.controllerUpHistory[c].averagePosition(lenSec);
         Vector3f right = forward.cross(up, new Vector3f());
-        return new Matrix4f(
-            right.x, right.y, right.z, 0F,
-            forward.x, forward.y, forward.z, 0F,
-            up.x, up.z, up.z, 0F,
-            0f, 0F, 0F, 1F);
+
+        return new Matrix4f(new Matrix3f(right, forward, up));
     }
 
     /**
