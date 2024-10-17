@@ -588,7 +588,7 @@ public class GuiHandler {
             posAvg.add(dir.x * dist, dir.y * dist, dir.z * dist);
 
             Matrix4f guiRotation = new Matrix4f().rotationY(Mth.PI - yawAvg);
-            guirot = guiRotation.rotateY(DH.vrPlayer.vrdata_world_render.rotation_radians);
+            guirot = guiRotation.rotateY(DH.vrPlayer.vrdata_world_render.rotation_radians, new Matrix4f());
             guipos = VRPlayer.roomToWorldPos(posAvg, DH.vrPlayer.vrdata_world_render);
 
             // for mouse control
