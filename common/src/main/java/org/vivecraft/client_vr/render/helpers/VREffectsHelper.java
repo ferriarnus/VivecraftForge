@@ -556,6 +556,7 @@ public class VREffectsHelper {
 
         MC.getProfiler().popPush("VR");
         renderCrosshairAtDepth(!DATA_HOLDER.vrSettings.useCrosshairOcclusion, poseStack);
+        DebugRenderHelper.renderDebug(poseStack, partialTick);
 
         // switch to VR Occluded buffer, and copy main depth for occlusion
         MC.getMainRenderTarget().unbindWrite();
@@ -621,6 +622,7 @@ public class VREffectsHelper {
             renderCrosshairAtDepth(!DATA_HOLDER.vrSettings.useCrosshairOcclusion, poseStack);
             VRWidgetHelper.renderVRThirdPersonCamWidget();
             VRWidgetHelper.renderVRHandheldCameraWidget();
+            DebugRenderHelper.renderDebug(poseStack, partialTick);
         } else {
             renderGuiAndShadow(poseStack, partialTick, !shouldOccludeGui(), true);
         }

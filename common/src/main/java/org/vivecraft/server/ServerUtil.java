@@ -9,10 +9,17 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.blocks.BlockStateArgument;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionfc;
+import org.joml.Vector3f;
 import org.vivecraft.client.utils.UpdateChecker;
+import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.server.config.ConfigBuilder;
 import org.vivecraft.server.config.ServerConfig;
 
@@ -306,6 +313,69 @@ public class ServerUtil {
                 .requires(source -> source.hasPermission(4))
                 .then(baseCommand)
             );
+        }
+    }
+
+    /**
+     * spawn particles to indicate server state of the {@code vivePlayer} data
+     * @param vivePlayer vive vivePlayer to spawn particles for
+     */
+    public static void debugParticleAxes(ServerVivePlayer vivePlayer) {
+        if (vivePlayer.isVR() && vivePlayer.vrPlayerState != null) {
+            debugParticleAxes(
+                vivePlayer.player.serverLevel(),
+                vivePlayer.getControllerPos(0),
+                vivePlayer.vrPlayerState.controller0().orientation());
+
+            debugParticleAxes(
+                vivePlayer.player.serverLevel(),
+                vivePlayer.getControllerPos(1),
+                vivePlayer.vrPlayerState.controller1().orientation());
+
+            if (ServerConfig.DEBUG_PARTICLES_HEAD.get()) {
+                debugParticleAxes(
+                    vivePlayer.player.serverLevel(),
+                    vivePlayer.getHMDPos(),
+                    vivePlayer.vrPlayerState.hmd().orientation());
+            }
+        }
+    }
+
+    /**
+     * spawns particles for the given position and rotation
+     * @param level server level to spawn the particles in
+     * @param position origin of the device
+     * @param rot rotation of the device
+     */
+    public static void debugParticleAxes(ServerLevel level, Vec3 position, Quaternionfc rot) {
+        final Vector3f red = new Vector3f(1F,0F,0F);
+        final Vector3f green = new Vector3f(0F,1F,0F);
+        final Vector3f blue = new Vector3f(0F,0F,1F);
+
+        Vector3f forward = rot.transform(MathUtils.BACK, new Vector3f());
+        Vector3f up = rot.transform(MathUtils.UP, new Vector3f());
+        Vector3f right = rot.transform(MathUtils.RIGHT, new Vector3f());
+
+        spawnParticlesDirection(level, blue, position, forward);
+        spawnParticlesDirection(level, green, position, up);
+        spawnParticlesDirection(level, red, position, right);
+    }
+
+    /**
+     * spawns particles with the given {@code color} at the given {@code position} in the given {@code direction}
+     * @param color color of the particles
+     * @param position position to spawn the particles at
+     * @param direction direction ot spawn the particles to
+     */
+    public static void spawnParticlesDirection(ServerLevel level, Vector3f color, Vec3 position, Vector3f direction) {
+        ParticleOptions particle = new DustParticleOptions(color, 0.25F);
+        for (int i = 0; i < 5; i++) {
+            Vector3f offset = direction.mul(0.25F / 4F * i, new Vector3f());
+            level.sendParticles(particle,
+                position.x + offset.x, position.y + offset.y, position.z + offset.z,
+                0,
+                0, 0, 0,
+                0);
         }
     }
 }

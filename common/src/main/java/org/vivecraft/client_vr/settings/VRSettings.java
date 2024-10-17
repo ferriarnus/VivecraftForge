@@ -354,8 +354,12 @@ public class VRSettings {
     public MenuWorld menuWorldSelection = MenuWorld.BOTH;
     @SettingField(VrOptions.MENU_WORLD_FALLBACK)
     public boolean menuWorldFallbackPanorama = true;
-    @SettingField
-    public boolean renderDebug = false;
+    @SettingField(VrOptions.RENDER_DEBUG_HEAD_HITBOX)
+    public boolean renderHeadHitbox = false;
+    @SettingField(VrOptions.RENDER_DEBUG_DEVICE_AXES)
+    public boolean renderDeviceAxes = false;
+    @SettingField(VrOptions.RENDER_DEBUG_PLAYER_AXES)
+    public boolean renderVrPlayerAxes = false;
 
     //
 
@@ -1193,6 +1197,9 @@ public class VRSettings {
 
     public enum VrOptions {
         DUMMY(false, true), // Dummy
+        RENDER_DEBUG_HEAD_HITBOX(false, true), // renders entities head hit boxes
+        RENDER_DEBUG_DEVICE_AXES(false, true), // renders axes for the local devices
+        RENDER_DEBUG_PLAYER_AXES(false, true), // renders axes for all client vr players
         VR_PLUGIN(false, true), // vr plugin to use
         VR_ENABLED(false, true) { // vr or nonvr
 

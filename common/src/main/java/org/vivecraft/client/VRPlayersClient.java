@@ -78,12 +78,15 @@ public class VRPlayersClient {
         rotInfo.leftArmRot = controller1Dir;
         rotInfo.rightArmRot = controller0Dir;
         rotInfo.headRot = hmdDir;
-        rotInfo.Headpos = vrPlayerState.hmd().position();
+
         rotInfo.leftArmPos = vrPlayerState.controller1().position();
         rotInfo.rightArmPos = vrPlayerState.controller0().position();
+        rotInfo.headPos = vrPlayerState.hmd().position();
+
         rotInfo.leftArmQuat = vrPlayerState.controller1().orientation();
         rotInfo.rightArmQuat = vrPlayerState.controller0().orientation();
         rotInfo.headQuat = vrPlayerState.hmd().orientation();
+
         rotInfo.worldScale = worldScale;
 
         if (heightScale < 0.5F) {
@@ -151,7 +154,7 @@ public class VRPlayersClient {
 
                         // Use hmd pos for self, so we don't have butt sparkles in face
                         Vec3 pos = rotInfo != null && player == this.mc.player ?
-                            player.position().add(rotInfo.Headpos.x(), rotInfo.Headpos.y(), rotInfo.Headpos.z()) :
+                            player.position().add(rotInfo.headPos.x(), rotInfo.headPos.y(), rotInfo.headPos.z()) :
                             player.getEyePosition(1.0F);
 
                         Particle particle = this.mc.particleEngine.createParticle(
@@ -202,9 +205,11 @@ public class VRPlayersClient {
             lerpRotInfo.reverse = newRotInfo.reverse;
             lerpRotInfo.seated = newRotInfo.seated;
             lerpRotInfo.hmd = newRotInfo.hmd;
+
             lerpRotInfo.leftArmPos = lastRotInfo.leftArmPos.lerp(newRotInfo.leftArmPos, partialTick, new Vector3f());
             lerpRotInfo.rightArmPos = lastRotInfo.rightArmPos.lerp(newRotInfo.rightArmPos, partialTick, new Vector3f());
-            lerpRotInfo.Headpos = lastRotInfo.Headpos.lerp(newRotInfo.Headpos, partialTick, new Vector3f());
+            lerpRotInfo.headPos = lastRotInfo.headPos.lerp(newRotInfo.headPos, partialTick, new Vector3f());
+
             lerpRotInfo.leftArmQuat = newRotInfo.leftArmQuat;
             lerpRotInfo.rightArmQuat = newRotInfo.rightArmQuat;
             lerpRotInfo.headQuat = newRotInfo.headQuat;
@@ -231,7 +236,7 @@ public class VRPlayersClient {
 
         rotInfo.leftArmPos = data.getController(1).getPositionF();
         rotInfo.rightArmPos = data.getController(0).getPositionF();
-        rotInfo.Headpos = data.hmd.getPositionF();
+        rotInfo.headPos = data.hmd.getPositionF();
         return rotInfo;
     }
 
@@ -272,7 +277,7 @@ public class VRPlayersClient {
         // body positions in player local world space
         public Vector3fc leftArmPos;
         public Vector3fc rightArmPos;
-        public Vector3fc Headpos;
+        public Vector3fc headPos;
         public float worldScale;
         public float heightScale;
 

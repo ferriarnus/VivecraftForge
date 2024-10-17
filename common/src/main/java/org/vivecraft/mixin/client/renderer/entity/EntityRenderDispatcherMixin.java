@@ -56,7 +56,7 @@ public abstract class EntityRenderDispatcherMixin implements ResourceManagerRelo
         PoseStack poseStack, VertexConsumer buffer, Entity entity, float partialTick, CallbackInfo ci)
     {
         AABB headBox;
-        if (ClientDataHolderVR.getInstance().vrSettings.renderDebug &&
+        if (ClientDataHolderVR.getInstance().vrSettings.renderHeadHitbox &&
             (headBox = Utils.getEntityHeadHitbox(entity, 0.0)) != null)
         {
             // raw head box

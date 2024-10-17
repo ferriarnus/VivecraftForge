@@ -12,10 +12,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.vivecraft.server.AimFixHandler;
-import org.vivecraft.server.ServerNetworking;
-import org.vivecraft.server.ServerVRPlayers;
-import org.vivecraft.server.ServerVivePlayer;
+import org.vivecraft.server.*;
 import org.vivecraft.server.config.ServerConfig;
 
 @Mixin(ServerGamePacketListenerImpl.class)
@@ -50,6 +47,9 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
                 ServerVRPlayers.getPlayersWithVivecraft(this.player.server).remove(this.player.getUUID());
             } else if (vivePlayer.isVR() && vivePlayer.vrPlayerState != null){
                 ServerNetworking.sendVrPlayerStateToClients(vivePlayer);
+                if (ServerConfig.DEBUG_PARTICLES.get()) {
+                    ServerUtil.debugParticleAxes(vivePlayer);
+                }
             }
         }
     }

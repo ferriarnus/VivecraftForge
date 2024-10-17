@@ -19,6 +19,8 @@ public class ServerConfig {
 
     // config keys
     public static ConfigBuilder.BooleanValue DEBUG;
+    public static ConfigBuilder.BooleanValue DEBUG_PARTICLES;
+    public static ConfigBuilder.BooleanValue DEBUG_PARTICLES_HEAD;
     public static ConfigBuilder.BooleanValue CHECK_FOR_UPDATES;
     public static ConfigBuilder.InListValue<String> CHECK_FOR_UPDATE_TYPE;
     public static ConfigBuilder.BooleanValue VR_ONLY;
@@ -401,6 +403,18 @@ public class ServerConfig {
             .comment("Allows players to switch between VR and NONVR on the fly.\n If disabled, they will be locked to the mode they joined with.")
             .define(true);
         // end vrSwitching
+        BUILDER.pop();
+
+        BUILDER
+            .push("debug");
+        DEBUG_PARTICLES = BUILDER
+            .push("debugParticles")
+            .comment("will spawn particles at VR players device positions, to indicate the server VR data state.")
+            .define(false);
+        DEBUG_PARTICLES_HEAD = BUILDER
+            .push("debugParticlesHead")
+            .comment("will spawn particles at VR players head position, to indicate the server VR data state.")
+            .define(false);
         BUILDER.pop();
 
         // fix any enums that are loaded as strings first
