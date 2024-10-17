@@ -205,12 +205,12 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
 
     @ModifyArg(method = "updateAutoJump", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;sin(F)F"))
     private float vivecraft$modifyAutoJumpSin(float original) {
-        return VRState.VR_RUNNING ? ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_pre.getBodyYaw() * ((float) Math.PI / 180) : original;
+        return VRState.VR_RUNNING ? ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_pre.getBodyYawRad() : original;
     }
 
     @ModifyArg(method = "updateAutoJump", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;cos(F)F"))
     private float vivecraft$modifyAutoJumpCos(float original) {
-        return VRState.VR_RUNNING ? ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_pre.getBodyYaw() * ((float) Math.PI / 180) : original;
+        return VRState.VR_RUNNING ? ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_pre.getBodyYawRad() : original;
     }
 
     @Inject(method = "handleEntityEvent", at = @At("HEAD"))

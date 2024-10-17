@@ -1,6 +1,7 @@
 package org.vivecraft.server;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -99,7 +100,7 @@ public class ServerVivePlayer {
             // so reconstruct the seated position when wanting the visual position
             if (this.isSeated() && !realPosition) {
                 Vec3 dir = this.getHMDDir();
-                dir = dir.yRot((float) Math.toRadians(c == 0 ? -35.0D : 35.0D));
+                dir = dir.yRot(Mth.DEG_TO_RAD * (c == 0 ? -35.0F : 35.0F));
                 dir = new Vec3(dir.x, 0.0D, dir.z);
                 dir = dir.normalize();
                 return this.getHMDPos().add(

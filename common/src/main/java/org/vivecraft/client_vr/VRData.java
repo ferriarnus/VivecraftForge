@@ -167,12 +167,19 @@ public class VRData {
     }
 
     /**
-     * @return the yaw direction the player body is facing
+     * @return the yaw direction the player body is facing, in degrees
      */
     public float getBodyYaw() {
+        return Mth.RAD_TO_DEG * getBodyYawRad();
+    }
+
+    /**
+     * @return the yaw direction the player body is facing, in radians
+     */
+    public float getBodyYawRad() {
         if (ClientDataHolderVR.getInstance().vrSettings.seated) {
             // body is equal to the headset
-            return this.hmd.getYaw();
+            return this.hmd.getYawRad();
         } else {
             // body is average of arms and headset direction
             Vector3f arms = MathUtils.subtractToVector3f(this.c1.getPosition(), this.c0.getPosition())
@@ -184,24 +191,31 @@ public class VRData {
             }
 
             arms = head.lerp(arms, 0.7F);
-            return (float) Math.toDegrees(Math.atan2(-arms.x, arms.z));
+            return (float) Math.atan2(-arms.x, arms.z);
         }
     }
 
     /**
-     * @return the yaw direction the players hands is facing
+     * @return the yaw direction the players hands is facing, in degrees
      */
     public float getFacingYaw() {
+        return Mth.RAD_TO_DEG * getFacingYawRad();
+    }
+
+    /**
+     * @return the yaw direction the players hands is facing, in radians
+     */
+    public float getFacingYawRad() {
         if (ClientDataHolderVR.getInstance().vrSettings.seated) {
-            return this.hmd.getYaw();
+            return this.hmd.getYawRad();
         } else {
             Vector3f arms = MathUtils.subtractToVector3f(this.c1.getPosition(), this.c0.getPosition())
                 .normalize().rotateY(-Mth.PI * 0.5F);
             // with reverseHands c0 is the left hand, not right
             if (ClientDataHolderVR.getInstance().vrSettings.reverseHands) {
-                return (float) Math.toDegrees(Math.atan2(arms.x, -arms.z));
+                return (float) Math.atan2(arms.x, -arms.z);
             } else {
-                return (float) Math.toDegrees(Math.atan2(-arms.x, arms.z));
+                return (float) Math.atan2(-arms.x, arms.z);
             }
         }
     }
@@ -352,7 +366,7 @@ public class VRData {
          * @return yaw of the device in world space, in degrees
          */
         public float getYaw() {
-            return (float) Math.toDegrees(this.getYawRad());
+            return Mth.RAD_TO_DEG * this.getYawRad();
         }
 
         /**
@@ -367,7 +381,7 @@ public class VRData {
          * @return pitch of the device in world space, in degrees
          */
         public float getPitch() {
-            return (float) Math.toDegrees(this.getPitchRad());
+            return Mth.RAD_TO_DEG * this.getPitchRad();
         }
 
         /**
@@ -382,7 +396,7 @@ public class VRData {
          * @return roll of the device in world space, in degrees
          */
         public float getRoll() {
-            return (float) Math.toDegrees(this.getRollRad());
+            return Mth.RAD_TO_DEG * this.getRollRad();
         }
 
         /**

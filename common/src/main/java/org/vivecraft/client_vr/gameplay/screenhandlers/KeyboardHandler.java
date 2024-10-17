@@ -93,10 +93,10 @@ public class KeyboardHandler {
         if (DH.vrSettings.physicalKeyboard) {
             Vector3f pos = DH.vrPlayer.vrdata_room_pre.hmd.getPositionF();
             Vector3f offset = new Vector3f(0.0F, -0.5F, 0.3F);
-            offset.rotateY((float) Math.toRadians(-DH.vrPlayer.vrdata_room_pre.hmd.getYaw()));
+            offset.rotateY(-DH.vrPlayer.vrdata_room_pre.hmd.getYawRad());
 
             POS_ROOM = pos.add(offset);
-            float yaw = Mth.PI + (float) Math.toRadians(-DH.vrPlayer.vrdata_room_pre.hmd.getYaw());
+            float yaw = Mth.PI - DH.vrPlayer.vrdata_room_pre.hmd.getYawRad();
 
             ROTATION_ROOM.rotationY(yaw);
             ROTATION_ROOM.rotateX(Mth.PI * 0.8f);
@@ -115,7 +115,7 @@ public class KeyboardHandler {
                 GuiHandler.GUI_POS_ROOM.z - guiUp.z + guiFwd.z);
 
             roomRotation.mul(guiRot);
-            roomRotation.rotateX((float) Math.toRadians(-30.0F));
+            roomRotation.rotateX(Mth.DEG_TO_RAD * -30.0F);
 
             ROTATION_ROOM = roomRotation;
             POS_ROOM = ROTATION_ROOM.getTranslation(POS_ROOM);

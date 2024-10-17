@@ -684,9 +684,8 @@ public abstract class MCVR {
                     InputSimulator.setMousePos(screenX, screenY);
                     GLFW.glfwSetCursorPos(this.mc.getWindow().getWindow(), screenX, screenY);
 
-                    // TODO MATH somehow doing it the old way messes this up
-                    temp.rotationY((float) Math.toRadians(-180.0F - hPos - this.hmdForwardYaw));
-                    temp.rotateX((float) Math.toRadians(this.aimPitch));
+                    temp.rotationY(Mth.DEG_TO_RAD * (-180.0F - hPos - this.hmdForwardYaw));
+                    temp.rotateX(Mth.DEG_TO_RAD * this.aimPitch);
                 } else {
                     this.aimPitch = 0.0F;
                 }

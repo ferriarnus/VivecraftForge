@@ -3,6 +3,7 @@ package org.vivecraft.client_vr.gameplay.trackers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
@@ -85,8 +86,8 @@ public class RowTracker extends Tracker {
     public void doProcessFinaltransmithastofixthis(LocalPlayer player) {
         Boat boat = (Boat) player.getVehicle();
         Quaternionf boatRot = new Quaternionf().rotationYXZ(
-            (float) Math.toRadians(-(boat.getYRot() % 360.0F)),
-            (float) Math.toRadians(boat.getXRot()),
+            Mth.DEG_TO_RAD * -(boat.getYRot() % 360.0F),
+            Mth.DEG_TO_RAD * boat.getXRot(),
             0.0F).normalize();
 
         for (int paddle = 0; paddle <= 1; paddle++) {
@@ -131,14 +132,14 @@ public class RowTracker extends Tracker {
     private Vec3 getAttachmentPoint(int paddle, Boat boat) {
         Vector3f attachmentPoint = new Vector3f((paddle == 0 ? 9.0F : -9.0F) / 16.0F, 0.625F, 0.1875F); // values from ModelBoat
         Quaternionf boatRot = new Quaternionf().rotationYXZ(
-            (float) Math.toRadians(-(boat.getYRot() % 360.0F)),
-            (float) Math.toRadians(boat.getXRot()),
+            Mth.DEG_TO_RAD * -(boat.getYRot() % 360.0F),
+            Mth.DEG_TO_RAD * boat.getXRot(),
             0.0F).normalize();
         return boat.position().add(new Vec3(boatRot.transform(attachmentPoint)));
     }
 
     private Vec3 getAbsArmPos(int side) {
-        Vector3f arm = this.dh.vr.controllerHistory[side].averagePosition(0.1D).rotateY((float) Math.toRadians(this.dh.vrSettings.worldRotation));
+        Vector3f arm = this.dh.vr.controllerHistory[side].averagePosition(0.1D).rotateY(Mth.DEG_TO_RAD * this.dh.vrSettings.worldRotation);
         return this.dh.vrPlayer.roomOrigin.add(arm.x, arm.y, arm.z);
     }
 

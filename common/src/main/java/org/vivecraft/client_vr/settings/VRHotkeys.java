@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.WinScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -292,7 +293,7 @@ public class VRHotkeys {
     private static void adjustCamRot(Axis axis, float degrees) {
         ClientDataHolderVR dataHolder = ClientDataHolderVR.getInstance();
 
-        float rad = (float) Math.toRadians(degrees);
+        float rad = Mth.DEG_TO_RAD * degrees;
 
         if (dataHolder.vr.mrMovingCamActive) {
             switch (axis) {
@@ -419,7 +420,7 @@ public class VRHotkeys {
 
             // Eh just set everything, the fixed pos is overridden by the moving cam anyways
             Quaternionf quaternion = vrSettings.externalCameraAngleOrder
-                .getRotation((float) Math.toRadians(rx), (float) Math.toRadians(ry), (float) Math.toRadians(rz))
+                .getRotation(Mth.DEG_TO_RAD * rx, Mth.DEG_TO_RAD * ry, Mth.DEG_TO_RAD * rz)
                 .conjugate();
 
             vrSettings.mrMovingCamOffset.set(x, y, z);

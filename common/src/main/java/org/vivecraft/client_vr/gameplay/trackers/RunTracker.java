@@ -81,7 +81,7 @@ public class RunTracker extends Tracker {
             this.speed = 1.0F;
         }
 
-        // TODO MATH should this be before?
+        // TODO Why is this here
         if (this.speed > 1.0F) {
             this.speed = 1.3F;
         }

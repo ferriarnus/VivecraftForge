@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
@@ -133,7 +134,7 @@ public class RenderHelper {
                     DATA_HOLDER.vrPlayer.vrdata_world_render.worldScale : 1.0F;
 
                 Vector3f dir = DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getDirection();
-                dir.rotateY((float) Math.toRadians(c == 0 ? -35.0D : 35.0D));
+                dir.rotateY(Mth.DEG_TO_RAD * (c == 0 ? -35.0F : 35.0F));
                 dir.y = 0F;
                 dir.normalize();
                 return DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getPosition().add(
@@ -506,7 +507,7 @@ public class RenderHelper {
         tesselator.getBuilder().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_NORMAL);
 
         Vec3 offset = (new Vec3(width * 0.5F, 0.0, height * 0.5F))
-            .yRot((float) Math.toRadians(-yaw));
+            .yRot(Mth.DEG_TO_RAD * -yaw);
 
         Matrix4f matrix = poseStack.last().pose();
 

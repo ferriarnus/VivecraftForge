@@ -12,6 +12,7 @@ import net.minecraft.client.resources.language.ClientLanguage;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import org.joml.*;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
@@ -882,7 +883,7 @@ public class MCOpenVR extends MCVR {
                             float dot = Math.abs(tipVec.dot(handVec));
 
                             float angleRad = (float) Math.acos(dot);
-                            float angleDeg = (float) Math.toDegrees(angleRad);
+                            float angleDeg = Mth.RAD_TO_DEG * angleRad;
 
                             this.gunStyle = angleDeg > 10.0F;
                             this.gunAngle = angleDeg;

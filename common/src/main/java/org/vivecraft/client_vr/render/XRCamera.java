@@ -1,6 +1,7 @@
 package org.vivecraft.client_vr.render;
 
 import net.minecraft.client.Camera;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.material.FogType;
@@ -51,8 +52,8 @@ public class XRCamera extends Camera {
         this.getLeftVector().set(left);
 
         this.rotation().set(0.0F, 0.0F, 0.0F, 1.0F);
-        this.rotation().rotateY((float) Math.toRadians(-this.yRot));
-        this.rotation().rotateX((float) Math.toRadians(this.xRot));
+        this.rotation().rotateY(Mth.DEG_TO_RAD * -this.yRot);
+        this.rotation().rotateX(Mth.DEG_TO_RAD * this.xRot);
     }
 
     /**
