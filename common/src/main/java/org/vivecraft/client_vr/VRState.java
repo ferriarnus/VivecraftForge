@@ -155,5 +155,8 @@ public class VRState {
         if (Xplat.isModLoaded("distanthorizons") && disableVRSetting) {
             ShadersHelper.maybeReloadShaders();
         }
+
+        // this reloads any PostChain, at least in vanilla
+        Minecraft.getInstance().levelRenderer.onResourceManagerReload(Minecraft.getInstance().getResourceManager());
     }
 }
