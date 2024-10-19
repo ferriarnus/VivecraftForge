@@ -134,7 +134,7 @@ public class VivecraftItemRendering {
      */
     public static void applyFirstPersonItemTransforms(PoseStack poseStack, VivecraftItemTransformType itemTransformType, boolean mainHand, AbstractClientPlayer player, float equippedProgress, float partialTick, ItemStack itemStack, InteractionHand hand) {
 
-        float gunAngle = (float) DH.vr.getGunAngle();
+        float gunAngle = DH.vr.getGunAngle();
 
         // defaults
         float scale = 0.7F;

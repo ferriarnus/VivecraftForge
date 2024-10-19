@@ -66,7 +66,7 @@ public abstract class MCVR {
     public Vector3fHistory[] controllerHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     public Vector3fHistory[] controllerForwardHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     public Vector3fHistory[] controllerUpHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
-    protected double gunAngle = 0.0D;
+    protected float gunAngle = 0.0F;
     protected boolean gunStyle;
     public boolean initialized;
     public String initStatus;
@@ -219,7 +219,7 @@ public abstract class MCVR {
     /**
      * @return the angle at which stuff is hold in the hand
      */
-    public double getGunAngle() {
+    public float getGunAngle() {
         return this.gunAngle;
     }
 
