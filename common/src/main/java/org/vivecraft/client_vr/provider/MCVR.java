@@ -657,13 +657,13 @@ public abstract class MCVR {
                     if (hPos < -rotStart) {
                         this.seatedRot += rotSpeed * rotMul;
                         this.seatedRot %= 360.0F;
-                        this.hmdForwardYaw = (float) Math.toDegrees(Math.atan2(hmdDir.x, hmdDir.z));
+                        this.hmdForwardYaw = (float) Math.toDegrees(Math.atan2(-hmdDir.x, hmdDir.z));
                         xPos = leftEdge;
                         hPos = -rotStart;
                     } else if (hPos > rotStart) {
                         this.seatedRot -= rotSpeed * rotMul;
                         this.seatedRot %= 360.0F;
-                        this.hmdForwardYaw = (float) Math.toDegrees(Math.atan2(hmdDir.x, hmdDir.z));
+                        this.hmdForwardYaw = (float) Math.toDegrees(Math.atan2(-hmdDir.x, hmdDir.z));
                         xPos = rightEdge;
                         hPos = rotStart;
                     }
