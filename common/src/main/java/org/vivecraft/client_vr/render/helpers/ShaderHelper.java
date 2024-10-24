@@ -165,7 +165,7 @@ public class ShaderHelper {
                 if (DATA_HOLDER.vrSettings.hitIndicator && hurtTimer > 0.0F) { // hurt flash
                     hurtTimer = hurtTimer / (float) MC.player.hurtDuration;
                     hurtTimer = healthPercent +
-                        Mth.sin(hurtTimer * hurtTimer * hurtTimer * hurtTimer * (float) Math.PI) * 0.5F;
+                        Mth.sin(hurtTimer * hurtTimer * hurtTimer * hurtTimer * Mth.PI) * 0.5F;
                     red = hurtTimer;
                 } else if (DATA_HOLDER.vrSettings.lowHealthIndicator) { // red due to low health
                     red = healthPercent * Mth.abs(Mth.sin((2.5F * time) / (1.0F - healthPercent + 0.1F)));

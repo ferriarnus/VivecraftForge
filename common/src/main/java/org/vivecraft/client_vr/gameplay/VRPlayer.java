@@ -270,11 +270,11 @@ public class VRPlayer {
 
         float difference = Math.abs(end - start);
 
-        if (difference > Math.PI) {
+        if (difference > Mth.PI) {
             if (end > start) {
-                start = start + Mth.PI * 2.0F;
+                start = start + Mth.TWO_PI;
             } else {
-                end = end + Mth.PI * 2.0F;
+                end = end + Mth.TWO_PI;
             }
         }
 

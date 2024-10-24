@@ -7,6 +7,7 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.FishingHookRenderer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.item.FishingRodItem;
@@ -31,7 +32,7 @@ public abstract class FishingHookRendererVRMixin {
         VRPlayersClient.RotInfo info;
         if (player != Minecraft.getInstance().player && VRPlayersClient.getInstance().isVRPlayer(player) && (info = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID())).seated) {
             // other players in seated mode
-            return (float) Math.toDegrees(info.getBodyYawRadians());
+            return Mth.RAD_TO_DEG * info.getBodyYawRad();
         } else {
             return original.call(delta, start, end);
         }

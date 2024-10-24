@@ -183,7 +183,7 @@ public class VRData {
         } else {
             // body is average of arms and headset direction
             Vector3f arms = MathUtils.subtractToVector3f(this.c1.getPosition(), this.c0.getPosition())
-                .normalize().rotateY(-Mth.PI * 0.5F);
+                .normalize().rotateY(-Mth.HALF_PI);
             Vector3f head = this.hmd.getDirection();
 
             if (arms.dot(head) < 0.0D) {
@@ -210,7 +210,7 @@ public class VRData {
             return this.hmd.getYawRad();
         } else {
             Vector3f arms = MathUtils.subtractToVector3f(this.c1.getPosition(), this.c0.getPosition())
-                .normalize().rotateY(-Mth.PI * 0.5F);
+                .normalize().rotateY(-Mth.HALF_PI);
             // with reverseHands c0 is the left hand, not right
             if (ClientDataHolderVR.getInstance().vrSettings.reverseHands) {
                 return (float) Math.atan2(arms.x, -arms.z);

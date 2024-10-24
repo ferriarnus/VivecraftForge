@@ -8,6 +8,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import org.vivecraft.client.VRPlayersClient;
 
@@ -40,16 +41,16 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
 
         float hmdYaw = (float) Math.atan2(-this.rotInfo.headRot.x(), -this.rotInfo.headRot.z());
         float hmdPitch = (float) Math.asin(this.rotInfo.headRot.y() / this.rotInfo.headRot.length());
-        double bodyYaw = this.rotInfo.getBodyYawRadians();
+        float bodyYaw = this.rotInfo.getBodyYawRad();
 
         this.head.xRot = -hmdPitch;
-        this.head.yRot = (float) (Math.PI - hmdYaw - bodyYaw);
+        this.head.yRot = Mth.PI - hmdYaw - bodyYaw;
 
         this.laying = this.swimAmount > 0.0F || (player.isFallFlying() && !player.isAutoSpinAttack());
 
         if (this.laying) {
             // 90° rotation up when laying
-            this.head.xRot = this.head.xRot - (float) Math.PI * 0.5F * (this.swimAmount > 0.0F ? this.swimAmount : 1.0F);
+            this.head.xRot = this.head.xRot - Mth.HALF_PI * (this.swimAmount > 0.0F ? this.swimAmount : 1.0F);
         }
 
         this.vrHMD.visible = true;

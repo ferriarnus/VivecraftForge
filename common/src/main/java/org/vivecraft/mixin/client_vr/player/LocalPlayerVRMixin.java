@@ -337,7 +337,7 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
                         direction = direction.xRot(vrplayer.vrdata_world_pre.hmd.getPitchRad());
                     }
 
-                    direction = direction.yRot(-jkatvr.getYaw() * ((float) Math.PI / 180F) + vrplayer.vrdata_world_pre.rotation_radians);
+                    direction = direction.yRot(-jkatvr.getYaw() * Mth.DEG_TO_RAD + vrplayer.vrdata_world_pre.rotation_radians);
                 } else if (ClientDataHolderVR.INFINADECK) {
                     jinfinadeck.query();
                     speed = jinfinadeck.getSpeed() * jinfinadeck.walkDirection() * this.vivecraft$dataholder.vrSettings.movementSpeedMultiplier;
@@ -347,7 +347,7 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
                         direction = direction.xRot(vrplayer.vrdata_world_pre.hmd.getPitchRad());
                     }
 
-                    direction = direction.yRot(-jinfinadeck.getYaw() * ((float) Math.PI / 180F) + vrplayer.vrdata_world_pre.rotation_radians);
+                    direction = direction.yRot(-jinfinadeck.getYaw() * Mth.DEG_TO_RAD + vrplayer.vrdata_world_pre.rotation_radians);
                 } else if (this.vivecraft$dataholder.vrSettings.seated) {
                     int c = 0;
                     if (this.vivecraft$dataholder.vrSettings.seatedUseHMD) {
@@ -378,8 +378,8 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
                             case HMD -> direction.yRot(-vrplayer.vrdata_world_pre.hmd.getYawRad());
                             case RUN_IN_PLACE -> direction.yRot((float) -this.vivecraft$dataholder.runTracker.getYaw())
                                 .scale(this.vivecraft$dataholder.runTracker.getSpeed());
-                            case ROOM -> direction.yRot((180.0F + this.vivecraft$dataholder.vrSettings.worldRotation) *
-                                ((float) Math.PI / 180F));
+                            case ROOM -> direction.yRot(
+                                (180.0F + this.vivecraft$dataholder.vrSettings.worldRotation) * Mth.DEG_TO_RAD);
                             default -> direction;
                         };
                     }

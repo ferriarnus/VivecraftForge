@@ -208,7 +208,7 @@ public class VivecraftItemRendering {
                 }
 
                 // calculate bow model roll.
-                float roll = 180F / Mth.PI * angle;
+                float roll = Mth.RAD_TO_DEG * angle;
 
                 if (DH.bowTracker.isCharged()) {
                     // bow jitter

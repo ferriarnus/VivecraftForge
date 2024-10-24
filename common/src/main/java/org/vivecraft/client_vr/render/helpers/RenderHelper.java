@@ -206,7 +206,7 @@ public class RenderHelper {
 
         // put outer vertices
         for (int i = 0; i < edges + 1; i++) {
-            float startAngle = (float) i / (float) edges * (float) Math.PI * 2.0F;
+            float startAngle = (float) i / (float) edges * Mth.TWO_PI;
             if (side == 0 || side == 1) { //y
                 float x = (float) pos.x + (float) Math.cos(startAngle) * radius;
                 float y = (float) pos.y;

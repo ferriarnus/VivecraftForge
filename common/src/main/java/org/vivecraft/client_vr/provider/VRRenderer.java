@@ -16,6 +16,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
@@ -244,7 +245,7 @@ public abstract class VRRenderer {
 
         // put outer vertices
         for (int i = 0; i < edges + 1; i++) {
-            float startAngle = (float) i / edges * (float) Math.PI * 2.0F;
+            float startAngle = (float) i / edges * Mth.TWO_PI;
             builder.vertex(
                 radius + (float) Math.cos(startAngle) * radius,
                 radius + (float) Math.sin(startAngle) * radius,

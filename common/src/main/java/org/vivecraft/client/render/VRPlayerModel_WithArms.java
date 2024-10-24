@@ -166,7 +166,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         float leftControllerPitch = (float) Math.asin(this.rotInfo.leftArmRot.y() / this.rotInfo.leftArmRot.length());
         float rightControllerYaw = (float) Math.atan2(-this.rotInfo.rightArmRot.x(), -this.rotInfo.rightArmRot.z());
         float rightControllerPitch = (float) Math.asin(this.rotInfo.rightArmRot.y() / this.rotInfo.rightArmRot.length());
-        float bodyYaw = (float) this.rotInfo.getBodyYawRadians();
+        float bodyYaw = this.rotInfo.getBodyYawRad();
 
         this.laying = this.swimAmount > 0.0F || player.isFallFlying() && !player.isAutoSpinAttack();
 
@@ -200,7 +200,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         this.leftHand.yRot = Mth.PI - leftControllerYaw - bodyYaw;
         this.leftHand.zRot = 0.0F;
         if (this.leftArmPose == ArmPose.THROW_SPEAR) {
-            this.leftHand.xRot -= Mth.PI * 0.5F;
+            this.leftHand.xRot -= Mth.HALF_PI;
         }
 
         // left shoulder
@@ -225,7 +225,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         this.rightHand.yRot = Mth.PI - rightControllerYaw - bodyYaw;
         this.rightHand.zRot = 0.0F;
         if (this.rightArmPose == ArmPose.THROW_SPEAR) {
-            this.rightHand.xRot -= Mth.PI * 0.5F;
+            this.rightHand.xRot -= Mth.HALF_PI;
         }
 
         // Right shoulder
@@ -242,8 +242,8 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         }
 
         if (this.laying) {
-            this.rightShoulder.xRot = this.rightShoulder.xRot - Mth.PI * 0.5F;
-            this.leftShoulder.xRot = this.leftShoulder.xRot - Mth.PI * 0.5F;
+            this.rightShoulder.xRot = this.rightShoulder.xRot - Mth.HALF_PI;
+            this.leftShoulder.xRot = this.leftShoulder.xRot - Mth.HALF_PI;
         }
 
         this.leftSleeve.copyFrom(this.leftHand);
@@ -280,7 +280,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         }
 
         modelpart.translateAndRotate(poseStack);
-        poseStack.mulPose(Axis.XP.rotation((float) Math.sin((double) this.attackTime * Math.PI)));
-        poseStack.translate(0.0D, -0.5D, 0.0D);
+        poseStack.mulPose(Axis.XP.rotation((float) Math.sin(this.attackTime * Mth.PI)));
+        poseStack.translate(0.0F, -0.5F, 0.0F);
     }
 }

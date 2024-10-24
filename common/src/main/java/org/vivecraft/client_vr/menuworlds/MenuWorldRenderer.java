@@ -682,7 +682,7 @@ public class MenuWorldRenderer {
                     .endVertex();
 
                 for (int j = 0; j <= 16; ++j) {
-                    float f6 = (float) j * ((float) Math.PI * 2F) / 16.0F;
+                    float f6 = (float) j * Mth.TWO_PI / 16.0F;
                     float f7 = Mth.sin(f6);
                     float f8 = Mth.cos(f6);
                     bufferBuilder
@@ -1228,7 +1228,7 @@ public class MenuWorldRenderer {
 
     public float getSunAngle() {
         float dayTime = this.getTimeOfDay();
-        return dayTime * ((float) Math.PI * 2F);
+        return dayTime * Mth.TWO_PI;
     }
 
     public int getMoonPhase() {
@@ -1237,7 +1237,7 @@ public class MenuWorldRenderer {
 
     public float getSkyDarken() {
         float dayTime = this.getTimeOfDay();
-        float h = 1.0f - (Mth.cos(dayTime * ((float) Math.PI * 2)) * 2.0f + 0.2f);
+        float h = 1.0f - (Mth.cos(dayTime * Mth.TWO_PI) * 2.0f + 0.2f);
         h = Mth.clamp(h, 0.0f, 1.0f);
         h = 1.0f - h;
         h *= 1.0f - this.getRainLevel() * 5.0f / 16.0f;
@@ -1255,7 +1255,7 @@ public class MenuWorldRenderer {
 
     public float getStarBrightness() {
         float f = this.getTimeOfDay();
-        float f1 = 1.0F - (Mth.cos(f * ((float) Math.PI * 2F)) * 2.0F + 0.25F);
+        float f1 = 1.0F - (Mth.cos(f * Mth.TWO_PI) * 2.0F + 0.25F);
         f1 = Mth.clamp(f1, 0.0F, 1.0F);
         return f1 * f1 * 0.5F;
     }
@@ -1267,7 +1267,7 @@ public class MenuWorldRenderer {
 
         Vec3 skyColor = CubicSampler.gaussianSampleVec3(samplePosition, (i, j, k) -> Vec3.fromRGB24(this.blockAccess.getBiomeManager().getNoiseBiomeAtQuart(i, j, k).value().getSkyColor()));
 
-        float h = Mth.cos(dayTime * ((float) Math.PI * 2)) * 2.0f + 0.5f;
+        float h = Mth.cos(dayTime * Mth.TWO_PI) * 2.0f + 0.5f;
         h = Mth.clamp(h, 0.0f, 1.0f);
         float skyColorR = (float) skyColor.x * h;
         float skyColorG = (float) skyColor.y * h;
@@ -1302,14 +1302,14 @@ public class MenuWorldRenderer {
     }
 
     public Vec3 getFogColor(Vec3 pos) {
-        float f = Mth.clamp(Mth.cos(this.getTimeOfDay() * ((float) Math.PI * 2F)) * 2.0F + 0.5F, 0.0F, 1.0F);
+        float f = Mth.clamp(Mth.cos(this.getTimeOfDay() * Mth.TWO_PI) * 2.0F + 0.5F, 0.0F, 1.0F);
         Vec3 scaledPos = pos.subtract(2.0D, 2.0D, 2.0D).scale(0.25D);
         return CubicSampler.gaussianSampleVec3(scaledPos, (x, y, z) -> this.dimensionInfo.getBrightnessDependentFogColor(Vec3.fromRGB24(this.blockAccess.getBiomeManager().getNoiseBiomeAtQuart(x, y, z).value().getFogColor()), f));
     }
 
     public Vec3 getCloudColour() {
         float dayTime = this.getTimeOfDay();
-        float f1 = Mth.cos(dayTime * ((float) Math.PI * 2F)) * 2.0F + 0.5F;
+        float f1 = Mth.cos(dayTime * Mth.TWO_PI) * 2.0F + 0.5F;
         f1 = Mth.clamp(f1, 0.0F, 1.0F);
         float r = 1.0F;
         float g = 1.0F;
@@ -1373,7 +1373,7 @@ public class MenuWorldRenderer {
         bufferBuilder.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION);
         bufferBuilder.vertex(0.0, posY, 0.0).endVertex();
         for (int i = -180; i <= 180; i += 45) {
-            bufferBuilder.vertex(g * Mth.cos((float) i * ((float) Math.PI / 180)), posY, 512.0f * Mth.sin((float) i * ((float) Math.PI / 180))).endVertex();
+            bufferBuilder.vertex(g * Mth.cos((float) i * Mth.DEG_TO_RAD), posY, 512.0f * Mth.sin((float) i * Mth.DEG_TO_RAD)).endVertex();
         }
         return bufferBuilder.end();
     }

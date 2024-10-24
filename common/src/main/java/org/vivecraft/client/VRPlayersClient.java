@@ -137,7 +137,7 @@ public class VRPlayersClient {
                         RotInfo rotInfo = this.vivePlayers.get(player.getUUID());
                         Vector3f look = player.getLookAngle().toVector3f();
                         if (rotInfo != null) {
-                            look = rotInfo.leftArmPos.sub(rotInfo.rightArmPos, look).rotateY(-Mth.PI * 0.5F);
+                            look = rotInfo.leftArmPos.sub(rotInfo.rightArmPos, look).rotateY(-Mth.HALF_PI);
 
                             if (rotInfo.reverse) {
                                 look = look.mul(-1.0F);
@@ -282,8 +282,8 @@ public class VRPlayersClient {
         public float heightScale;
 
         // TODO MATH make the same for VRDATA and this
-        public double getBodyYawRadians() {
-            Vector3f diff = this.leftArmPos.sub(this.rightArmPos, new Vector3f()).rotateY(-Mth.PI * 0.5F);
+        public float getBodyYawRad() {
+            Vector3f diff = this.leftArmPos.sub(this.rightArmPos, new Vector3f()).rotateY(-Mth.HALF_PI);
 
             if (this.reverse) {
                 diff = diff.mul(-1.0F);
@@ -294,7 +294,7 @@ public class VRPlayersClient {
             }
 
             diff.lerp(this.headRot, 0.5F, diff);
-            return Math.atan2(-diff.x, diff.z);
+            return (float) Math.atan2(-diff.x, diff.z);
         }
     }
 }

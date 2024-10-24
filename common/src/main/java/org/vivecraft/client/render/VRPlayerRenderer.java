@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -82,7 +83,7 @@ public class VRPlayerRenderer extends PlayerRenderer {
         UUID uuid = player.getUUID();
         if (ClientDataHolderVR.getInstance().currentPass != RenderPass.GUI && VRPlayersClient.getInstance().isTracked(uuid)) {
             VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(uuid);
-            rotationYaw = (float) Math.toDegrees(rotInfo.getBodyYawRadians());
+            rotationYaw = Mth.RAD_TO_DEG * rotInfo.getBodyYawRad();
         }
 
         //vanilla below here
