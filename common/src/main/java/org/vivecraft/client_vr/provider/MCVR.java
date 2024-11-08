@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.TorchBlock;
 import org.joml.*;
 import org.lwjgl.glfw.GLFW;
 import org.vivecraft.client.VivecraftVRMod;
+import org.vivecraft.client_vr.settings.AutoCalibration;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.QuaternionfHistory;
@@ -42,6 +43,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class MCVR {
+    public static final int MAIN_CONTROLLER = 0;
+    public static final int OFFHAND_CONTROLLER = 1;
+    public static final int CAMERA_TRACKER = 2;
+    public static final int WAIST_TRACKER = 3;
+    public static final int RIGHT_FOOT_TRACKER = 4;
+    public static final int LEFT_FOOT_TRACKER = 5;
+    public static final int RIGHT_ELBOW_TRACKER = 6;
+    public static final int LEFT_ELBOW_TRACKER = 7;
+    public static final int RIGHT_KNEE_TRACKER = 8;
+    public static final int LEFT_KNEE_TRACKER = 9;
+
+    public static final int trackableDeviceCount = 10;
+
     protected Minecraft mc;
     protected ClientDataHolderVR dh;
     protected static MCVR ME;
@@ -59,10 +73,10 @@ public abstract class MCVR {
     public Vector3fHistory hmdPivotHistory = new Vector3fHistory();
     public QuaternionfHistory hmdRotHistory = new QuaternionfHistory();
     protected boolean headIsTracking;
-    protected Matrix4f[] controllerPose = new Matrix4f[3];
-    protected Matrix4f[] controllerRotation = new Matrix4f[3];
-    protected boolean[] controllerTracking = new boolean[3];
-    protected Matrix4f[] handRotation = new Matrix4f[3];
+    protected Matrix4f[] controllerPose = new Matrix4f[trackableDeviceCount];
+    protected Matrix4f[] controllerRotation = new Matrix4f[trackableDeviceCount];
+    protected boolean[] controllerTracking = new boolean[trackableDeviceCount];
+    protected Matrix4f[] handRotation = new Matrix4f[trackableDeviceCount];
     public Vector3fHistory[] controllerHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     public Vector3fHistory[] controllerForwardHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     public Vector3fHistory[] controllerUpHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
@@ -73,7 +87,7 @@ public abstract class MCVR {
     public boolean initSuccess;
     protected Matrix4f[] poseMatrices;
     protected Vector3f[] deviceVelocity;
-    protected Vector3f[] aimSource = new Vector3f[3];
+    protected Vector3f[] aimSource = new Vector3f[trackableDeviceCount];
 
     //hmd sampling
     private static final int HMD_AVG_MAX_SAMPLES = 90;
@@ -117,7 +131,7 @@ public abstract class MCVR {
         ME = this;
 
         // initialize all controller/tracker fields
-        for (int c = 0; c < 3; c++) {
+        for (int c = 0; c < trackableDeviceCount; c++) {
             this.aimSource[c] = new Vector3f();
             this.controllerPose[c] = new Matrix4f();
             this.controllerRotation[c] = new Matrix4f();
@@ -429,8 +443,8 @@ public abstract class MCVR {
         if (this.dh.climbTracker.isGrabbingLadder() && ClimbTracker.isClaws(this.mc.player.getMainHandItem())) return;
         if (!this.dh.interactTracker.isActive(this.mc.player)) return;
 
-        Vector3fc main = this.getAimSource(0);
-        Vector3fc off = this.getAimSource(1);
+        Vector3fc main = this.getAimSource(MAIN_CONTROLLER);
+        Vector3fc off = this.getAimSource(OFFHAND_CONTROLLER);
         Vector3fc barStartPos;
         Vector3fc barEndPos;
 
@@ -553,6 +567,7 @@ public abstract class MCVR {
 
         float yawAvg = 0.0F;
 
+        // avoid division by 0
         if (!this.hmdYawSamples.isEmpty()) {
             for (float sample : this.hmdYawSamples) {
                 yawAvg += sample;
@@ -616,7 +631,7 @@ public abstract class MCVR {
             this.handRotation[c].set3x3(controllerPoseHand);
 
             // grab controller position in tracker space, scaled to minecraft units
-            this.aimSource[c] = controllerPoseTip.getTranslation(this.aimSource[c]);
+            controllerPoseTip.getTranslation(this.aimSource[c]);
             this.controllerHistory[c].add(new Vector3f(this.getAimSource(c)));
 
             // build matrix describing controller rotation
@@ -624,7 +639,7 @@ public abstract class MCVR {
             this.controllerRotation[c].set3x3(controllerPoseTip);
 
             // special case for seated main controller
-            if (c == 0 && this.dh.vrSettings.seated && this.mc.screen == null &&
+            if (c == MAIN_CONTROLLER && this.dh.vrSettings.seated && this.mc.screen == null &&
                 this.mc.mouseHandler.isMouseGrabbed())
             {
                 Matrix4f temp = new Matrix4f();
@@ -690,31 +705,29 @@ public abstract class MCVR {
                     this.aimPitch = 0.0F;
                 }
 
-                this.handRotation[c] = this.controllerRotation[c].set3x3(temp);
-            } else if (c == 0) {
+                this.handRotation[c].set(this.controllerRotation[c].set3x3(temp));
+            } else if (c == MAIN_CONTROLLER) {
                 this.aimPitch = 0.0F;
             }
 
-            Vector3fc aimDir = this.getAimVector(c);
-
-            this.controllerForwardHistory[c].add(aimDir);
+            this.controllerForwardHistory[c].add(this.getAimVector(c));
             this.controllerUpHistory[c].add(this.controllerRotation[c].transformDirection(MathUtils.UP, new Vector3f()));
         }
 
 
         if (this.dh.vrSettings.seated) {
             // seated uses head as aim source
-            this.aimSource[0] = this.getEyePosition(RenderPass.CENTER);
-            this.aimSource[1].set(this.aimSource[0]);
+            this.aimSource[MAIN_CONTROLLER] = this.getEyePosition(RenderPass.CENTER);
+            this.aimSource[OFFHAND_CONTROLLER].set(this.aimSource[MAIN_CONTROLLER]);
         }
 
         // trackers
         if (this.dh.vrSettings.debugCameraTracker) {
-            this.controllerPose[2] = this.controllerPose[0];
+            this.controllerPose[CAMERA_TRACKER].set(this.controllerPose[MAIN_CONTROLLER]);
         }
 
-        this.controllerRotation[2].identity();
-        this.controllerRotation[2].set3x3(this.controllerPose[2]);
+        this.controllerRotation[CAMERA_TRACKER].identity();
+        this.controllerRotation[CAMERA_TRACKER].set3x3(this.controllerPose[CAMERA_TRACKER]);
 
         if ((this.dh.vrSettings.debugCameraTracker || hasCameraTracker()) &&
             (this.dh.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY ||
@@ -722,10 +735,27 @@ public abstract class MCVR {
             ))
         {
             this.mrMovingCamActive = true;
-            this.aimSource[2] = this.controllerPose[2].getTranslation(this.aimSource[2]);
+            this.controllerPose[CAMERA_TRACKER].getTranslation(this.aimSource[CAMERA_TRACKER]);
         } else {
             this.mrMovingCamActive = false;
-            this.aimSource[2].set(this.dh.vrSettings.vrFixedCampos);
+            this.aimSource[CAMERA_TRACKER].set(this.dh.vrSettings.vrFixedCampos);
+        }
+
+        if (this.hasFBT()) {
+            int trackers = this.hasExtendedFBT() ? trackableDeviceCount : 6;
+            boolean calibrated = this.dh.vrSettings.fbtCalibrated &&
+                (!this.hasExtendedFBT() || this.dh.vrSettings.fbtExtendedCalibrated);
+            for (int i = 3; i < trackers; i++) {
+                this.controllerRotation[i].set3x3(this.controllerPose[i]);
+                this.controllerPose[i].getTranslation(this.aimSource[i]);
+                if (calibrated) {
+                    this.controllerRotation[i].rotate(this.dh.vrSettings.fbtRotations[i - 3]);
+                    this.aimSource[i].add(
+                        this.controllerRotation[i].transformDirection(this.dh.vrSettings.fbtOffsets[i - 3],
+                            new Vector3f()));
+                }
+
+            }
         }
     }
 
@@ -764,8 +794,8 @@ public abstract class MCVR {
             this.moveModeSwitchCount = 0;
         }
 
-        Vector3f main = this.getAimVector(0);
-        Vector3f off = this.getAimVector(1);
+        Vector3f main = this.getAimVector(MAIN_CONTROLLER);
+        Vector3f off = this.getAimVector(OFFHAND_CONTROLLER);
 
         float mainYaw = (float) Math.toDegrees(Math.atan2(-main.x, main.z));
         float offYaw = (float) Math.toDegrees(Math.atan2(-off.x, off.z));
@@ -1156,6 +1186,100 @@ public abstract class MCVR {
     }
 
     /**
+     * calculates the fbt trackers rotation and position offsets from the current state, to where they should be
+     */
+    public void calibrateFBT() {
+        Vector3f tempV = new Vector3f();
+        float scale = (AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT) * 0.9375F;
+
+        float yaw = Mth.PI - this.dh.vrPlayer.vrdata_room_pre.hmd.getYawRad();
+        Vector3f posAvg = hmdPivotHistory.averagePosition(0.5D);
+
+        for (int t = 3; t < (hasExtendedFBT() ? trackableDeviceCount : 6); t++) {
+            Matrix4f rotationOffset = this.controllerPose[t].rotateLocalY(-yaw, new Matrix4f());
+            rotationOffset.getUnnormalizedRotation(this.dh.vrSettings.fbtRotations[t - 3]).conjugate();
+        }
+
+        Vector3f[] offsets = new Vector3f[] {
+            new Vector3f(0F, 0.875F * scale, 0F),
+            new Vector3f(0.125F * scale, 0F, 0F),
+            new Vector3f(-0.125F * scale, 0F, 0F),
+            new Vector3f(0.625F * scale, 1.375F * scale, 0F),
+            new Vector3f(-0.625F * scale, 1.375F * scale, 0F),
+            new Vector3f(0.125F * scale, 0.375F * scale, 0F),
+            new Vector3f(-0.125F * scale, 0.375F * scale, 0F)
+        };
+
+        for (int t = 3; t < (hasExtendedFBT() ? trackableDeviceCount : 6); t++) {
+            Vector3f offset = offsets[t - 3].sub(
+                this.controllerPose[t].getTranslation(tempV)
+                .sub(posAvg.x, 0F, posAvg.z) // center around headset
+                .rotateY(-yaw)); // remove body rotation
+                //.sub(); // offset to reference point
+            /*Vector3f offset = offsets[t - 3]
+                .rotateY(yawAvg)
+                .add(posAvg.x, 0F, posAvg.z)
+                .sub(this.controllerPose[t].getTranslation(tempV));*/
+            this.dh.vrSettings.fbtOffsets[t - 3].set(offset);
+        }
+/*
+        if (hasFBT()) {
+            this.dh.vrSettings.fbtOffsets[WAIST_TRACKER - 3].set(
+                this.controllerPose[WAIST_TRACKER].transformDirection(
+                    this.controllerPose[WAIST_TRACKER].getTranslation(tempV)
+                        .sub(0F, 0.75F * scale, 0F)));
+            this.dh.vrSettings.fbtOffsets[RIGHT_FOOT_TRACKER - 3].set(
+                this.controllerPose[RIGHT_FOOT_TRACKER].transformDirection(
+                    this.controllerPose[RIGHT_FOOT_TRACKER].getTranslation(tempV)
+                        .sub(0.125F * scale, 0F, 0F)));
+            this.dh.vrSettings.fbtOffsets[LEFT_FOOT_TRACKER - 3].set(
+                this.controllerPose[LEFT_FOOT_TRACKER].transformDirection(
+                    this.controllerPose[LEFT_FOOT_TRACKER].getTranslation(tempV)
+                        .sub(-0.125F * scale, 0F, 0F)));
+
+
+            this.dh.vrSettings.fbtOffsets[WAIST_TRACKER - 3].set(
+                this.dh.vrSettings.fbtRotations[WAIST_TRACKER - 3].transform(
+                    this.controllerPose[WAIST_TRACKER].getTranslation(tempV).mul(-1)
+                        .sub(0F, 0.75F * scale, 0F)));
+            this.dh.vrSettings.fbtOffsets[RIGHT_FOOT_TRACKER - 3].set(
+                this.dh.vrSettings.fbtRotations[RIGHT_FOOT_TRACKER - 3].transform(
+                    this.controllerPose[RIGHT_FOOT_TRACKER].getTranslation(tempV).mul(-1)
+                        .sub(0.125F * scale, 0F, 0F)));
+            this.dh.vrSettings.fbtOffsets[LEFT_FOOT_TRACKER - 3].set(
+                this.dh.vrSettings.fbtRotations[LEFT_FOOT_TRACKER - 3].transform(
+                    this.controllerPose[LEFT_FOOT_TRACKER].getTranslation(tempV).mul(-1)
+                        .sub(-0.125F * scale, 0F, 0F)));
+        }
+        if (hasExtendedFBT()) {
+            this.dh.vrSettings.fbtOffsets[RIGHT_ELBOW_TRACKER - 3].set(
+                this.controllerPose[RIGHT_ELBOW_TRACKER].transformDirection(
+                    this.controllerPose[RIGHT_ELBOW_TRACKER].getTranslation(tempV)
+                        .sub(0.625F * scale, 1.375F * scale, 0F)));
+            this.dh.vrSettings.fbtOffsets[LEFT_ELBOW_TRACKER - 3].set(
+                this.controllerPose[LEFT_ELBOW_TRACKER].transformDirection(
+                    this.controllerPose[LEFT_ELBOW_TRACKER].getTranslation(tempV)
+                        .sub(-0.625F * scale, 1.375F * scale, 0F)));
+
+            this.dh.vrSettings.fbtOffsets[RIGHT_KNEE_TRACKER - 3].set(
+                this.controllerPose[RIGHT_KNEE_TRACKER].transformDirection(
+                    this.controllerPose[RIGHT_KNEE_TRACKER].getTranslation(tempV)
+                        .sub(0.125F * scale, 0.375F * scale, 0F)));
+            this.dh.vrSettings.fbtOffsets[LEFT_KNEE_TRACKER - 3].set(
+                this.controllerPose[LEFT_KNEE_TRACKER].transformDirection(
+                    this.controllerPose[LEFT_KNEE_TRACKER].getTranslation(tempV)
+                        .sub(-0.125F * scale, 0.375F * scale, 0F)));
+        }
+*/
+        if (hasFBT()) {
+            this.dh.vrSettings.fbtCalibrated = true;
+        }
+        if (hasExtendedFBT()) {
+            this.dh.vrSettings.fbtExtendedCalibrated = true;
+        }
+    }
+
+    /**
      * @return the name of this MCVR implementation
      */
     public abstract String getName();
@@ -1193,6 +1317,16 @@ public abstract class MCVR {
      * @return if there is a tracker for the camera
      */
     public abstract boolean hasCameraTracker();
+
+    /**
+     * @return if feet and waist trackers are available
+     */
+    public abstract boolean hasFBT();
+
+    /**
+     * @return if elbow and knee trackers are available
+     */
+    public abstract boolean hasExtendedFBT();
 
     /**
      * @param action VRInputAction to query origins for

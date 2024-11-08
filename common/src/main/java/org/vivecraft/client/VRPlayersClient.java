@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -12,6 +13,9 @@ import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.vivecraft.client.extensions.SparkParticleExtension;
+import org.vivecraft.client_vr.provider.MCVR;
+import org.vivecraft.client_vr.settings.AutoCalibration;
+import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRData;
@@ -100,6 +104,28 @@ public class VRPlayersClient {
 
         if (rotInfo.seated) {
             rotInfo.heightScale = 1.0F;
+        }
+
+        rotInfo.fbtMode = vrPlayerState.fbtMode();
+        if (rotInfo.fbtMode != FBTMode.ARMS_ONLY) {
+            rotInfo.waistPos = vrPlayerState.waist().position();
+            rotInfo.rightFootPos = vrPlayerState.rightFoot().position();
+            rotInfo.leftFootPos = vrPlayerState.leftFoot().position();
+
+            rotInfo.waistQuat = vrPlayerState.waist().orientation();
+            rotInfo.rightFootQuat = vrPlayerState.rightFoot().orientation();
+            rotInfo.leftFootQuat = vrPlayerState.leftFoot().orientation();
+        }
+        if (rotInfo.fbtMode == FBTMode.WITH_JOINTS) {
+            rotInfo.rightKneePos = vrPlayerState.rightKnee().position();
+            rotInfo.leftKneePos = vrPlayerState.leftKnee().position();
+            rotInfo.rightElbowPos = vrPlayerState.rightElbow().position();
+            rotInfo.leftElbowPos = vrPlayerState.leftElbow().position();
+
+            rotInfo.rightKneeQuat = vrPlayerState.rightKnee().orientation();
+            rotInfo.leftKneeQuat = vrPlayerState.leftKnee().orientation();
+            rotInfo.rightElbowQuat = vrPlayerState.rightElbow().orientation();
+            rotInfo.leftElbowQuat = vrPlayerState.leftElbow().orientation();
         }
 
         this.vivePlayersReceived.put(uuid, rotInfo);
@@ -220,23 +246,125 @@ public class VRPlayersClient {
 
             lerpRotInfo.heightScale = newRotInfo.heightScale;
             lerpRotInfo.worldScale = newRotInfo.worldScale;
+
+            // use the smallest one, since we can't interpolate missing data
+            lerpRotInfo.fbtMode = FBTMode.values()[Math.min(lastRotInfo.fbtMode.ordinal(),
+                newRotInfo.fbtMode.ordinal())];
+
+            // check last lastRotInfo since these can be null
+            if (lastRotInfo.fbtMode != FBTMode.ARMS_ONLY && newRotInfo.fbtMode != FBTMode.ARMS_ONLY) {
+                lerpRotInfo.waistPos = lastRotInfo.waistPos.lerp(newRotInfo.waistPos, partialTick, new Vector3f());
+                lerpRotInfo.rightFootPos = lastRotInfo.rightFootPos.lerp(newRotInfo.rightFootPos, partialTick,
+                    new Vector3f());
+                lerpRotInfo.leftFootPos = lastRotInfo.leftFootPos.lerp(newRotInfo.leftFootPos, partialTick,
+                    new Vector3f());
+
+                lerpRotInfo.waistQuat = newRotInfo.waistQuat;
+                lerpRotInfo.rightFootQuat = newRotInfo.rightFootQuat;
+                lerpRotInfo.leftFootQuat = newRotInfo.leftFootQuat;
+
+                if (lastRotInfo.fbtMode == FBTMode.WITH_JOINTS && newRotInfo.fbtMode == FBTMode.WITH_JOINTS) {
+                    lerpRotInfo.leftKneePos = lastRotInfo.leftKneePos.lerp(newRotInfo.leftKneePos, partialTick,
+                        new Vector3f());
+                    lerpRotInfo.rightKneePos = lastRotInfo.rightKneePos.lerp(newRotInfo.rightKneePos, partialTick,
+                        new Vector3f());
+                    lerpRotInfo.leftElbowPos = lastRotInfo.leftElbowPos.lerp(newRotInfo.leftElbowPos, partialTick,
+                        new Vector3f());
+                    lerpRotInfo.rightElbowPos = lastRotInfo.rightElbowPos.lerp(newRotInfo.rightElbowPos, partialTick,
+                        new Vector3f());
+
+                    lerpRotInfo.leftKneeQuat = newRotInfo.leftKneeQuat;
+                    lerpRotInfo.rightKneeQuat = newRotInfo.rightKneeQuat;
+                    lerpRotInfo.leftElbowQuat = newRotInfo.leftElbowQuat;
+                    lerpRotInfo.rightElbowQuat = newRotInfo.rightElbowQuat;
+                }
+            }
+
             return lerpRotInfo;
         } else {
             return newRotInfo;
         }
     }
 
-    public static RotInfo getMainPlayerRotInfo(VRData data) {
+    /**
+     * creates a RotInfo object for the current client VR state
+     * @param player player to center the data around
+     * @param partialTick partial tick to get the player position
+     * @return up to date RotInfo
+     */
+    public static RotInfo getMainPlayerRotInfo(LivingEntity player, float partialTick) {
         RotInfo rotInfo = new RotInfo();
 
-        rotInfo.headQuat = data.hmd.getMatrix().getNormalizedRotation(new Quaternionf());
-        rotInfo.leftArmQuat = data.getController(1).getMatrix().getNormalizedRotation(new Quaternionf());
-        rotInfo.rightArmQuat = data.getController(0).getMatrix().getNormalizedRotation(new Quaternionf());
-        rotInfo.seated = ClientDataHolderVR.getInstance().vrSettings.seated;
+        VRData data = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld();
 
-        rotInfo.leftArmPos = data.getController(1).getPositionF();
-        rotInfo.rightArmPos = data.getController(0).getPositionF();
-        rotInfo.headPos = data.hmd.getPositionF();
+        rotInfo.seated = ClientDataHolderVR.getInstance().vrSettings.seated;
+        rotInfo.reverse = ClientDataHolderVR.getInstance().vrSettings.reverseHands;
+        rotInfo.fbtMode = FBTMode.ARMS_ONLY;
+
+        rotInfo.heightScale = AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT;
+        rotInfo.worldScale = ClientDataHolderVR.getInstance().vrPlayer.worldScale;
+
+        rotInfo.leftArmQuat = data.getController(MCVR.OFFHAND_CONTROLLER).getMatrix()
+            .getNormalizedRotation(new Quaternionf());
+        rotInfo.rightArmQuat = data.getController(MCVR.MAIN_CONTROLLER).getMatrix()
+            .getNormalizedRotation(new Quaternionf());
+        rotInfo.headQuat = data.hmd.getMatrix().getNormalizedRotation(new Quaternionf());
+
+        rotInfo.leftArmRot = rotInfo.leftArmQuat.transform(MathUtils.BACK, new Vector3f());
+        rotInfo.rightArmRot = rotInfo.rightArmQuat.transform(MathUtils.BACK, new Vector3f());
+        rotInfo.headRot = rotInfo.headQuat.transform(MathUtils.BACK, new Vector3f());
+
+        Vec3 pos = player.getPosition(partialTick);
+
+        rotInfo.leftArmPos = MathUtils.subtractToVector3f(
+            data.getController(MCVR.OFFHAND_CONTROLLER).getPosition(), pos);
+        rotInfo.rightArmPos = MathUtils.subtractToVector3f(
+            data.getController(MCVR.MAIN_CONTROLLER).getPosition(), pos);
+        rotInfo.headPos = MathUtils.subtractToVector3f(
+            data.hmd.getPosition(), pos);
+
+        if (ClientDataHolderVR.getInstance().vr.hasFBT() && ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated) {
+            rotInfo.fbtMode = FBTMode.ARMS_LEGS;
+
+            rotInfo.waistQuat = data.getDevice(MCVR.WAIST_TRACKER).getMatrix()
+                .getNormalizedRotation(new Quaternionf());
+            rotInfo.rightFootQuat = data.getDevice(MCVR.RIGHT_FOOT_TRACKER).getMatrix()
+                .getNormalizedRotation(new Quaternionf());
+            rotInfo.leftFootQuat = data.getDevice(MCVR.LEFT_FOOT_TRACKER).getMatrix()
+                .getNormalizedRotation(new Quaternionf());
+
+            rotInfo.waistPos = MathUtils.subtractToVector3f(
+                data.getDevice(MCVR.WAIST_TRACKER).getPosition(), pos);
+            rotInfo.rightFootPos = MathUtils.subtractToVector3f(
+                data.getDevice(MCVR.RIGHT_FOOT_TRACKER).getPosition(),
+                pos);
+            rotInfo.leftFootPos = MathUtils.subtractToVector3f(
+                data.getDevice(MCVR.LEFT_FOOT_TRACKER).getPosition(), pos);
+
+            if (ClientDataHolderVR.getInstance().vr.hasExtendedFBT() &&
+                ClientDataHolderVR.getInstance().vrSettings.fbtExtendedCalibrated)
+            {
+                rotInfo.fbtMode = FBTMode.WITH_JOINTS;
+                rotInfo.leftKneeQuat = data.getDevice(MCVR.LEFT_KNEE_TRACKER).getMatrix()
+                    .getNormalizedRotation(new Quaternionf());
+                rotInfo.rightKneeQuat = data.getDevice(MCVR.RIGHT_KNEE_TRACKER).getMatrix()
+                    .getNormalizedRotation(new Quaternionf());
+                rotInfo.leftElbowQuat = data.getDevice(MCVR.LEFT_ELBOW_TRACKER).getMatrix()
+                    .getNormalizedRotation(new Quaternionf());
+                rotInfo.rightElbowQuat = data.getDevice(MCVR.RIGHT_ELBOW_TRACKER).getMatrix()
+                    .getNormalizedRotation(new Quaternionf());
+
+                rotInfo.leftKneePos = MathUtils.subtractToVector3f(
+                    data.getDevice(MCVR.LEFT_KNEE_TRACKER).getPosition(), pos);
+                rotInfo.rightKneePos = MathUtils.subtractToVector3f(
+                    data.getDevice(MCVR.RIGHT_KNEE_TRACKER).getPosition(), pos);
+                rotInfo.leftElbowPos = MathUtils.subtractToVector3f(
+                    data.getDevice(MCVR.LEFT_ELBOW_TRACKER).getPosition(), pos);
+                rotInfo.rightElbowPos = MathUtils.subtractToVector3f(
+                    data.getDevice(MCVR.RIGHT_ELBOW_TRACKER).getPosition(), pos);
+            }
+        }
+
         return rotInfo;
     }
 
@@ -281,20 +409,42 @@ public class VRPlayersClient {
         public float worldScale;
         public float heightScale;
 
-        // TODO MATH make the same for VRDATA and this
+        public FBTMode fbtMode;
+        public Vector3fc waistPos;
+        public Quaternionfc waistQuat;
+        public Vector3fc rightFootPos;
+        public Quaternionfc rightFootQuat;
+        public Vector3fc leftFootPos;
+        public Quaternionfc leftFootQuat;
+
+        public Vector3fc rightKneePos;
+        public Quaternionfc rightKneeQuat;
+        public Vector3fc leftKneePos;
+        public Quaternionfc leftKneeQuat;
+        public Vector3fc rightElbowPos;
+        public Quaternionfc rightElbowQuat;
+        public Vector3fc leftElbowPos;
+        public Quaternionfc leftElbowQuat;
+
+        /**
+         *  IMPORTANT!!! when changing this, also change {@link VRData#getBodyYawRad()}
+         */
         public float getBodyYawRad() {
-            Vector3f diff = this.leftArmPos.sub(this.rightArmPos, new Vector3f()).rotateY(-Mth.HALF_PI);
-
-            if (this.reverse) {
-                diff = diff.mul(-1.0F);
-            }
-
+            Vector3f dir = new Vector3f();
             if (this.seated) {
-                diff.set(this.rightArmRot);
+                // in seated use the head direction
+                dir.set(this.headRot);
+            } else if (this.fbtMode != FBTMode.ARMS_ONLY) {
+                // use average of head and waist
+                this.waistQuat.transform(MathUtils.BACK, dir)
+                    .lerp(this.headRot, 0.5F);
+            } else {
+                return MathUtils.bodyYawRad(
+                    this.reverse ? this.leftArmPos: this.rightArmPos,
+                    this.reverse ? this.rightArmPos: this.leftArmPos,
+                    this.headRot);
             }
-
-            diff.lerp(this.headRot, 0.5F, diff);
-            return (float) Math.atan2(-diff.x, diff.z);
+            return (float) Math.atan2(-dir.x, dir.z);
         }
     }
 }

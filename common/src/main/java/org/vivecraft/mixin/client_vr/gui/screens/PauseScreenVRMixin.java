@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
 import org.vivecraft.client.gui.settings.GuiQuickCommandsInGame;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
@@ -95,12 +96,19 @@ public abstract class PauseScreenVRMixin extends Screen {
             }).width(98).build());
 
         if (!ClientDataHolderVR.getInstance().vrSettings.seated) {
-            rowHelper.addChild(new Button.Builder(Component.translatable("vivecraft.gui.calibrateheight"),
-                (p) -> {
-                    AutoCalibration.calibrateManual();
-                    ClientDataHolderVR.getInstance().vrSettings.saveOptions();
-                    this.minecraft.setScreen(null);
-                }).width(98).build());
+            if (ClientDataHolderVR.getInstance().vr.hasFBT()) {
+                rowHelper.addChild(new Button.Builder(
+                    Component.translatable("vivecraft.options.screen.fbtcalibration.button"),
+                        (p) -> this.minecraft.setScreen(new FBTCalibrationScreen(this)))
+                    .width(98).build());
+            } else {
+                rowHelper.addChild(new Button.Builder(Component.translatable("vivecraft.gui.calibrateheight"),
+                    (p) -> {
+                        AutoCalibration.calibrateManual();
+                        ClientDataHolderVR.getInstance().vrSettings.saveOptions();
+                        this.minecraft.setScreen(null);
+                    }).width(98).build());
+            }
         }
 
         if (ClientDataHolderVR.KAT_VR) {

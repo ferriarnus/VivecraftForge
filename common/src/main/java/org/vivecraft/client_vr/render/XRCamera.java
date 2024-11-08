@@ -1,6 +1,7 @@
 package org.vivecraft.client_vr.render;
 
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
@@ -76,7 +77,7 @@ public class XRCamera extends Camera {
             return super.isDetached();
         }
         boolean renderSelf = ClientDataHolderVR.getInstance().currentPass == RenderPass.CAMERA ||
-            (ClientDataHolderVR.getInstance().currentPass == RenderPass.THIRD &&
+            (ClientDataHolderVR.getInstance().currentPass == RenderPass.THIRD && !Minecraft.getInstance().options.hideGui &&
                 ClientDataHolderVR.getInstance().vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON
             );
         return renderSelf || ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf;

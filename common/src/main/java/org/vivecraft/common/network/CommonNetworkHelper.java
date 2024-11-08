@@ -12,7 +12,7 @@ public class CommonNetworkHelper {
     public static final ResourceLocation CHANNEL = new ResourceLocation("vivecraft:data");
 
     // maximum supported network version
-    public static final int MAX_SUPPORTED_NETWORK_VERSION = 0;
+    public static final int MAX_SUPPORTED_NETWORK_VERSION = 1;
     // minimum supported network version
     public static final int MIN_SUPPORTED_NETWORK_VERSION = 0;
 

@@ -34,7 +34,7 @@ public record UberPacketPayloadS2C(UUID playerID, VrPlayerState state, float wor
     public static UberPacketPayloadS2C read(FriendlyByteBuf buffer) {
         return new UberPacketPayloadS2C(
             buffer.readUUID(),
-            VrPlayerState.deserialize(buffer),
+            VrPlayerState.deserialize(buffer, 8),
             buffer.readFloat(),
             buffer.readFloat());
     }

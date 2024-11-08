@@ -15,8 +15,13 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import org.joml.Vector3f;
-import org.vivecraft.client.utils.ScaleHelper;
+import org.joml.Quaternionf;
+import org.vivecraft.client.utils.ModelUtils;
+import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.VRState;
+import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
+import org.vivecraft.client_vr.render.RenderPass;
+import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 import org.vivecraft.mod_compat_vr.sodium.SodiumHelper;
 
@@ -91,54 +96,70 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         PartDefinition partDefinition = meshDefinition.getRoot();
 
         if (slim) {
-            partDefinition.addOrReplaceChild("leftHand",
-                CubeListBuilder.create().texOffs(32, 55).addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
+            partDefinition.addOrReplaceChild("leftHand", CubeListBuilder.create()
+                    .texOffs(32, 55)
+                    .addBox(-1.5F, -3.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create().texOffs(48, 55)
+            partDefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create()
+                    .texOffs(48, 55)
+                    .addBox(-1.5F, -3.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+                PartPose.offset(5.0F, 2.5F, 0.0F));
+            partDefinition.addOrReplaceChild("rightHand", CubeListBuilder.create()
+                    .texOffs(40, 23)
+                    .addBox(-1.5F, -3.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
+                PartPose.offset(-5.0F, 2.5F, 0.0F));
+            partDefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create()
+                    .texOffs(40, 39)
+                    .addBox(-1.5F, -3.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+                PartPose.offset(-5.0F, 2.5F, 0.0F));
+            partDefinition.addOrReplaceChild("left_arm", CubeListBuilder.create()
+                    .texOffs(32, 48)
+                    .addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
+                PartPose.offset(5.0F, 2.5F, 0.0F));
+            partDefinition.addOrReplaceChild("right_arm", CubeListBuilder.create()
+                    .texOffs(40, 16)
+                    .addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
+                PartPose.offset(-5.0F, 2.5F, 0.0F));
+            partDefinition.addOrReplaceChild("leftShoulder_sleeve", CubeListBuilder.create()
+                    .texOffs(48, 48)
                     .addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("rightHand",
-                CubeListBuilder.create().texOffs(40, 23).addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
-                PartPose.offset(-5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create().texOffs(40, 39)
-                    .addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
-                PartPose.offset(-5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("left_arm",
-                CubeListBuilder.create().texOffs(32, 48).addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
-                PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("right_arm",
-                CubeListBuilder.create().texOffs(40, 16).addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
-                PartPose.offset(-5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("leftShoulder_sleeve", CubeListBuilder.create().texOffs(48, 48)
-                    .addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
-                PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("rightShoulder_sleeve", CubeListBuilder.create().texOffs(40, 32)
+            partDefinition.addOrReplaceChild("rightShoulder_sleeve", CubeListBuilder.create()
+                    .texOffs(40, 32)
                     .addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
         } else {
-            partDefinition.addOrReplaceChild("leftHand",
-                CubeListBuilder.create().texOffs(32, 55).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
+            partDefinition.addOrReplaceChild("leftHand", CubeListBuilder.create()
+                    .texOffs(32, 55)
+                    .addBox(-2.0F, -5.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create().texOffs(48, 55)
+            partDefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create()
+                    .texOffs(48, 55)
+                    .addBox(-2.0F, -5.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+                PartPose.offset(5.0F, 2.5F, 0.0F));
+            partDefinition.addOrReplaceChild("rightHand", CubeListBuilder.create()
+                    .texOffs(40, 23)
+                    .addBox(-2.0F, -5.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
+                PartPose.offset(-5.0F, 2.5F, 0.0F));
+            partDefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create()
+                    .texOffs(40, 39)
+                    .addBox(-2.0F, -5.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+                PartPose.offset(-5.0F, 2.5F, 0.0F));
+            partDefinition.addOrReplaceChild("left_arm", CubeListBuilder.create()
+                    .texOffs(32, 48)
+                    .addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
+                PartPose.offset(5.0F, 2.5F, 0.0F));
+            partDefinition.addOrReplaceChild("leftShoulder_sleeve", CubeListBuilder.create()
+                    .texOffs(48, 48)
                     .addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("rightHand",
-                CubeListBuilder.create().texOffs(40, 23).addBox(-2.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
+            partDefinition.addOrReplaceChild("right_arm", CubeListBuilder.create()
+                    .texOffs(40, 16)
+                    .addBox(-3.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create().texOffs(40, 39)
-                    .addBox(-2.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
-                PartPose.offset(-5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("left_arm",
-                CubeListBuilder.create().texOffs(32, 48).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
-                PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("right_arm",
-                CubeListBuilder.create().texOffs(40, 16).addBox(-2.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
-                PartPose.offset(-5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("leftShoulder_sleeve", CubeListBuilder.create().texOffs(48, 48)
-                    .addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
-                PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("rightShoulder_sleeve", CubeListBuilder.create().texOffs(40, 32)
-                    .addBox(-2.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+            partDefinition.addOrReplaceChild("rightShoulder_sleeve", CubeListBuilder.create()
+                    .texOffs(40, 32)
+                    .addBox(-3.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
         }
         return meshDefinition;
@@ -153,98 +174,95 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
     }
 
     @Override
-    public void setupAnim(T player, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+    public void setupAnim(
+        T player, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch)
+    {
         super.setupAnim(player, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 
         if (this.rotInfo == null) {
             return;
         }
 
-        float handsYOffset = -1.501F * this.rotInfo.heightScale;
+        ModelPart actualLeftHand = this.leftHand;
+        ModelPart actualRightHand = this.rightHand;
+        ModelPart actualLeftShoulder = this.leftShoulder;
+        ModelPart actualRightShoulder = this.rightShoulder;
+        if (this.rotInfo.reverse) {
+            actualLeftHand = this.rightHand;
+            actualRightHand = this.leftHand;
+            actualLeftShoulder = this.rightShoulder;
+            actualRightShoulder = this.leftShoulder;
+        }
 
-        float leftControllerYaw = (float) Math.atan2(-this.rotInfo.leftArmRot.x(), -this.rotInfo.leftArmRot.z());
-        float leftControllerPitch = (float) Math.asin(this.rotInfo.leftArmRot.y() / this.rotInfo.leftArmRot.length());
-        float rightControllerYaw = (float) Math.atan2(-this.rotInfo.rightArmRot.x(), -this.rotInfo.rightArmRot.z());
-        float rightControllerPitch = (float) Math.asin(this.rotInfo.rightArmRot.y() / this.rotInfo.rightArmRot.length());
-        float bodyYaw = this.rotInfo.getBodyYawRad();
+        // left arm
+        ModelUtils.positionAndRotateModelToLocal(actualLeftHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat,
+            this.rotInfo, this.bodyYaw, this.tempV);
+        if (this.attackArm == HumanoidArm.LEFT) {
+            ModelUtils.attackAnimation(actualLeftHand, HumanoidArm.LEFT, this.attackTime, this.isMainPlayer,
+                this.tempM, this.tempV);
+        }
 
-        this.laying = this.swimAmount > 0.0F || player.isFallFlying() && !player.isAutoSpinAttack();
+        ModelUtils.worldToModelDirection(this.rotInfo.leftArmRot, this.bodyYaw, this.tempV2);
 
-        if (!this.rotInfo.reverse) {
-            this.rightShoulder.setPos(-Mth.cos(this.body.yRot) * 5.0F, this.slim ? 2.5F : 2.0F, Mth.sin(this.body.yRot) * 5.0F);
-            this.leftShoulder.setPos(Mth.cos(this.body.yRot) * 5.0F, this.slim ? 2.5F : 2.0F, -Mth.sin(this.body.yRot) * 5.0F);
+        ModelUtils.estimateJoint(
+            actualLeftShoulder.x, actualLeftShoulder.y, actualLeftShoulder.z,
+            actualLeftHand.x, actualLeftHand.y, actualLeftHand.z,
+            MathUtils.LEFT, 12.0F, this.tempV);
+
+        ModelUtils.pointModelAtModel(actualLeftShoulder, this.tempV.x, this.tempV.y, this.tempV.z, new Quaternionf(),
+            this.bodyYaw, true, this.tempV, this.tempM);
+
+        if (VRState.VR_RUNNING && player == Minecraft.getInstance().player &&
+            ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
+            ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms) {
+            GuiHandler.guiRotation_playerModel.set(this.rotInfo.leftArmQuat);
+            GuiHandler.guiPos_playerModel = player.getPosition(Minecraft.getInstance().getFrameTime())
+                .add(this.rotInfo.leftArmPos.x(), this.rotInfo.leftArmPos.y(), this.rotInfo.leftArmPos.z());
+        }
+
+        // right arm
+        ModelUtils.positionAndRotateModelToLocal(actualRightHand, this.rotInfo.rightArmPos, this.rotInfo.rightArmQuat,
+            this.rotInfo, this.bodyYaw, this.tempV);
+        if (this.attackArm == HumanoidArm.RIGHT) {
+            ModelUtils.attackAnimation(actualRightHand, HumanoidArm.RIGHT, this.attackTime, this.isMainPlayer,
+                this.tempM, this.tempV);
+        }
+
+        ModelUtils.estimateJoint(
+            actualRightShoulder.x, actualRightShoulder.y, actualRightShoulder.z,
+            actualRightHand.x, actualRightHand.y, actualRightHand.z,
+            MathUtils.LEFT, 12.0F, this.tempV);
+
+        ModelUtils.pointModelAtModel(actualRightShoulder, this.tempV.x, this.tempV.y, this.tempV.z, new Quaternionf(),
+            this.bodyYaw, true, this.tempV, this.tempM);
+
+        // first person scale
+        if (player == Minecraft.getInstance().player &&
+            (ClientDataHolderVR.getInstance().currentPass == RenderPass.LEFT ||
+                ClientDataHolderVR.getInstance().currentPass == RenderPass.RIGHT ||
+                ClientDataHolderVR.getInstance().currentPass == RenderPass.CENTER
+            ))
+        {
+            this.leftHand.xScale = this.leftHand.zScale = this.rightHand.xScale = this.rightHand.zScale =
+                this.leftShoulder.xScale = this.leftShoulder.zScale =
+                    this.rightShoulder.xScale = this.rightShoulder.zScale =
+                        ClientDataHolderVR.getInstance().vrSettings.playerModelArmsScale;
+
         } else {
-            this.leftShoulder.setPos(-Mth.cos(this.body.yRot) * 5.0F, this.slim ? 2.5F : 2.0F, Mth.sin(this.body.yRot) * 5.0F);
-            this.rightShoulder.setPos(Mth.cos(this.body.yRot) * 5.0F, this.slim ? 2.5F : 2.0F, -Mth.sin(this.body.yRot) * 5.0F);
+            this.leftHand.xScale = this.leftHand.zScale = this.rightHand.xScale = this.rightHand.zScale =
+                this.leftShoulder.xScale = this.leftShoulder.zScale =
+                    this.rightShoulder.xScale = this.rightShoulder.zScale = 1.0F;
         }
 
-        if (this.crouching) {
-            this.rightShoulder.y += 3.2F;
-            this.leftShoulder.y += 3.2F;
-        }
+        /*
+        this.tempV.set(0,0,0);
+        this.tempM.transform(this.tempV);
+        this.leftShoulder.x += this.tempV.x;
+        this.leftShoulder.y += this.tempV.y;
+        this.leftShoulder.z += this.tempV.z;
 
-        Vector3f leftArmPos = new Vector3f(this.rotInfo.leftArmPos);
-        Vector3f rightArmPos = new Vector3f(this.rotInfo.rightArmPos);
-
-        // remove entity scale from that, since the whole entity is scaled
-        float inverseScale = 1F / ScaleHelper.getEntityEyeHeightScale(player, Minecraft.getInstance().getFrameTime());
-        leftArmPos = leftArmPos.mul(inverseScale);
-        rightArmPos = rightArmPos.mul(inverseScale);
-
-        // Left Arm
-        leftArmPos.add(0.0F, handsYOffset, 0.0F);
-        leftArmPos.rotateY(-Mth.PI + bodyYaw);
-        leftArmPos.mul(16.0F / this.rotInfo.heightScale);
-        this.leftHand.setPos(-leftArmPos.x, -leftArmPos.y, leftArmPos.z);
-        this.leftHand.xRot = -leftControllerPitch + Mth.PI * 1.5F;
-        this.leftHand.yRot = Mth.PI - leftControllerYaw - bodyYaw;
-        this.leftHand.zRot = 0.0F;
-        if (this.leftArmPose == ArmPose.THROW_SPEAR) {
-            this.leftHand.xRot -= Mth.HALF_PI;
-        }
-
-        // left shoulder
-        Vector3f leftShoulderPos = new Vector3f(
-            this.leftShoulder.x + leftArmPos.x,
-            this.leftShoulder.y + leftArmPos.y,
-            this.leftShoulder.z - leftArmPos.z);
-
-        this.leftShoulder.xRot = Mth.PI * 1.5F - (float) Math.asin(leftShoulderPos.y / leftShoulderPos.length());
-        this.leftShoulder.yRot = (float) Math.atan2(leftShoulderPos.x, leftShoulderPos.z);
-        this.leftShoulder.zRot = 0.0F;
-        if (this.leftShoulder.yRot > 0.0F) {
-            this.leftShoulder.yRot = 0.0F;
-        }
-
-        // Right arm
-        rightArmPos.add(0.0F, handsYOffset, 0.0F);
-        rightArmPos.rotateY(-Mth.PI + bodyYaw);
-        rightArmPos.mul(16.0F / this.rotInfo.heightScale);
-        this.rightHand.setPos(-rightArmPos.x, -rightArmPos.y, rightArmPos.z);
-        this.rightHand.xRot = -rightControllerPitch + Mth.PI * 1.5F;
-        this.rightHand.yRot = Mth.PI - rightControllerYaw - bodyYaw;
-        this.rightHand.zRot = 0.0F;
-        if (this.rightArmPose == ArmPose.THROW_SPEAR) {
-            this.rightHand.xRot -= Mth.HALF_PI;
-        }
-
-        // Right shoulder
-        Vector3f rightShoulderPos = new Vector3f(
-            this.rightShoulder.x + rightArmPos.x,
-            this.rightShoulder.y + rightArmPos.y,
-            this.rightShoulder.z - rightArmPos.z);
-
-        this.rightShoulder.xRot = Mth.PI * 1.5F - (float) Math.asin(rightShoulderPos.y / rightShoulderPos.length());
-        this.rightShoulder.yRot = (float) Math.atan2(rightShoulderPos.x, rightShoulderPos.z);
-        this.rightShoulder.zRot = 0.0F;
-        if (this.rightShoulder.yRot < 0.0F) {
-            this.rightShoulder.yRot = 0.0F;
-        }
-
-        if (this.laying) {
-            this.rightShoulder.xRot = this.rightShoulder.xRot - Mth.HALF_PI;
-            this.leftShoulder.xRot = this.leftShoulder.xRot - Mth.HALF_PI;
-        }
+        this.leftShoulder.yScale = 1.0F;
+*/
 
         this.leftSleeve.copyFrom(this.leftHand);
         this.rightSleeve.copyFrom(this.rightHand);
@@ -268,7 +286,11 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
     @Override
     protected ModelPart getArm(HumanoidArm side) {
-        return side == HumanoidArm.LEFT ? this.leftHand : this.rightHand;
+        if (this.rotInfo != null && this.rotInfo.reverse) {
+            return side == HumanoidArm.RIGHT ? this.leftHand : this.rightHand;
+        } else {
+            return side == HumanoidArm.LEFT ? this.leftHand : this.rightHand;
+        }
     }
 
     @Override
@@ -280,7 +302,10 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         }
 
         modelpart.translateAndRotate(poseStack);
-        poseStack.mulPose(Axis.XP.rotation(Mth.sin(this.attackTime * Mth.PI)));
-        poseStack.translate(0.0F, -0.5F, 0.0F);
+        if (this.attackArm == side) {
+            poseStack.mulPose(Axis.XP.rotation(Mth.sin(this.attackTime * Mth.PI)));
+        }
+
+        poseStack.translate(side == HumanoidArm.LEFT ? -0.0625F : 0.0625F, -0.6F, 0.0F);
     }
 }

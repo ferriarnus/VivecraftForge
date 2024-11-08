@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.vivecraft.client.Xplat;
 import org.vivecraft.common.CommonDataHolder;
 import org.vivecraft.common.network.CommonNetworkHelper;
+import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.network.VrPlayerState;
 import org.vivecraft.common.network.packet.PayloadIdentifier;
 import org.vivecraft.common.network.packet.c2s.*;
@@ -27,6 +28,7 @@ import org.vivecraft.server.config.ServerConfig;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ServerNetworking {
 
@@ -215,7 +217,11 @@ public class ServerNetworking {
                         controller0Data.reverseHands(), // reverseHands 0
                         controller0Data.controller1Pose(), // controller0 pose
                         controller1Data.reverseHands(), // reverseHands 1
-                        controller1Data.controller0Pose()); // controller1 pose
+                        controller1Data.controller0Pose(),
+                        FBTMode.ARMS_ONLY, null,
+                        null, null,
+                        null, null,
+                        null, null); // controller1 pose
 
                     LEGACY_DATA_MAP.remove(player.getUUID());
                 }
@@ -249,9 +255,15 @@ public class ServerNetworking {
      * @param vivePlayer player to send the VR data for
      */
     public static void sendVrPlayerStateToClients(ServerVivePlayer vivePlayer) {
-        sendPacketToTrackingPlayers(vivePlayer,
+        // create the packets here, to try to avoid unnecessary memory copies when creating multiple packets
+        Packet<?> legacyPacket = Xplat.getS2CPacket(
+            new UberPacketPayloadS2C(vivePlayer.player.getUUID(), new VrPlayerState(vivePlayer.vrPlayerState, 0),
+                vivePlayer.worldScale, vivePlayer.heightScale));
+        Packet<?> newPacket = Xplat.getS2CPacket(
             new UberPacketPayloadS2C(vivePlayer.player.getUUID(), vivePlayer.vrPlayerState, vivePlayer.worldScale,
                 vivePlayer.heightScale));
+
+        sendPacketToTrackingPlayers(vivePlayer, (version) -> version < 1 ? legacyPacket : newPacket);
     }
 
     /**
@@ -272,7 +284,17 @@ public class ServerNetworking {
      */
     private static void sendPacketToTrackingPlayers(ServerVivePlayer vivePlayer, VivecraftPayloadS2C payload) {
         Packet<?> packet = Xplat.getS2CPacket(payload);
+        sendPacketToTrackingPlayers(vivePlayer, (v) -> packet);
+    }
 
+    /**
+     * sends a packet to all players that can see {@code vivePlayer}
+     * @param vivePlayer player that needs to be seen to get the packet
+     * @param packetProvider provider for network packets, based on client network version
+     */
+    private static void sendPacketToTrackingPlayers(
+        ServerVivePlayer vivePlayer, Function<Integer, Packet<?>> packetProvider)
+    {
         Map<UUID, ServerVivePlayer> vivePlayers = ServerVRPlayers.getPlayersWithVivecraft(vivePlayer.player.server);
         for (var trackedPlayer : getTrackingPlayers(vivePlayer.player)) {
             if (!vivePlayers.containsKey(trackedPlayer.getPlayer().getUUID()) ||
@@ -280,7 +302,7 @@ public class ServerNetworking {
             {
                 continue;
             }
-            trackedPlayer.send(packet);
+            trackedPlayer.send(packetProvider.apply(vivePlayer.networkVersion));
         }
     }
 }

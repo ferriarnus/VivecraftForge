@@ -151,7 +151,7 @@ public class VRArmHelper {
         Tesselator tesselator = Tesselator.getInstance();
         tesselator.getBuilder().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_NORMAL);
 
-        RenderHelper.renderBox(tesselator, start, end, -0.02F, 0.02F, -0.0125F, 0.0125F, color, alpha, poseStack);
+        RenderHelper.renderBox(tesselator.getBuilder(), start, end, -0.02F, 0.02F, -0.0125F, 0.0125F, color, alpha, poseStack);
 
         BufferUploader.drawWithShader(tesselator.getBuilder().end());
 
@@ -433,7 +433,7 @@ public class VRArmHelper {
                     .subtract(cameraPosition);
 
                 float shift = (float) progress * 2.0F;
-                RenderHelper.renderBox(tesselator, start, end, -segmentHalfWidth, segmentHalfWidth, (-1.0F + shift) * segmentHalfWidth, (1.0F + shift) * segmentHalfWidth, color, alpha, poseStack);
+                RenderHelper.renderBox(tesselator.getBuilder(), start, end, -segmentHalfWidth, segmentHalfWidth, (-1.0F + shift) * segmentHalfWidth, (1.0F + shift) * segmentHalfWidth, color, alpha, poseStack);
             }
 
             tesselator.end();

@@ -21,6 +21,6 @@ public record VRPlayerStatePayloadC2S(VrPlayerState playerState) implements Vive
     }
 
     public static VRPlayerStatePayloadC2S read(FriendlyByteBuf buffer) {
-        return new VRPlayerStatePayloadC2S(VrPlayerState.deserialize(buffer));
+        return new VRPlayerStatePayloadC2S(VrPlayerState.deserialize(buffer, 0));
     }
 }

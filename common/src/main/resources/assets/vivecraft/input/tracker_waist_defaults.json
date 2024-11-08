@@ -1,0 +1,23 @@
+{
+  "alias_info": {},
+  "app_key": "org.jrbudda.vivecraft.steamvrinput",
+  "bindings": {
+    "/actions/mixedreality": {
+      "haptics": [
+      ],
+      "poses": [
+        {
+          "output": "/actions/mixedreality/in/waist",
+          "path": "/user/waist/pose/raw"
+        }
+      ],
+      "sources": [
+      ]
+    }
+  },
+  "controller_type": "vive_tracker_waist",
+  "description": "",
+  "name": "Tracker for waist",
+  "options": {},
+  "simulated_actions": []
+}

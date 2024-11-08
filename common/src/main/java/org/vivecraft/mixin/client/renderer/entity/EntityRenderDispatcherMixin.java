@@ -21,6 +21,8 @@ import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client.extensions.EntityRenderDispatcherExtension;
 import org.vivecraft.client.render.VRPlayerRenderer;
 import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.settings.VRSettings;
+import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.Utils;
 
 import java.util.HashMap;
@@ -80,12 +82,19 @@ public abstract class EntityRenderDispatcherMixin implements ResourceManagerRelo
             VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
             if (rotInfo != null) {
                 VRPlayerRenderer vrPlayerRenderer;
-                if (rotInfo.seated) {
-                    vrPlayerRenderer = this.vivecraft$skinMapVRSeated
-                        .getOrDefault(skinType, this.vivecraft$playerRendererVRSeated);
+                if (rotInfo.seated ||
+                    ClientDataHolderVR.getInstance().vrSettings.playerModelType == VRSettings.PlayerModelType.VANILLA)
+                {
+                    vrPlayerRenderer = this.vivecraft$skinMapVRSeated.getOrDefault(skinType,
+                        this.vivecraft$playerRendererVRSeated);
+                } else if (rotInfo.fbtMode == FBTMode.ARMS_ONLY ||
+                    ClientDataHolderVR.getInstance().vrSettings.playerModelType ==
+                        VRSettings.PlayerModelType.SPLIT_ARMS)
+                {
+                    vrPlayerRenderer = this.vivecraft$skinMapVR.getOrDefault(skinType, this.vivecraft$playerRendererVR);
                 } else {
-                    vrPlayerRenderer = this.vivecraft$skinMapVR
-                        .getOrDefault(skinType, this.vivecraft$playerRendererVR);
+                    // TODO FBT split legs model
+                    vrPlayerRenderer = this.vivecraft$skinMapVR.getOrDefault(skinType, this.vivecraft$playerRendererVR);
                 }
 
                 cir.setReturnValue(vrPlayerRenderer);

@@ -15,6 +15,7 @@ import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 import org.vivecraft.client_vr.render.RenderPass;
+import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 
 import java.util.ArrayList;
@@ -78,6 +79,18 @@ public class DebugRenderHelper {
                         addAxes(poseStack, bufferbuilder, playerPos, info.leftArmPos, info.leftArmRot,
                             info.leftArmQuat);
                     }
+                    if (info.fbtMode != FBTMode.ARMS_ONLY) {
+                        addAxes(poseStack, bufferbuilder, playerPos, info.waistPos, info.waistQuat);
+                        addAxes(poseStack, bufferbuilder, playerPos, info.rightFootPos, info.rightFootQuat);
+                        addAxes(poseStack, bufferbuilder, playerPos, info.leftFootPos, info.leftFootQuat);
+                    }
+                    if (info.fbtMode == FBTMode.WITH_JOINTS) {
+                        addAxes(poseStack, bufferbuilder, playerPos, info.rightElbowPos, info.rightElbowQuat);
+                        addAxes(poseStack, bufferbuilder, playerPos, info.leftElbowPos, info.leftElbowQuat);
+                        addAxes(poseStack, bufferbuilder, playerPos, info.rightKneePos, info.rightKneeQuat);
+                        addAxes(poseStack, bufferbuilder, playerPos, info.leftKneePos, info.leftKneeQuat);
+                    }
+
                 }
             }
             if (bufferbuilder != null) {
@@ -119,6 +132,18 @@ public class DebugRenderHelper {
             list.add(data.t1);
         } else {
             list.add(MC.player != null && MC.player.isShiftKeyDown() ? data.h1 :data.c1);
+        }
+
+        if (DATA_HOLDER.vr.hasFBT()) {
+            list.add(data.waist);
+            list.add(data.foot_left);
+            list.add(data.foot_right);
+        }
+        if (DATA_HOLDER.vr.hasExtendedFBT()) {
+            list.add(data.elbow_left);
+            list.add(data.knee_left);
+            list.add(data.elbow_right);
+            list.add(data.knee_right);
         }
 
         list.forEach(p -> addAxes(poseStack, bufferbuilder, data, p));
@@ -164,6 +189,20 @@ public class DebugRenderHelper {
         addLine(poseStack, bufferBuilder, position, forward, BLUE);
         addLine(poseStack, bufferBuilder, position, up, GREEN);
         addLine(poseStack, bufferBuilder, position, right, RED);
+    }
+
+    /**
+     * adds device axes to the {@code bufferBuilder} for the given VRDevicePose, without dedicated direction vector
+     * @param poseStack PoseStack to use for positioning
+     * @param bufferBuilder BufferBuilder to use, needs to be in DEBUG_LINE_STRIP and POSITION_COLOR mode
+     * @param playerPos player position, relative to the camera
+     * @param devicePos device position, relative to the player
+     * @param rot device rotation
+     */
+    private static void addAxes(
+        PoseStack poseStack, BufferBuilder bufferBuilder, Vector3fc playerPos, Vector3fc devicePos, Quaternionfc rot)
+    {
+        addAxes(poseStack, bufferBuilder, playerPos, devicePos, rot.transform(MathUtils.BACK, new Vector3f()), rot);
     }
 
     /**

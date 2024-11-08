@@ -85,6 +85,7 @@ public class VRState {
             dh.vrPlayer.registerTracker(dh.vehicleTracker);
             dh.vrPlayer.registerTracker(dh.crawlTracker);
             dh.vrPlayer.registerTracker(dh.cameraTracker);
+            dh.vrPlayer.registerTracker(dh.fbtCalibrationTracker);
 
             dh.menuWorldRenderer = new MenuWorldRenderer();
 

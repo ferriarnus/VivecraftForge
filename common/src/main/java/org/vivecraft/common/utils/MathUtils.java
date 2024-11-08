@@ -1,7 +1,9 @@
 package org.vivecraft.common.utils;
 
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -16,8 +18,8 @@ public class MathUtils {
 
     public static final Vec3 FORWARD_D = new Vec3(0.0, 0.0, 1.0);
     public static final Vec3 BACK_D = new Vec3(0.0, 0.0, -1.0);
-    public static final Vec3 LEFT_D = new Vec3(-1.0, 0.0, 0.0);
-    public static final Vec3 RIGHT_D = new Vec3(1.0, 0.0, 0.0);
+    public static final Vec3 LEFT_D = new Vec3(1.0, 0.0, 0.0);
+    public static final Vec3 RIGHT_D = new Vec3(-1.0, 0.0, 0.0);
     public static final Vec3 UP_D = new Vec3(0.0, 1.0, 0.0);
     public static final Vec3 DOWN_D = new Vec3(0.0, -1.0, 0.0);
 
@@ -86,6 +88,23 @@ public class MathUtils {
         }
     }
 
+    public static float normalizedDotXZ(Vector3fc a, Vector3fc b) {
+        return (a.x() * b.x() + a.z() * b.z()) /
+            (float) Math.sqrt((a.x() * a.x() + a.z() * a.z()) * (b.x() * b.x() + b.z() * b.z()));
+    }
+
+    /**
+     * rotates the given vector around the X axis, based on the provided sin and cos
+     * @param v Vector to rotate
+     * @param sin precomputed sinus of the rotation
+     * @param cos precomputed cosinus of the rotation
+     */
+    public static void rotateX(Vector3f v, float sin, float cos) {
+        float ogY = v.y;
+        v.y = ogY * cos - v.z * sin;
+        v.z = ogY * sin + v.z * cos;
+    }
+
     /**
      * calculates the euler angles of the given Quaternion in the YZX order
      * the returned Vector3f has pitch in X, yaw in Y and roll in Z
@@ -98,5 +117,56 @@ public class MathUtils {
                 rot.w * rot.w - rot.x * rot.x - rot.y * rot.y + rot.z * rot.z),
             (float) Math.atan2(2.0F * (rot.x * rot.y + rot.w * rot.z),
                 rot.w * rot.w - rot.x * rot.x + rot.y * rot.y - rot.z * rot.z));
+    }
+
+    /**
+     * fixed version of {@link Quaternionf#getEulerAnglesZYX(Vector3f)}
+     * this was fixed in joml 1.10.6, but Minecraft ships with 1.10.5
+     * @param rot Quaternion to get the euler angles for
+     * @param eulerAngles Vector3f to store the angles in
+     * @return
+     */
+    public static Vector3f getEulerAnglesZYX(Quaternionfc rot, Vector3f eulerAngles) {
+        eulerAngles.x = org.joml.Math.atan2(rot.y() * rot.z() + rot.w() * rot.x(),
+            0.5f - rot.x() * rot.x() - rot.y() * rot.y());
+        eulerAngles.y = org.joml.Math.safeAsin(-2.0f * (rot.x() * rot.z() - rot.w() * rot.y()));
+        eulerAngles.z = org.joml.Math.atan2(rot.x() * rot.y() + rot.w() * rot.z(),
+            0.5f - rot.y() * rot.y() - rot.z() * rot.z());
+        return eulerAngles;
+    }
+
+    /**
+     * calculates the body yaw based on the two controller positions and the head direction
+     * @param c0Pos right controller position
+     * @param c1Pos left controller position
+     * @param headDir head direction
+     * @return ywa in radians
+     */
+    public static float bodyYawRad(Vector3fc c0Pos, Vector3fc c1Pos, Vector3fc headDir) {
+        // use an average of controller forward and head dir
+
+        // use this when the hands are in front of the head
+        Vector3f dir = c1Pos.add(c0Pos, new Vector3f());
+
+        float hDot = MathUtils.normalizedDotXZ(dir, headDir);
+
+        // BEHIND HEAD
+        // use this when the hands are behind of the head
+        // assuming the left controller is on the left side of the body, and the right one on the right side
+        Vector3f armsForward = c1Pos.sub(c0Pos, new Vector3f()).rotateY(-Mth.HALF_PI);
+
+        // TODO FBT this causes the body to flip when having the hands opposite each other, and looking 90° to the side
+        // if hands are crossed, flip them
+        if (armsForward.dot(headDir) < 0.0F) {
+            armsForward.mul(-1.0F);
+        }
+        // BEHIND HEAD END
+
+        // mix them based on how far they are to the side, to avoid jumping
+        armsForward.lerp(dir, Math.max(0F, hDot), dir);
+
+        // average with the head direction
+        dir.normalize().lerp(headDir, 0.5F, dir);
+        return (float) Math.atan2(-dir.x, dir.z);
     }
 }

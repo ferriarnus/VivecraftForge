@@ -101,6 +101,9 @@ public class GuiHandler {
     public static int SCALED_HEIGHT_MAX;
     private static int PREVIOUS_GUI_SCALE = -1;
 
+    public static Matrix4f guiRotation_playerModel = new Matrix4f();
+    public static Vec3 guiPos_playerModel = Vec3.ZERO;
+
     /**
      * copy of the vanilla method to calculate gui resolution and max scale
      */
@@ -494,10 +497,10 @@ public class GuiHandler {
 
             if (MC.level != null && (MC.screen == null || !DH.vrSettings.floatInventory)) {
                 // HUD view - attach to head or controller
-                int i = 1;
+                int side = 1;
 
                 if (DH.vrSettings.reverseHands) {
-                    i = -1;
+                    side = -1;
                 }
 
                 if (DH.vrSettings.seated || DH.vrSettings.vrHudLockMode == VRSettings.HUDLock.HEAD) {
@@ -519,38 +522,89 @@ public class GuiHandler {
                         position.z + direction.z * DH.vrPlayer.vrdata_world_render.worldScale * DH.vrSettings.hudDistance);
 
                     scale = DH.vrSettings.hudScale;
-                } else if (DH.vrSettings.vrHudLockMode == VRSettings.HUDLock.HAND) {
-                    // hud on hand
-                    guirot = new Matrix4f().rotationY(DH.vrPlayer.vrdata_world_render.rotation_radians);
-                    guirot.mul(DH.vr.getAimRotation(1));
+                } else if (DH.vrSettings.shouldRenderSelf && DH.vrSettings.shouldRenderModelArms) {
+                    // attach to player model
+                    if (DH.vrSettings.vrHudLockMode == VRSettings.HUDLock.HAND) {
+                        // hud on hand
+                        guirot = new Matrix4f().set3x3(guiRotation_playerModel);
 
-                    guirot.rotateX(Mth.PI * -0.2F);
-                    guirot.rotateY(Mth.PI * 0.1F * i);
-                    scale = 0.58823526F;
+                        guirot.rotateX(Mth.PI * -0.2F);
+                        guirot.rotateY(Mth.PI * 0.1F * side);
 
-                    guilocal = new Vector3f(guilocal.x, 0.32F * DH.vrPlayer.vrdata_world_render.worldScale, guilocal.z);
+                        guipos = guiPos_playerModel;
 
-                    guipos = RenderHelper.getControllerRenderPos(1);
+                        scale = 0.58823526F;
 
-                    DH.vr.hudPopup = true;
-                } else if (DH.vrSettings.vrHudLockMode == VRSettings.HUDLock.WRIST) {
-                    // hud on wrist
-                    guirot = new Matrix4f().rotationY(DH.vrPlayer.vrdata_world_render.rotation_radians);
-                    guirot.mul(DH.vr.getAimRotation(1));
+                        guilocal.set(
+                            -0.05,
+                            0.25F * DH.vrPlayer.vrdata_world_render.worldScale,
+                            0.1);
 
-                    guirot.rotateZ(Mth.HALF_PI * i);
-                    guirot.rotateY(Mth.HALF_PI * i);
+                        DH.vr.hudPopup = true;
+                    } else if (DH.vrSettings.vrHudLockMode == VRSettings.HUDLock.WRIST) {
+                        // hud on wrist
+                        guirot = new Matrix4f().set3x3(guiRotation_playerModel);
 
-                    guipos = RenderHelper.getControllerRenderPos(1);
-                    DH.vr.hudPopup = true;
+                        guirot.rotateY(Mth.HALF_PI * side);
+                        guirot.rotateX(-Mth.HALF_PI);
 
-                    boolean slim = MC.player.getSkin().model().id().equals("slim");
-                    scale = 0.4F;
-                    float offset = MC.player.getMainArm().getOpposite() == (DH.vrSettings.reverseHands ? HumanoidArm.LEFT : HumanoidArm.RIGHT) ? -0.166F : -0.136F;
-                    guilocal = new Vector3f(
-                        i * offset * DH.vrPlayer.vrdata_world_render.worldScale,
-                        (slim ? 0.13F : 0.12F) * DH.vrPlayer.vrdata_world_render.worldScale,
-                        0.06F * DH.vrPlayer.vrdata_world_render.worldScale);
+                        guipos = guiPos_playerModel;
+                        DH.vr.hudPopup = true;
+
+                        scale = 0.4F;
+                        float xOffset = MC.player.getMainArm().getOpposite() ==
+                            (DH.vrSettings.reverseHands ? HumanoidArm.LEFT : HumanoidArm.RIGHT) ? -0.34F : -0.3F;
+                        float yOffset = 0.12F;
+                        float yScaleOffset = 0.05F;
+                        if (DH.vrSettings.playerModelType != VRSettings.PlayerModelType.VANILLA) {
+                            boolean slim = MC.player.getSkin().model().id().equals("slim");
+                            xOffset += 0.164F;
+                            yOffset = slim ? 0.10F : 0.06F;
+                            yScaleOffset = slim ? 0.05F : 0.11F;
+                        }
+
+                        // TODO FBT maybe add worldscale
+                        guilocal.set(xOffset * side,
+                            yOffset + yScaleOffset * (1.0F - DH.vrSettings.playerModelArmsScale),
+                            0.14F * DH.vrSettings.playerModelArmsScale);
+                    }
+                } else {
+                    // attach to controller
+                    if (DH.vrSettings.vrHudLockMode == VRSettings.HUDLock.HAND) {
+                        // hud on hand
+                        guirot = new Matrix4f().rotationY(DH.vrPlayer.vrdata_world_render.rotation_radians);
+                        guirot.mul(DH.vr.getAimRotation(1));
+
+                        guirot.rotateX(Mth.PI * -0.2F);
+                        guirot.rotateY(Mth.PI * 0.1F * side);
+                        scale = 0.58823526F;
+
+                        guilocal = new Vector3f(guilocal.x, 0.32F * DH.vrPlayer.vrdata_world_render.worldScale,
+                            guilocal.z);
+
+                        guipos = RenderHelper.getControllerRenderPos(1);
+
+                        DH.vr.hudPopup = true;
+                    } else if (DH.vrSettings.vrHudLockMode == VRSettings.HUDLock.WRIST) {
+                        // hud on wrist
+                        guirot = new Matrix4f().rotationY(DH.vrPlayer.vrdata_world_render.rotation_radians);
+                        guirot.mul(DH.vr.getAimRotation(1));
+
+                        guirot.rotateZ(Mth.HALF_PI * side);
+                        guirot.rotateY(Mth.HALF_PI * side);
+
+                        guipos = RenderHelper.getControllerRenderPos(1);
+                        DH.vr.hudPopup = true;
+
+                        boolean slim = MC.player.getSkin().model().id().equals("slim");
+                        scale = 0.4F;
+                        float offset = MC.player.getMainArm().getOpposite() ==
+                            (DH.vrSettings.reverseHands ? HumanoidArm.LEFT : HumanoidArm.RIGHT) ? -0.166F : -0.136F;
+                        guilocal = new Vector3f(
+                            side * offset * DH.vrPlayer.vrdata_world_render.worldScale,
+                            (slim ? 0.13F : 0.12F) * DH.vrPlayer.vrdata_world_render.worldScale,
+                            0.06F * DH.vrPlayer.vrdata_world_render.worldScale);
+                    }
                 }
             }
         } else {

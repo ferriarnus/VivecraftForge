@@ -28,20 +28,21 @@ public class HMDLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<Abst
         // check that the model actually is a vrPlayer model, some mods override the model
         if (this.getParentModel().head.visible && this.getParentModel() instanceof VRPlayerModel<?> vrPlayerModel) {
             VRPlayersClient.RotInfo rotinfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
+            if (rotinfo != null) {
+                ResourceLocation hmd = switch (rotinfo.hmd) {
+                    case 1 -> BLACK_HMD;
+                    case 2 -> GOLD_HMD;
+                    case 3, 4 -> DIAMOND_HMD;
+                    default -> null;
+                };
 
-            ResourceLocation hmd = switch (rotinfo.hmd) {
-                case 1 -> BLACK_HMD;
-                case 2 -> GOLD_HMD;
-                case 3, 4 -> DIAMOND_HMD;
-                default -> null;
-            };
+                if (hmd == null) return;
 
-            if (hmd == null) return;
-
-            poseStack.pushPose();
-            VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entitySolid(hmd));
-            vrPlayerModel.renderHMD(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY);
-            poseStack.popPose();
+                poseStack.pushPose();
+                VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entitySolid(hmd));
+                vrPlayerModel.renderHMD(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY);
+                poseStack.popPose();
+            }
         }
     }
 }

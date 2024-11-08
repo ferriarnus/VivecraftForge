@@ -28,6 +28,7 @@ import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
+import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.mixin.client.blaze3d.RenderSystemAccessor;
 
 import java.util.function.Supplier;
@@ -475,7 +476,24 @@ public class RenderHelper {
 
     /**
      * adds a box to the given Tesselator
-     * @param tes Tesselator to use
+     * @param consumer VertexConsumer to use
+     * @param start start of the box, combined with end gives the axis the box is on
+     * @param end end of the box, combined with start gives the axis the box is on
+     * @param xSize X size of the box
+     * @param ySize Y size of the box
+     * @param color color of the box 0-255 per component
+     * @param alpha transparency of the box 0-255
+     * @param poseStack PoseStack to use for positioning
+     */
+    public static void renderBox(
+        VertexConsumer consumer, Vec3 start, Vec3 end, float xSize, float ySize, Vec3i color, byte alpha, PoseStack poseStack)
+    {
+        renderBox(consumer, start, end, -xSize * 0.5F, xSize * 0.5F, -ySize * 0.5F, ySize * 0.5F, color, alpha, poseStack);
+    }
+
+    /**
+     * adds a box to the given Tesselator
+     * @param consumer VertexConsumer to use
      * @param start start of the box, combined with end gives the axis the box is on
      * @param end end of the box, combined with start gives the axis the box is on
      * @param minX X- size of the box
@@ -486,9 +504,14 @@ public class RenderHelper {
      * @param alpha transparency of the box 0-255
      * @param poseStack PoseStack to use for positioning
      */
-    public static void renderBox(Tesselator tes, Vec3 start, Vec3 end, float minX, float maxX, float minY, float maxY, Vec3i color, byte alpha, PoseStack poseStack) {
+    public static void renderBox(VertexConsumer consumer, Vec3 start, Vec3 end, float minX, float maxX, float minY, float maxY, Vec3i color, byte alpha, PoseStack poseStack) {
         Vec3 forward = start.subtract(end).normalize();
-        Vec3 right = forward.cross(new Vec3(0.0D, 1.0D, 0.0D));
+        Vec3 right = forward.cross(MathUtils.UP_D);
+        if (right.lengthSqr() == 0) {
+            right = MathUtils.LEFT_D;
+        } else {
+            right = right.normalize();
+        }
         Vec3 up = right.cross(forward);
 
         Vec3 left = right.scale(minX);
@@ -510,54 +533,53 @@ public class RenderHelper {
         Vec3 frontLeftBottom = end.add(left.x + down.x, left.y + down.y, left.z + down.z);
         Vec3 frontLeftTop = end.add(left.x + up.x, left.y + up.y, left.z + up.z);
 
-        BufferBuilder bufferbuilder = tes.getBuilder();
         Matrix4f mat = poseStack.last().pose();
 
-        addVertex(bufferbuilder, mat, backRightBottom, color, alpha, forward);
-        addVertex(bufferbuilder, mat, backLeftBottom, color, alpha, forward);
-        addVertex(bufferbuilder, mat, backLeftTop, color, alpha, forward);
-        addVertex(bufferbuilder, mat, backRightTop, color, alpha, forward);
+        addVertex(consumer, mat, backRightBottom, color, alpha, forward);
+        addVertex(consumer, mat, backLeftBottom, color, alpha, forward);
+        addVertex(consumer, mat, backLeftTop, color, alpha, forward);
+        addVertex(consumer, mat, backRightTop, color, alpha, forward);
 
         forward.reverse();
-        addVertex(bufferbuilder, mat, frontLeftBottom, color, alpha, forward);
-        addVertex(bufferbuilder, mat, frontRightBottom, color, alpha, forward);
-        addVertex(bufferbuilder, mat, frontRightTop, color, alpha, forward);
-        addVertex(bufferbuilder, mat, frontLeftTop, color, alpha, forward);
+        addVertex(consumer, mat, frontLeftBottom, color, alpha, forward);
+        addVertex(consumer, mat, frontRightBottom, color, alpha, forward);
+        addVertex(consumer, mat, frontRightTop, color, alpha, forward);
+        addVertex(consumer, mat, frontLeftTop, color, alpha, forward);
 
-        addVertex(bufferbuilder, mat, frontRightBottom, color, alpha, rightNormal);
-        addVertex(bufferbuilder, mat, backRightBottom, color, alpha, rightNormal);
-        addVertex(bufferbuilder, mat, backRightTop, color, alpha, rightNormal);
-        addVertex(bufferbuilder, mat, frontRightTop, color, alpha, rightNormal);
+        addVertex(consumer, mat, frontRightBottom, color, alpha, rightNormal);
+        addVertex(consumer, mat, backRightBottom, color, alpha, rightNormal);
+        addVertex(consumer, mat, backRightTop, color, alpha, rightNormal);
+        addVertex(consumer, mat, frontRightTop, color, alpha, rightNormal);
 
         rightNormal.reverse();
-        addVertex(bufferbuilder, mat, backLeftBottom, color, alpha, rightNormal);
-        addVertex(bufferbuilder, mat, frontLeftBottom, color, alpha, rightNormal);
-        addVertex(bufferbuilder, mat, frontLeftTop, color, alpha, rightNormal);
-        addVertex(bufferbuilder, mat, backLeftTop, color, alpha, rightNormal);
+        addVertex(consumer, mat, backLeftBottom, color, alpha, rightNormal);
+        addVertex(consumer, mat, frontLeftBottom, color, alpha, rightNormal);
+        addVertex(consumer, mat, frontLeftTop, color, alpha, rightNormal);
+        addVertex(consumer, mat, backLeftTop, color, alpha, rightNormal);
 
-        addVertex(bufferbuilder, mat, backLeftTop, color, alpha, upNormal);
-        addVertex(bufferbuilder, mat, frontLeftTop, color, alpha, upNormal);
-        addVertex(bufferbuilder, mat, frontRightTop, color, alpha, upNormal);
-        addVertex(bufferbuilder, mat, backRightTop, color, alpha, upNormal);
+        addVertex(consumer, mat, backLeftTop, color, alpha, upNormal);
+        addVertex(consumer, mat, frontLeftTop, color, alpha, upNormal);
+        addVertex(consumer, mat, frontRightTop, color, alpha, upNormal);
+        addVertex(consumer, mat, backRightTop, color, alpha, upNormal);
 
         upNormal.reverse();
-        addVertex(bufferbuilder, mat, frontLeftBottom, color, alpha, upNormal);
-        addVertex(bufferbuilder, mat, backLeftBottom, color, alpha, upNormal);
-        addVertex(bufferbuilder, mat, backRightBottom, color, alpha, upNormal);
-        addVertex(bufferbuilder, mat, frontRightBottom, color, alpha, upNormal);
+        addVertex(consumer, mat, frontLeftBottom, color, alpha, upNormal);
+        addVertex(consumer, mat, backLeftBottom, color, alpha, upNormal);
+        addVertex(consumer, mat, backRightBottom, color, alpha, upNormal);
+        addVertex(consumer, mat, frontRightBottom, color, alpha, upNormal);
     }
 
     /**
      * adds a Vertex with the DefaultVertexFormat.POSITION_COLOR_NORMAL format to the buffer builder
-     * @param buff BufferBuilder to add the vertex to
+     * @param consumer BufferBuilder to add the vertex to
      * @param matrix matrix to use for positioning the vertex
      * @param pos position of the vertex
      * @param color color of the vertex 0-255
      * @param alpha transparency of the vertex 0-255
      * @param normal normal of the vertex
      */
-    private static void addVertex(BufferBuilder buff, Matrix4f matrix, Vec3 pos, Vec3i color, int alpha, Vec3 normal) {
-        buff.vertex(matrix, (float) pos.x, (float) pos.y, (float) pos.z)
+    private static void addVertex(VertexConsumer consumer, Matrix4f matrix, Vec3 pos, Vec3i color, int alpha, Vec3 normal) {
+        consumer.vertex(matrix, (float) pos.x, (float) pos.y, (float) pos.z)
             .color(color.getX(), color.getY(), color.getZ(), alpha)
             .normal((float) normal.x, (float) normal.y, (float) normal.z)
             .endVertex();

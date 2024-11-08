@@ -163,6 +163,12 @@ public class VRSettings {
         ON
     }
 
+    public enum PlayerModelType implements OptionEnum<PlayerModelType> {
+        VANILLA,
+        SPLIT_ARMS,
+        SPLIT_ARMS_LEGS
+    }
+
     @SettingField
     public int version = UNKNOWN_VERSION;
 
@@ -211,6 +217,14 @@ public class VRSettings {
     public float autoCalibration = -1;
     @SettingField
     public float manualCalibration = -1;
+    @SettingField
+    public boolean fbtCalibrated = false;
+    @SettingField
+    public boolean fbtExtendedCalibrated = false;
+    @SettingField(config = "FBTOFFSETS", separate = true)
+    public Vector3f[] fbtOffsets = getFbtOffsetDefault();
+    @SettingField(config = "FBTROTATIONS", separate = true)
+    public Quaternionf[] fbtRotations = getFbtRotationsDefault();
     @SettingField
     public boolean alwaysSimulateKeyboard = false;
     @SettingField(VrOptions.BOW_MODE)
@@ -349,7 +363,18 @@ public class VRSettings {
     public float displayMirrorCenterSmooth = 0.0F;
     @SettingField(VrOptions.MIRROR_SCREENSHOT_CAMERA)
     public boolean displayMirrorUseScreenshotCamera = false;
+    @SettingField(VrOptions.SHOW_PLAYER_MODEL)
     public boolean shouldRenderSelf = false;
+    @SettingField(VrOptions.SHOW_PLAYER_MODEL_ARMS)
+    public boolean shouldRenderModelArms = false;
+    @SettingField(VrOptions.PLAYER_MODEL_ARMS_SCALE)
+    public float playerModelArmsScale = 0.5F;
+    @SettingField(VrOptions.PLAYER_MODEL_BODY_SCALE)
+    public float playerModelBodyScale = 1.0F;
+    @SettingField(VrOptions.PLAYER_MODEL_LEGS_SCALE)
+    public float playerModelLegScale = 1.0F;
+    @SettingField(VrOptions.PLAYER_MODEL_TYPE)
+    public PlayerModelType playerModelType = PlayerModelType.SPLIT_ARMS;
     @SettingField(VrOptions.MENU_WORLD_SELECTION)
     public MenuWorld menuWorldSelection = MenuWorld.BOTH;
     @SettingField(VrOptions.MENU_WORLD_FALLBACK)
@@ -1855,6 +1880,12 @@ public class VRSettings {
         AUTO_SPRINT_THRESHOLD(true, false, 0.5f, 1f, 0.01f, 2), // Auto-sprint Threshold
         THIRDPERSON_ITEMTRANSFORMS(false, true), // 3rd person items
         THIRDPERSON_ITEMTRANSFORMS_CUSTOM(false, true), // 3rd person items, for items with custom model data
+        SHOW_PLAYER_MODEL(false, true), // show the player model in first person
+        SHOW_PLAYER_MODEL_ARMS(false, true), // player model arms, or regular arms
+        PLAYER_MODEL_ARMS_SCALE(true, false, 0.1f, 1f, 0.05f, -1), // scales the width of the first person arms
+        PLAYER_MODEL_BODY_SCALE(true, false, 0.1f, 1f, 0.05f, -1), // scales the width of the first person body
+        PLAYER_MODEL_LEGS_SCALE(true, false, 0.1f, 1f, 0.05f, -1), // scales the width of the first person legs
+        PLAYER_MODEL_TYPE(false, true), // determines how VR player are rendered
         BOW_MODE(false, true) { // Roomscale Bow Mode
 
             @Override
@@ -2166,6 +2197,22 @@ public class VRSettings {
             GLFW.GLFW_KEY_UNKNOWN // greater than
         };
 
+        return out;
+    }
+
+    public Vector3f[] getFbtOffsetDefault() {
+        Vector3f[] out = new Vector3f[7];
+        for (int i = 0; i < 7; i++) {
+            out[i] = new Vector3f();
+        }
+        return out;
+    }
+
+    public Quaternionf[] getFbtRotationsDefault() {
+        Quaternionf[] out = new Quaternionf[7];
+        for (int i = 0; i < 7; i++) {
+            out[i] = new Quaternionf();
+        }
         return out;
     }
 

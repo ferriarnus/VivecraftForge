@@ -101,6 +101,17 @@ public class ClientUtils {
             minecraft.execute(() -> minecraft.gui.getChat().addMessage(text)));
     }
 
+    public static <T extends Enum<T>> T getNextEnum(T current, int offset) {
+        T[] values = (T[]) current.getClass().getEnumConstants();
+        int index = (current.ordinal() + offset + values.length) % values.length;
+        return values[index];
+    }
+
+    public static int getSkinID() {
+        return 0; // alex slim
+        //return 15; // steve wide
+    }
+
     public static long microTime() {
         return System.nanoTime() / 1000L;
     }

@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.ResourceLocation;
@@ -45,6 +46,7 @@ import org.vivecraft.client_vr.gameplay.screenhandlers.RadialHandler;
 import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.client_vr.render.RenderPass;
+import org.vivecraft.client_vr.settings.AutoCalibration;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.mod_compat_vr.ShadersHelper;
 import org.vivecraft.mod_compat_vr.immersiveportals.ImmersivePortalsHelper;
@@ -625,6 +627,7 @@ public class VREffectsHelper {
             DebugRenderHelper.renderDebug(poseStack, partialTick);
         } else {
             renderGuiAndShadow(poseStack, partialTick, !shouldOccludeGui(), true);
+            renderFBTCalibration(poseStack);
         }
 
         // render hands in second pass when gui is open
@@ -1280,5 +1283,79 @@ public class VREffectsHelper {
         RenderSystem.depthFunc(GL11C.GL_LEQUAL);
         poseStack.popPose();
         MC.getProfiler().pop();
+    }
+
+    public static void renderFBTCalibration(PoseStack poseStack) {
+        if (!DATA_HOLDER.fbtCalibrationTracker.calibrationActive) return;
+        poseStack.pushPose();
+
+        Vec3i color = new Vec3i(128, 64, 64);
+        Vec3i colorActive = new Vec3i(64, 128, 64);
+
+        float height = DATA_HOLDER.vr.hmdPivotHistory.averagePosition(0.5D).y / AutoCalibration.DEFAULT_HEIGHT;
+        float scale = (height * 0.9375F * DATA_HOLDER.vrPlayer.getVRDataWorld().worldScale) / 16F;
+
+        //float hmdYawAvg = dataHolder.vr.getHmdYawAvg() * Mth.DEG_TO_RAD;
+
+        Vec3 camPos = RenderHelper.getSmoothCameraPosition(DATA_HOLDER.currentPass, DATA_HOLDER.vrPlayer.getVRDataWorld());
+        Vec3 center = VRPlayer.roomToWorldPos(DATA_HOLDER.vr.hmdPivotHistory.averagePosition(0.5D), DATA_HOLDER.vrPlayer.getVRDataWorld());
+        center = new Vec3(center.x, DATA_HOLDER.vrPlayer.getVRDataWorld().origin.y, center.z).subtract(camPos);
+
+        // move to room center
+        poseStack.translate(center.x, center.y, center.z);
+        // undo room rotation
+        poseStack.mulPose(Axis.YP.rotation(-DATA_HOLDER.vrPlayer.getVRDataWorld().hmd.getYawRad()));
+
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+
+        // to make shaders work
+        MC.getTextureManager().bindForSetup(new ResourceLocation("vivecraft:textures/white.png"));
+        RenderSystem.setShaderTexture(0, new ResourceLocation("vivecraft:textures/white.png"));
+
+        Tesselator tesselator = Tesselator.getInstance();
+        tesselator.getBuilder().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_NORMAL);
+
+        if (DATA_HOLDER.fbtCalibrationTracker.leftHandAtPosition) {
+            RenderHelper.renderBox(tesselator.getBuilder(),
+                new Vec3(-13 * scale, 22 * scale, 0), new Vec3(-16 * scale, 22 * scale, 0),
+                3 * scale, 3 * scale, colorActive, (byte) 255, poseStack);
+        }
+
+        if (DATA_HOLDER.fbtCalibrationTracker.rightHandAtPosition) {
+            RenderHelper.renderBox(tesselator.getBuilder(),
+                new Vec3(13 * scale, 22 * scale, 0), new Vec3(16 * scale, 22 * scale, 0),
+                3 * scale, 3 * scale, colorActive, (byte) 255, poseStack);
+        }
+
+        if (DATA_HOLDER.fbtCalibrationTracker.ready) {
+            color = colorActive;
+        }
+
+
+        // legs
+        RenderHelper.renderBox(tesselator.getBuilder(),
+            new Vec3(2 * scale, 0, 0), new Vec3(2 * scale, 12 * scale, 0),
+            4 * scale, 4 * scale, color, (byte) 128, poseStack);
+        RenderHelper.renderBox(tesselator.getBuilder(),
+            new Vec3(-2 * scale, 0, 0), new Vec3(-2 * scale, 12 * scale, 0),
+            4 * scale, 4 * scale, color, (byte) 128, poseStack);
+        // body
+        RenderHelper.renderBox(tesselator.getBuilder(),
+            new Vec3(0, 12 * scale, 0), new Vec3(0, 24 * scale, 0),
+            8 * scale, 4 * scale, color, (byte) 128, poseStack);
+
+        // arms
+        RenderHelper.renderBox(tesselator.getBuilder(),
+            new Vec3(4 * scale, 22 * scale, 0), new Vec3(16 * scale, 22 * scale, 0),
+            4 * scale, 4 * scale, color, (byte) 128, poseStack);
+        RenderHelper.renderBox(tesselator.getBuilder(),
+            new Vec3(-4 * scale, 22 * scale, 0), new Vec3(-16 * scale, 22 * scale, 0),
+            4 * scale, 4 * scale, color, (byte) 128, poseStack);
+
+        RenderHelper.renderBox(tesselator.getBuilder(),
+            new Vec3(0, 24 * scale, 0), new Vec3(0, 32 * scale, 0),
+            8 * scale, 8 * scale, color, (byte) 128, poseStack);
+        BufferUploader.drawWithShader(tesselator.getBuilder().end());
+        poseStack.popPose();
     }
 }

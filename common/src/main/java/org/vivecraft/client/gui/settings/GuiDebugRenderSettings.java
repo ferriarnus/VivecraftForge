@@ -20,6 +20,13 @@ public class GuiDebugRenderSettings extends GuiListScreen {
         entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.RENDER_DEBUG_DEVICE_AXES));
         entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.RENDER_DEBUG_PLAYER_AXES));
 
+        entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.SHOW_PLAYER_MODEL));
+        entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.SHOW_PLAYER_MODEL_ARMS));
+        entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_MODEL_ARMS_SCALE));
+        entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_MODEL_BODY_SCALE));
+        entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_MODEL_LEGS_SCALE));
+        entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_MODEL_TYPE));
+
         return entries;
     }
 }

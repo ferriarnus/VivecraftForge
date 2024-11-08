@@ -203,6 +203,12 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
     @Shadow
     public abstract SoundManager getSoundManager();
 
+    @Shadow
+    public abstract boolean isPaused();
+
+    @Shadow
+    public abstract float getFrameTime();
+
     @ModifyArg(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;setOverlay(Lnet/minecraft/client/gui/screens/Overlay;)V"), index = 0)
     private Overlay vivecraft$initVivecraft(Overlay overlay) {
         RenderPassManager.INSTANCE = new RenderPassManager((MainTarget) this.mainRenderTarget);
@@ -834,5 +840,14 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
             guiGraphics.flush();
             this.profiler.pop();
         }
+    }
+
+    /**
+     * return current partialTick
+     */
+    @Unique
+    @Override
+    public float vivecraft$getPartialTick() {
+        return this.isPaused() ? this.pausePartialTick : this.getFrameTime();
     }
 }

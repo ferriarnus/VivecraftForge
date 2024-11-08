@@ -53,6 +53,10 @@ public class AimFixHandler extends ChannelInboundHandlerAdapter {
 
             ServerVivePlayer vivePlayer = ServerVRPlayers.getVivePlayer(serverPlayer);
 
+            ((Packet) msg).handle(this.netManager.getPacketListener());
+            if (true) {
+                return;
+            }
             Vec3 aimPos = null;
             // Check again in case of race condition
             if (vivePlayer != null && vivePlayer.isVR()) {

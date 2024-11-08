@@ -1,0 +1,23 @@
+{
+  "alias_info": {},
+  "app_key": "org.jrbudda.vivecraft.steamvrinput",
+  "bindings": {
+    "/actions/mixedreality": {
+      "haptics": [
+      ],
+      "poses": [
+        {
+          "output": "/actions/mixedreality/in/leftknee",
+          "path": "/user/knee/left/pose/raw"
+        }
+      ],
+      "sources": [
+      ]
+    }
+  },
+  "controller_type": "vive_tracker_left_knee",
+  "description": "",
+  "name": "Tracker for left foot",
+  "options": {},
+  "simulated_actions": []
+}

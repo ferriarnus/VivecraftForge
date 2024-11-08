@@ -52,6 +52,16 @@ public class FileUtils {
     }
 
     /**
+     * unpacks an asset through the Resource manager, this means a resource pack can override the file
+     * @param sourcePath Path to the source file inside the mods assets
+     * @param targetFolder Folder where to write file on disk, with the same sub folder structure as {@code sourcePath}
+     * @param required if set and an error occurs, it will not be caught
+     */
+    public static void unpackAssetToFolder(String sourcePath, String targetFolder, boolean required) {
+        unpackAsset(sourcePath, targetFolder + "/" + sourcePath, required);
+    }
+
+    /**
      * throws an exception or logs it depending on the value of {@code required}
      */
     private static void handleAssetException(Throwable e, String name, boolean required) {

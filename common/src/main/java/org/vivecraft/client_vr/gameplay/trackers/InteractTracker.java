@@ -150,6 +150,10 @@ public class InteractTracker extends Tracker {
                 this.active[c] = true;
             }
 
+            if (this.dh.fbtCalibrationTracker.ready) {
+                this.active[c] = true;
+            }
+
             // roomscale Bow shooting, only activate for the hand with the arrow
             if (!this.active[c] && this.dh.bowTracker.isNotched() &&
                 c == (this.dh.vrSettings.reverseShootingEye ? 1 : 0))
