@@ -42,6 +42,7 @@ public class ClientDataHolderVR {
     public InteractTracker interactTracker = new InteractTracker(Minecraft.getInstance(), this);
     public CrawlTracker crawlTracker = new CrawlTracker(Minecraft.getInstance(), this);
     public CameraTracker cameraTracker = new CameraTracker(Minecraft.getInstance(), this);
+    public HapticTracker hapticTracker = new HapticTracker(Minecraft.getInstance(),this);
     public VRSettings vrSettings;
     public boolean integratedServerLaunchInProgress = false;
     public boolean grabScreenShot = false;

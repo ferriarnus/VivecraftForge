@@ -24,6 +24,7 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -258,12 +259,13 @@ public abstract class LocalPlayerVRMixin extends AbstractClientPlayer implements
     }
 
     @Override
-    public ItemStack eat(Level level, ItemStack itemStack) {
+    public ItemStack eat(Level level, ItemStack itemStack, FoodProperties foodProperties) {
         if (VRState.vrRunning && itemStack.get(DataComponents.FOOD) != null && (Object) this == Minecraft.getInstance().player && itemStack.getHoverName().getString().equals("EAT ME")) {
             ClientDataHolderVR.getInstance().vrPlayer.wfMode = 0.5D;
             ClientDataHolderVR.getInstance().vrPlayer.wfCount = 400;
         }
-        return super.eat(level, itemStack);
+        ClientDataHolderVR.getInstance().hapticTracker.handleEat(itemStack);
+        return super.eat(level, itemStack, foodProperties);
     }
 
     @Override
