@@ -6,11 +6,13 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.EffectInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.game.ClientboundExplodePacket;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.client_vr.bodylink.Haptics;
@@ -90,7 +92,7 @@ public class HapticTracker extends Tracker{
 
     boolean hasPotionPositive(LocalPlayer player){
         for( MobEffectInstance effect : player.getActiveEffects()){
-            if( effect.getEffect().isBeneficial()
+            if( effect.getEffect().value().isBeneficial()
                 && !effect.isAmbient() ){
                 return true;
             }
@@ -99,7 +101,7 @@ public class HapticTracker extends Tracker{
     }
     boolean hasPotionNegative(LocalPlayer player){
         for( MobEffectInstance effect : player.getActiveEffects()){
-            if( effect.getEffect().getCategory() == MobEffectCategory.HARMFUL
+            if( effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL
                     && !effect.isAmbient() ){
                 return true;
             }
@@ -131,8 +133,9 @@ public class HapticTracker extends Tracker{
     }
 
     public void handleEat(ItemStack itemStack){
-        if(itemStack.isEdible() && itemStack.getItem().getFoodProperties() != null){
-                if(itemStack.getItem().getFoodProperties().getEffects().isEmpty()) {
+        FoodProperties foodComponent = itemStack.get(DataComponents.FOOD);
+        if(foodComponent != null ){
+                if(foodComponent.effects().isEmpty()) {
                     Haptics.getAnimation(Haptics.Animations.consume).playSingle(true,null);
                 }else{
                     Haptics.getAnimation(Haptics.Animations.consume_effect).playSingle(true,null);
