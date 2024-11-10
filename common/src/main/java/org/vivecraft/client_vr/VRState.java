@@ -9,7 +9,9 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
 import org.vivecraft.client.gui.screens.ErrorScreen;
 import org.vivecraft.client.gui.screens.GarbageCollectorScreen;
+import org.vivecraft.client_vr.bodylink.Haptics;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
+import org.vivecraft.client_vr.gameplay.trackers.HapticTracker;
 import org.vivecraft.client_vr.menuworlds.MenuWorldRenderer;
 import org.vivecraft.client_vr.provider.nullvr.NullVR;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.MCOpenVR;
@@ -86,6 +88,9 @@ public class VRState {
             dh.vrPlayer.registerTracker(dh.vehicleTracker);
             dh.vrPlayer.registerTracker(dh.crawlTracker);
             dh.vrPlayer.registerTracker(dh.cameraTracker);
+            dh.vrPlayer.registerTracker(dh.hapticTracker);
+
+            Haptics.connect();
 
             dh.vr.postinit();
 

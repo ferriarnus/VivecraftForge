@@ -240,6 +240,7 @@ public abstract class LocalPlayerVRMixin extends AbstractClientPlayer implements
             ClientDataHolderVR.getInstance().vrPlayer.wfMode = 0.5D;
             ClientDataHolderVR.getInstance().vrPlayer.wfCount = 400;
         }
+        ClientDataHolderVR.getInstance().hapticTracker.handleEat(itemStack);
         return super.eat(level, itemStack);
     }
 

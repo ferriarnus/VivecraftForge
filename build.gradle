@@ -31,6 +31,9 @@ subprojects {
         implementation("org.lwjgl:lwjgl-openvr:3.3.2:natives-linux")
         implementation("org.lwjgl:lwjgl-openvr:3.3.2:natives-macos")
         implementation("org.lwjgl:lwjgl-openvr:3.3.2:natives-windows")
+
+        // bHaptics Integration
+        implementation ("com.github.bhaptics:tact-java:0.1.4")
     }
 
     tasks.withType(JavaCompile) {
