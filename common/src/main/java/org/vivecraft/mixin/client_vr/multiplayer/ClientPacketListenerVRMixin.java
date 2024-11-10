@@ -139,6 +139,11 @@ public abstract class ClientPacketListenerVRMixin extends ClientCommonPacketList
         }
     }
 
+    @Inject(at = @At("TAIL"), method = "handleExplosion")
+    public void vivecraft$handleExplosion(ClientboundExplodePacket clientboundExplodePacket, CallbackInfo ci) {
+        ClientDataHolderVR.getInstance().hapticTracker.handleExplode(clientboundExplodePacket);
+    }
+
     /**
      * this is just needed so that neoforge doesn't crash.
      * packets are handled with their events.
