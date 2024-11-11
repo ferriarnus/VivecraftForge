@@ -1,6 +1,7 @@
 package org.vivecraft.client.render;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
@@ -15,10 +16,10 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
+import org.joml.Vector3fc;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
-import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.common.utils.MathUtils;
@@ -26,140 +27,157 @@ import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 import org.vivecraft.mod_compat_vr.sodium.SodiumHelper;
 
 public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerModel<T> {
-    public ModelPart leftShoulder;
-    public ModelPart rightShoulder;
-    public ModelPart leftShoulder_sleeve;
-    public ModelPart rightShoulder_sleeve;
+    // shoulders use the vanilla arm parts
     public ModelPart leftHand;
     public ModelPart rightHand;
+    public ModelPart leftHandSleeve;
+    public ModelPart rightHandSleeve;
 
     public VRPlayerModel_WithArms(ModelPart modelPart, boolean isSlim) {
         super(modelPart, isSlim);
-        // use left/right arm as shoulders
-        this.leftShoulder = modelPart.getChild("left_arm");
-        this.rightShoulder = modelPart.getChild("right_arm");
-        this.leftShoulder_sleeve = modelPart.getChild("leftShoulder_sleeve");
-        this.rightShoulder_sleeve = modelPart.getChild("rightShoulder_sleeve");
-        this.rightHand = modelPart.getChild("rightHand");
-        this.leftHand = modelPart.getChild("leftHand");
+        this.leftHandSleeve = modelPart.getChild("left_hand_sleeve");
+        this.rightHandSleeve = modelPart.getChild("right_hand_sleeve");
+        this.rightHand = modelPart.getChild("right_hand");
+        this.leftHand = modelPart.getChild("left_hand");
 
+        // copy textures
+        textureHack(this.leftArm, this.leftHand);
+        textureHack(this.rightArm, this.rightHand);
+        textureHack(this.rightSleeve, this.rightHandSleeve);
+        textureHack(this.leftSleeve, this.leftHandSleeve);
+    }
 
-        //finger hax
+    /**
+     * copies the bottom face texture from the {@code source} ModelPart to the top/bottom face of the {@code target} ModelPart
+     * @param source ModelPart to copy the top/bottom face from
+     * @param target ModelPart to copy the top/bottom face to
+     */
+    protected void textureHack(ModelPart source, ModelPart target) {
         // some mods remove the base parts
-        if (!this.leftShoulder.cubes.isEmpty()) {
-            copyUV(this.leftShoulder.cubes.get(0).polygons[1], this.leftHand.cubes.get(0).polygons[1]);
-            copyUV(this.leftShoulder.cubes.get(0).polygons[1], this.leftHand.cubes.get(0).polygons[0]);
-            if (SodiumHelper.isLoaded()) {
-                SodiumHelper.copyModelCuboidUV(this.leftShoulder, this.leftHand, 3, 3);
-                SodiumHelper.copyModelCuboidUV(this.leftShoulder, this.leftHand, 3, 2);
-            }
-        }
-        if (!this.rightShoulder.cubes.isEmpty()) {
-            copyUV(this.rightShoulder.cubes.get(0).polygons[1], this.rightHand.cubes.get(0).polygons[1]);
-            copyUV(this.rightShoulder.cubes.get(0).polygons[1], this.rightHand.cubes.get(0).polygons[0]);
-            if (SodiumHelper.isLoaded()) {
-                SodiumHelper.copyModelCuboidUV(this.rightShoulder, this.rightHand, 3, 3);
-                SodiumHelper.copyModelCuboidUV(this.rightShoulder, this.rightHand, 3, 2);
-            }
-        }
+        if (source.cubes.isEmpty()) return;
 
-        if (!this.rightSleeve.cubes.isEmpty()) {
-            copyUV(this.rightShoulder_sleeve.cubes.get(0).polygons[1], this.rightSleeve.cubes.get(0).polygons[1]);
-            copyUV(this.rightShoulder_sleeve.cubes.get(0).polygons[1], this.rightSleeve.cubes.get(0).polygons[0]);
-            if (SodiumHelper.isLoaded()) {
-                SodiumHelper.copyModelCuboidUV(this.rightShoulder_sleeve, this.rightSleeve, 3, 3);
-                SodiumHelper.copyModelCuboidUV(this.rightShoulder_sleeve, this.rightSleeve, 3, 2);
-            }
-        }
-        if (!this.leftSleeve.cubes.isEmpty()) {
-            copyUV(this.leftShoulder_sleeve.cubes.get(0).polygons[1], this.leftSleeve.cubes.get(0).polygons[1]);
-            copyUV(this.leftShoulder_sleeve.cubes.get(0).polygons[1], this.leftSleeve.cubes.get(0).polygons[0]);
-            if (SodiumHelper.isLoaded()) {
-                SodiumHelper.copyModelCuboidUV(this.leftShoulder_sleeve, this.leftSleeve, 3, 3);
-                SodiumHelper.copyModelCuboidUV(this.leftShoulder_sleeve, this.leftSleeve, 3, 2);
-            }
+        copyUV(source.cubes.get(0).polygons[1], target.cubes.get(0).polygons[1]);
+        copyUV(source.cubes.get(0).polygons[1], target.cubes.get(0).polygons[0]);
+
+        // sodium has custom internal ModelPart geometry which also needs to be modified
+        if (SodiumHelper.isLoaded()) {
+            SodiumHelper.copyModelCuboidUV(source, target, 3, 3);
+            SodiumHelper.copyModelCuboidUV(source, target, 3, 2);
         }
     }
 
-    private void copyUV(Polygon source, Polygon dest) {
+    /**
+     * copies the top/bottom face texture from the {@code source} ModelPart to the {@code target} ModelPart
+     * @param source ModelPart to copy the top/bottom face from
+     * @param target ModelPart to copy the top/bottom face to
+     */
+    protected void textureHackUpper(ModelPart source, ModelPart target) {
+        // some mods remove the base parts
+        if (source.cubes.isEmpty()) return;
+
+        // set bottom of target
+        copyUV(source.cubes.get(0).polygons[1], target.cubes.get(0).polygons[1]);
+        // set those to the top of the source
+        copyUV(source.cubes.get(0).polygons[0], target.cubes.get(0).polygons[0]);
+        copyUV(source.cubes.get(0).polygons[0], source.cubes.get(0).polygons[1]);
+
+        // sodium has custom internal ModelPart geometry which also needs to be modified
+        if (SodiumHelper.isLoaded()) {
+            SodiumHelper.copyModelCuboidUV(source, target, 3, 3);
+            SodiumHelper.copyModelCuboidUV(source, target, 2, 2);
+            SodiumHelper.copyModelCuboidUV(source, source, 2, 3);
+        }
+    }
+
+    /**
+     * copies the UV from the {@code source} Polygon to the {@code target} Polygon
+     * @param source Polygon to copy the UV from
+     * @param target Polygon to copy the UV to
+     */
+    private void copyUV(Polygon source, Polygon target) {
         for (int i = 0; i < source.vertices.length; i++) {
-            Vertex newVertex = new Vertex(dest.vertices[i].pos, source.vertices[i].u, source.vertices[i].v);
+            Vertex newVertex = new Vertex(target.vertices[i].pos, source.vertices[i].u, source.vertices[i].v);
+            // Optifine has custom internal polygon data which also needs to be modified
             if (OptifineHelper.isOptifineLoaded()) {
-                OptifineHelper.copyRenderPositions(dest.vertices[i], newVertex);
+                OptifineHelper.copyRenderPositions(target.vertices[i], newVertex);
             }
-            dest.vertices[i] = newVertex;
+            target.vertices[i] = newVertex;
         }
     }
 
     public static MeshDefinition createMesh(CubeDeformation cubeDeformation, boolean slim) {
         MeshDefinition meshDefinition = VRPlayerModel.createMesh(cubeDeformation, slim);
         PartDefinition partDefinition = meshDefinition.getRoot();
+        boolean connected = ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected;
+        int upperExtension = connected ? 3 : 0;
+        int lowerExtension = connected ? 2 : 0;
+        float lowerShrinkage = connected ? -0.05F : 0F;
 
         if (slim) {
-            partDefinition.addOrReplaceChild("leftHand", CubeListBuilder.create()
-                    .texOffs(32, 55)
-                    .addBox(-1.5F, -3.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
+            partDefinition.addOrReplaceChild("left_hand", CubeListBuilder.create()
+                    .texOffs(32, 55 - lowerExtension)
+                    .addBox(-1.5F, -5.0F - lowerExtension, -2.0F, 3.0F, 5.0F +  lowerExtension, 4.0F, cubeDeformation.extend(lowerShrinkage)),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create()
-                    .texOffs(48, 55)
-                    .addBox(-1.5F, -3.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+            partDefinition.addOrReplaceChild("left_hand_sleeve", CubeListBuilder.create()
+                    .texOffs(48, 55 - lowerExtension)
+                    .addBox(-1.5F, -5.0F - lowerExtension, -2.0F, 3.0F, 5.0F +  lowerExtension, 4.0F, cubeDeformation.extend(0.25f + lowerShrinkage)),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("rightHand", CubeListBuilder.create()
-                    .texOffs(40, 23)
-                    .addBox(-1.5F, -3.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
+            partDefinition.addOrReplaceChild("right_hand", CubeListBuilder.create()
+                    .texOffs(40, 23 - lowerExtension)
+                    .addBox(-1.5F, -5.0F - lowerExtension, -2.0F, 3.0F, 5.0F + lowerExtension, 4.0F, cubeDeformation.extend(lowerShrinkage)),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create()
-                    .texOffs(40, 39)
-                    .addBox(-1.5F, -3.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+            partDefinition.addOrReplaceChild("right_hand_sleeve", CubeListBuilder.create()
+                    .texOffs(40, 39 - lowerExtension)
+                    .addBox(-1.5F, -5.0F - lowerExtension, -2.0F, 3.0F, 5.0F +  lowerExtension, 4.0F, cubeDeformation.extend(0.25f + lowerShrinkage)),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
             partDefinition.addOrReplaceChild("left_arm", CubeListBuilder.create()
                     .texOffs(32, 48)
-                    .addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
+                    .addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F + upperExtension, 4.0F, cubeDeformation),
+                PartPose.offset(5.0F, 2.5F, 0.0F));
+            partDefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create()
+                    .texOffs(48, 48)
+                    .addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F + upperExtension, 4.0F, cubeDeformation.extend(0.25f)),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
             partDefinition.addOrReplaceChild("right_arm", CubeListBuilder.create()
                     .texOffs(40, 16)
-                    .addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation),
+                    .addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F + upperExtension, 4.0F, cubeDeformation),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("leftShoulder_sleeve", CubeListBuilder.create()
-                    .texOffs(48, 48)
-                    .addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
-                PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("rightShoulder_sleeve", CubeListBuilder.create()
+            partDefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create()
                     .texOffs(40, 32)
-                    .addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+                    .addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F + upperExtension, 4.0F, cubeDeformation.extend(0.25f)),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
         } else {
-            partDefinition.addOrReplaceChild("leftHand", CubeListBuilder.create()
-                    .texOffs(32, 55)
-                    .addBox(-2.0F, -5.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
+            partDefinition.addOrReplaceChild("left_hand", CubeListBuilder.create()
+                    .texOffs(32, 55 - lowerExtension)
+                    .addBox(-2.0F, -5.0F - lowerExtension, -2.0F, 4.0F, 5.0F +  lowerExtension, 4.0F, cubeDeformation.extend(lowerShrinkage)),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create()
-                    .texOffs(48, 55)
-                    .addBox(-2.0F, -5.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+            partDefinition.addOrReplaceChild("left_hand_sleeve", CubeListBuilder.create()
+                    .texOffs(48, 55 - lowerExtension)
+                    .addBox(-2.0F, -5.0F - lowerExtension, -2.0F, 4.0F, 5.0F + lowerExtension, 4.0F, cubeDeformation.extend(0.25f + lowerShrinkage)),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("rightHand", CubeListBuilder.create()
-                    .texOffs(40, 23)
-                    .addBox(-2.0F, -5.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
+            partDefinition.addOrReplaceChild("right_hand", CubeListBuilder.create()
+                    .texOffs(40, 23 - lowerExtension)
+                    .addBox(-2.0F, -5.0F - lowerExtension, -2.0F, 4.0F, 5.0F + lowerExtension, 4.0F, cubeDeformation.extend(lowerShrinkage)),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create()
-                    .texOffs(40, 39)
-                    .addBox(-2.0F, -5.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+            partDefinition.addOrReplaceChild("right_hand_sleeve", CubeListBuilder.create()
+                    .texOffs(40, 39 - lowerExtension)
+                    .addBox(-2.0F, -5.0F - lowerExtension, -2.0F, 4.0F, 5.0F + lowerExtension, 4.0F, cubeDeformation.extend(0.25f + lowerShrinkage)),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
             partDefinition.addOrReplaceChild("left_arm", CubeListBuilder.create()
                     .texOffs(32, 48)
-                    .addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
+                    .addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F + upperExtension, 4.0F, cubeDeformation),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("leftShoulder_sleeve", CubeListBuilder.create()
+            partDefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create()
                     .texOffs(48, 48)
-                    .addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+                    .addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F + upperExtension, 4.0F, cubeDeformation.extend(0.25f)),
                 PartPose.offset(5.0F, 2.5F, 0.0F));
             partDefinition.addOrReplaceChild("right_arm", CubeListBuilder.create()
                     .texOffs(40, 16)
-                    .addBox(-3.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation),
+                    .addBox(-3.0F, -2.0F, -2.0F, 4.0F, 5.0F + upperExtension, 4.0F, cubeDeformation),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
-            partDefinition.addOrReplaceChild("rightShoulder_sleeve", CubeListBuilder.create()
+            partDefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create()
                     .texOffs(40, 32)
-                    .addBox(-3.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, cubeDeformation.extend(0.25f)),
+                    .addBox(-3.0F, -2.0F, -2.0F, 4.0F, 5.0F + upperExtension, 4.0F, cubeDeformation.extend(0.25f)),
                 PartPose.offset(-5.0F, 2.5F, 0.0F));
         }
         return meshDefinition;
@@ -167,10 +185,8 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
     @Override
     protected Iterable<ModelPart> bodyParts() {
-        return ImmutableList.of(this.body, this.jacket, this.hat,
-            this.leftHand, this.rightHand, this.leftSleeve, this.rightSleeve,
-            this.leftShoulder, this.rightShoulder, this.leftShoulder_sleeve, this.rightShoulder_sleeve,
-            this.leftLeg, this.rightLeg, this.leftPants, this.rightPants);
+        return Iterables.concat(super.bodyParts(),
+            ImmutableList.of(this.leftHand, this.rightHand, this.leftHandSleeve, this.rightHandSleeve));
     }
 
     @Override
@@ -185,103 +201,284 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
         ModelPart actualLeftHand = this.leftHand;
         ModelPart actualRightHand = this.rightHand;
-        ModelPart actualLeftShoulder = this.leftShoulder;
-        ModelPart actualRightShoulder = this.rightShoulder;
+        ModelPart actualLeftShoulder = this.leftArm;
+        ModelPart actualRightShoulder = this.rightArm;
         if (this.rotInfo.reverse) {
             actualLeftHand = this.rightHand;
             actualRightHand = this.leftHand;
-            actualLeftShoulder = this.rightShoulder;
-            actualRightShoulder = this.leftShoulder;
+            actualLeftShoulder = this.rightArm;
+            actualRightShoulder = this.leftArm;
         }
 
-        // left arm
-        ModelUtils.positionAndRotateModelToLocal(actualLeftHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat,
-            this.rotInfo, this.bodyYaw, this.tempV);
-        if (this.attackArm == HumanoidArm.LEFT) {
-            ModelUtils.attackAnimation(actualLeftHand, HumanoidArm.LEFT, this.attackTime, this.isMainPlayer,
-                this.tempM, this.tempV);
-        }
-
-        ModelUtils.worldToModelDirection(this.rotInfo.leftArmRot, this.bodyYaw, this.tempV2);
-
-        ModelUtils.estimateJoint(
-            actualLeftShoulder.x, actualLeftShoulder.y, actualLeftShoulder.z,
-            actualLeftHand.x, actualLeftHand.y, actualLeftHand.z,
-            MathUtils.LEFT, 12.0F, this.tempV);
-
-        ModelUtils.pointModelAtModel(actualLeftShoulder, this.tempV.x, this.tempV.y, this.tempV.z, new Quaternionf(),
-            this.bodyYaw, true, this.tempV, this.tempM);
-
-        if (VRState.VR_RUNNING && player == Minecraft.getInstance().player &&
-            ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
-            ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms) {
-            GuiHandler.guiRotation_playerModel.set(this.rotInfo.leftArmQuat);
-            GuiHandler.guiPos_playerModel = player.getPosition(Minecraft.getInstance().getFrameTime())
-                .add(this.rotInfo.leftArmPos.x(), this.rotInfo.leftArmPos.y(), this.rotInfo.leftArmPos.z());
-        }
-
-        // right arm
-        ModelUtils.positionAndRotateModelToLocal(actualRightHand, this.rotInfo.rightArmPos, this.rotInfo.rightArmQuat,
-            this.rotInfo, this.bodyYaw, this.tempV);
-        if (this.attackArm == HumanoidArm.RIGHT) {
-            ModelUtils.attackAnimation(actualRightHand, HumanoidArm.RIGHT, this.attackTime, this.isMainPlayer,
-                this.tempM, this.tempV);
-        }
-
-        ModelUtils.estimateJoint(
-            actualRightShoulder.x, actualRightShoulder.y, actualRightShoulder.z,
-            actualRightHand.x, actualRightHand.y, actualRightHand.z,
-            MathUtils.LEFT, 12.0F, this.tempV);
-
-        ModelUtils.pointModelAtModel(actualRightShoulder, this.tempV.x, this.tempV.y, this.tempV.z, new Quaternionf(),
-            this.bodyYaw, true, this.tempV, this.tempM);
-
-        // first person scale
+        float limbScale = 1F;
         if (player == Minecraft.getInstance().player &&
             (ClientDataHolderVR.getInstance().currentPass == RenderPass.LEFT ||
                 ClientDataHolderVR.getInstance().currentPass == RenderPass.RIGHT ||
                 ClientDataHolderVR.getInstance().currentPass == RenderPass.CENTER
             ))
         {
-            this.leftHand.xScale = this.leftHand.zScale = this.rightHand.xScale = this.rightHand.zScale =
-                this.leftShoulder.xScale = this.leftShoulder.zScale =
-                    this.rightShoulder.xScale = this.rightShoulder.zScale =
-                        ClientDataHolderVR.getInstance().vrSettings.playerModelArmsScale;
-
-        } else {
-            this.leftHand.xScale = this.leftHand.zScale = this.rightHand.xScale = this.rightHand.zScale =
-                this.leftShoulder.xScale = this.leftShoulder.zScale =
-                    this.rightShoulder.xScale = this.rightShoulder.zScale = 1.0F;
+            limbScale = ClientDataHolderVR.getInstance().vrSettings.playerModelArmsScale;
         }
 
-        /*
-        this.tempV.set(0,0,0);
-        this.tempM.transform(this.tempV);
-        this.leftShoulder.x += this.tempV.x;
-        this.leftShoulder.y += this.tempV.y;
-        this.leftShoulder.z += this.tempV.z;
+        float offset = (this.slim ? 0.5F : 1F) * limbScale * (this.rotInfo.reverse ? -1F : 1F);
 
-        this.leftShoulder.yScale = 1.0F;
-*/
+        // left arm
+        if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
+            positionConnectedLimb(actualLeftShoulder, actualLeftHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmRot,
+                this.rotInfo.leftArmQuat, this.rotInfo.leftElbowPos, false, HumanoidArm.LEFT);
 
-        this.leftSleeve.copyFrom(this.leftHand);
-        this.rightSleeve.copyFrom(this.rightHand);
-        this.leftShoulder_sleeve.copyFrom(this.leftShoulder);
-        this.rightShoulder_sleeve.copyFrom(this.rightShoulder);
-        this.leftShoulder_sleeve.visible = this.leftSleeve.visible;
-        this.rightShoulder_sleeve.visible = this.rightSleeve.visible;
+            this.tempM.transform(offset, 0, 0, this.tempV);
+            actualLeftHand.x += this.tempV.x;
+            actualLeftHand.y += this.tempV.y;
+            actualLeftHand.z += this.tempV.z;
+        } else {
+            positionSplitLimb(actualLeftShoulder, actualLeftHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmRot,
+                this.rotInfo.leftArmQuat, 0F, offset, this.rotInfo.leftElbowPos, false, -3F, HumanoidArm.LEFT);
+        }
+
+        if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
+            ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
+        {
+            if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
+                // tempM is in model space so that doesn't work directly
+                GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotationZYX(actualLeftHand.zRot, -actualLeftHand.yRot,
+                    -actualLeftHand.xRot);
+            } else {
+                GuiHandler.GUI_ROTATION_PLAYER_MODEL.set3x3(this.tempM);
+            }
+            // ModelParts are rotated 90°
+            GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateX(-Mth.HALF_PI);
+            // undo body yaw
+            GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateLocalY(-this.bodyYaw - Mth.PI);
+
+            ModelUtils.modelToWorld(actualLeftHand.x, actualLeftHand.y, actualLeftHand.z,
+                this.rotInfo, this.bodyYaw, this.tempV);
+
+            GuiHandler.GUI_POS_PLAYER_MODEL = player.getPosition(Minecraft.getInstance().getFrameTime())
+                .add(this.tempV.x, this.tempV.y, this.tempV.z);
+        }
+
+        // right arm
+        if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
+            positionConnectedLimb(actualRightShoulder, actualRightHand, this.rotInfo.rightArmPos,
+                this.rotInfo.rightArmRot, this.rotInfo.rightArmQuat, this.rotInfo.rightElbowPos, false,
+                HumanoidArm.RIGHT);
+
+            this.tempM.transform(-offset, 0, 0, this.tempV);
+            actualRightHand.x += this.tempV.x;
+            actualRightHand.y += this.tempV.y;
+            actualRightHand.z += this.tempV.z;
+        } else {
+            positionSplitLimb(actualRightShoulder, actualRightHand, this.rotInfo.rightArmPos, this.rotInfo.rightArmRot,
+                this.rotInfo.rightArmQuat, 0F, -offset, this.rotInfo.rightElbowPos, false, -3F, HumanoidArm.RIGHT);
+        }
+
+        // first person scale
+        this.leftHand.xScale = this.leftHand.zScale = this.rightHand.xScale = this.rightHand.zScale =
+            this.leftArm.xScale = this.leftArm.zScale = this.rightArm.xScale = this.rightArm.zScale = limbScale;
+
+        if (this.layAmount > 0F) {
+            ModelUtils.applySwimRotationOffset(player, this.xRot, this.tempV, this.tempV2,
+                this.leftArm, this.rightArm,
+                this.leftHand, this.rightHand);
+        }
+
+        this.leftHandSleeve.copyFrom(this.leftHand);
+        this.rightHandSleeve.copyFrom(this.rightHand);
+        this.leftSleeve.copyFrom(this.leftArm);
+        this.rightSleeve.copyFrom(this.rightArm);
+        this.leftHandSleeve.visible = this.leftSleeve.visible;
+        this.rightHandSleeve.visible = this.rightSleeve.visible;
+    }
+
+    /**
+     * positions the hand/foot and applies its rotation. also rotates the shoulder/thigh to point at the elbow/knee
+     * @param upper upper body part (shoulder/thigh)
+     * @param lower lower body part (hand/foot)
+     * @param lowerPos player space position the lower body part should be at
+     * @param lowerRot direction the lower body part should face
+     * @param lowerXRot additional rotation around the X axis that should be applied to the {@code lower}
+     * @param jointPos elbow/knee position, if {@code null} a middle point will be estimated
+     * @param jointDown if the estimated joint should prefer up/forward or down/back
+     * @param lowerRotPoint Z offset to the point the lower body part should be rotated about for the swing animation
+     * @param arm arm this is positioning, to check if the swing animation should be applied
+     */
+    protected void positionSplitLimb(
+        ModelPart upper, ModelPart lower, Vector3fc lowerPos, Vector3fc lowerDir, Quaternionfc lowerRot, float lowerXRot,
+        float lowerXOffset, Vector3fc jointPos, boolean jointDown, float lowerRotPoint, HumanoidArm arm)
+    {
+        // place lower directly at the lower point
+        ModelUtils.worldToModel(lowerPos, this.rotInfo, this.bodyYaw, this.tempV);
+        lower.setPos(this.tempV.x, this.tempV.y, this.tempV.z);
+
+        // jiont estimation
+        if (jointPos == null) {
+            // point the elbow away from the hand direction
+            // arm dir
+            this.tempV.sub(upper.x, upper.y, upper.z);
+
+            // hand direction
+            ModelUtils.worldToModelDirection(lowerDir, this.bodyYaw, this.tempV2);
+            if (!jointDown) {
+                this.tempV2.mul(-1F);
+            }
+
+            // calculate the vector perpendicular to the arm dir
+            float dot = this.tempV.dot(this.tempV2) / this.tempV.dot(this.tempV);
+            this.tempV.mul(dot);
+            this.tempV2.sub(this.tempV, this.tempV).normalize();
+            this.tempM.transform(MathUtils.RIGHT, this.tempV).mul(lowerXOffset);
+            MathUtils.RIGHT.mul(lowerXOffset, this.tempV);
+            ModelUtils.estimateJoint(
+                upper.x, upper.y, upper.z,
+                lower.x + this.tempV.x, lower.y + this.tempV.y, lower.z + this.tempV.z,
+                this.tempV2, 12.0F, this.tempV);
+        } else {
+            ModelUtils.worldToModel(jointPos, this.rotInfo, this.bodyYaw, this.tempV);
+        }
+
+        // upper position and rotation
+        ModelUtils.pointModelAtModel(upper, this.tempV.x, this.tempV.y, this.tempV.z,
+            this.tempV, this.tempV2, this.tempM);
+
+        this.tempM.rotateLocalX(-this.xRot);
+        ModelUtils.setRotation(upper, this.tempM, this.tempV);
+
+        // lower rotation
+        ModelUtils.toModelDir(this.bodyYaw, lowerRot, this.tempM);
+
+        armSwing(lower, arm, lowerRotPoint, false);
+
+        this.tempM.rotateLocalX(-this.xRot + lowerXRot);
+        ModelUtils.setRotation(lower, this.tempM, this.tempV);
+    }
+
+    /**
+     * positions the hand/foot and shoulder/thigh to point at the elbow/knee
+     * @param upper upper body part (shoulder/thigh)
+     * @param lower lower body part (hand/foot)
+     * @param lowerPos player space position the lower body part should be at
+     * @param lowerDir player space direction the lower body part should account for
+     * @param lowerRot direction the lower body part should face
+     * @param jointPos elbow/knee position, if {@code null} a middle point will be estimated
+     * @param jointDown if the estimated joint should prefer up/forward or down/back
+     * @param arm arm this is positioning, to check if the swing animation should be applied
+     */
+    protected void positionConnectedLimb(
+        ModelPart upper, ModelPart lower, Vector3fc lowerPos, Vector3fc lowerDir, Quaternionfc lowerRot,
+        Vector3fc jointPos, boolean jointDown, HumanoidArm arm)
+    {
+        // position lower
+        ModelUtils.worldToModel(lowerPos, this.rotInfo, this.bodyYaw, this.tempV);
+        float armLength = 12F;
+        // limit length to 12, no limb stretching, for now
+        float length = this.tempV.distance(upper.x, upper.y, upper.z);
+        if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsLimit && length > armLength) {
+            this.tempV.sub(upper.x, upper.y, upper.z);
+            this.tempV.normalize().mul(armLength);
+            this.tempV.add(upper.x, upper.y, upper.z);
+        }
+        lower.setPos(this.tempV.x, this.tempV.y, this.tempV.z);
+
+        // point the elbow away from the hand direction
+        // arm dir
+        this.tempV.sub(upper.x, upper.y, upper.z);
+
+        // hand direction
+        ModelUtils.worldToModelDirection(lowerDir, this.bodyYaw, this.tempV2);
+        if (!jointDown) {
+            this.tempV2.mul(-1F);
+        }
+
+        // calculate the vector perpendicular to the arm dir
+        float dot = this.tempV.dot(this.tempV2) / this.tempV.dot(this.tempV);
+        this.tempV.mul(dot);
+        this.tempV2.sub(this.tempV, this.tempV).normalize();
+
+        float jointDirX = this.tempV.x;
+        float jointDirY = this.tempV.y;
+        float jointDirZ = this.tempV.z;
+
+        // get joint
+        if (jointPos == null) {
+            ModelUtils.estimateJoint(
+                upper.x, upper.y, upper.z,
+                lower.x, lower.y, lower.z,
+                this.tempV, armLength, this.tempV2);
+        } else {
+            ModelUtils.worldToModel(jointPos, this.rotInfo, this.bodyYaw, this.tempV2);
+        }
+        float jointX = this.tempV2.x;
+        float jointY = this.tempV2.y;
+        float jointZ = this.tempV2.z;
+
+        // upper part rotation
+        ModelUtils.pointModelAtModel(upper, jointX, jointY, jointZ, this.tempV, this.tempV2, this.tempM);
+        // dir
+        this.tempV.set(jointX - upper.x, jointY - upper.y, jointZ - upper.z);
+        // up
+        if (length > armLength) {
+            this.tempV2.set(jointDirX, jointDirY, jointDirZ);
+        } else {
+            this.tempV2.set(jointX - lower.x, jointY - lower.y, jointZ - lower.z);
+        }
+
+        ModelUtils.pointAtModel(this.tempV, this.tempV2, this.tempM);
+        this.tempM.rotateLocalX(-this.xRot);
+        ModelUtils.setModelRotation(upper, this.tempM, this.tempV);
+
+        // upper part rotation
+        // dir
+        this.tempV.set(lower.x - jointX, lower.y - jointY, lower.z - jointZ);
+        // up
+        if (length > armLength) {
+            this.tempV2.set(jointDirX, jointDirY, jointDirZ);
+        } else {
+            this.tempV2.set(jointX - upper.x, jointY - upper.y, jointZ - upper.z);
+        }
+
+        ModelUtils.pointAtModel(this.tempV, this.tempV2, this.tempM);
+
+        armSwing(lower, arm, -armLength * 0.5F, true);
+
+        this.tempM.rotateLocalX(-this.xRot);
+        ModelUtils.setModelRotation(lower, this.tempM, this.tempV);
+    }
+
+    /**
+     *
+     * @param lower
+     * @param arm
+     * @param offset
+     * @param modelSpace
+     */
+    private void armSwing(ModelPart lower, HumanoidArm arm, float offset, boolean modelSpace) {
+        if (arm != null && this.attackArm == arm) {
+            // need to get the pre and post rotation point, to offset the modelPart correctly
+            this.tempM.transform(0,  offset, 0, this.tempV2);
+
+            //TODO FBT invert x and Y rot for modelspace
+            ModelUtils.swingAnimation(arm, this.attackTime, this.isMainPlayer, this.tempM, this.tempV);
+            lower.x -= this.tempV.x;
+            lower.y -= this.tempV.y;
+            lower.z -= this.tempV.z * (modelSpace ? 1F : -1F);
+            this.tempM.transform(0,  offset, 0, this.tempV);
+
+            // apply the offset
+            lower.x += this.tempV2.x - this.tempV.x;
+            lower.y += this.tempV2.y - this.tempV.y;
+            lower.z += (this.tempV2.z - this.tempV.z) * (modelSpace ? 1F : -1F);
+        }
     }
 
     @Override
     public void setAllVisible(boolean visible) {
         super.setAllVisible(visible);
 
-        this.rightShoulder.visible = visible;
-        this.leftShoulder.visible = visible;
-        this.rightShoulder_sleeve.visible = visible;
-        this.leftShoulder_sleeve.visible = visible;
-        this.rightHand.visible = visible;
         this.leftHand.visible = visible;
+        this.rightHand.visible = visible;
+        this.leftHandSleeve.visible = visible;
+        this.rightHandSleeve.visible = visible;
     }
 
     @Override

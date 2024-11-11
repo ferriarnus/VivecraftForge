@@ -280,7 +280,7 @@ public class VRPlayer {
 
         float interpolatedWorldRotation_Radians = Mth.lerp(partialTick, start, end);
 
-        Vec3 interpolatedRoomOrigin = MathUtils.vecLerp(this.vrdata_world_pre.origin, this.vrdata_world_post.origin, partialTick);
+        Vec3 interpolatedRoomOrigin = MathUtils.vecDLerp(this.vrdata_world_pre.origin, this.vrdata_world_post.origin, partialTick);
 
         this.vrdata_world_render = new VRData(
             interpolatedRoomOrigin,

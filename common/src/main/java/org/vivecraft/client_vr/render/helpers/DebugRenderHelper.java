@@ -4,6 +4,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.Vec3i;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionfc;
@@ -13,6 +15,7 @@ import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
+import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.common.network.FBTMode;
@@ -41,6 +44,16 @@ public class DebugRenderHelper {
         }
         if (DATA_HOLDER.vrSettings.renderVrPlayerAxes) {
             renderPlayerAxes(poseStack, partialTick);
+        }
+
+        if (GuiHandler.GUI_POS_WORLD != null) {
+            VRData data = DATA_HOLDER.vrPlayer.getVRDataWorld();
+
+            Vector3f guiPos = MathUtils.subtractToVector3f(GuiHandler.GUI_POS_WORLD,
+                RenderHelper.getSmoothCameraPosition(DATA_HOLDER.currentPass, data));
+            guiPos.add(GuiHandler.GUI_ROTATION_WORLD.transformDirection(GuiHandler.GUI_OFFSET_WORLD, new Vector3f()));
+
+            addCube(poseStack, guiPos, RED);
         }
     }
 
@@ -252,4 +265,18 @@ public class DebugRenderHelper {
             .color(color.x(), color.y(), color.z(), 0.0F).endVertex();
     }
 
+    private static void addCube(PoseStack poseStack, Vector3fc position, Vector3fc color) {
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.setShaderTexture(0, new ResourceLocation("vivecraft:textures/white.png"));
+
+        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+
+        Vec3i iColor = new Vec3i((int) color.x() * 255, (int) color.y() * 255, (int) color.z() * 255);
+        Vec3 start = new Vec3(position.x(), position.y(), position.z()).add(MathUtils.FORWARD_D.scale(0.1));
+        Vec3 end =  new Vec3(position.x(), position.y(), position.z()).add(MathUtils.BACK_D.scale(0.1));
+        RenderHelper.renderBox(bufferbuilder, start, end, 0.2F, 0.2F, iColor, (byte) 255, poseStack);
+
+        BufferUploader.drawWithShader(bufferbuilder.end());
+    }
 }

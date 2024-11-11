@@ -30,27 +30,37 @@ import java.util.Map;
 
 @Mixin(EntityRenderDispatcher.class)
 public abstract class EntityRenderDispatcherMixin implements ResourceManagerReloadListener, EntityRenderDispatcherExtension {
+    @Unique
+    private final Map<String, VRPlayerRenderer> vivecraft$skinMapVRVanilla = new HashMap<>();
 
     @Unique
-    private final Map<String, VRPlayerRenderer> vivecraft$skinMapVR = new HashMap<>();
+    private final Map<String, VRPlayerRenderer> vivecraft$skinMapVRArms = new HashMap<>();
 
     @Unique
-    private final Map<String, VRPlayerRenderer> vivecraft$skinMapVRSeated = new HashMap<>();
+    private final Map<String, VRPlayerRenderer> vivecraft$skinMapVRLegs = new HashMap<>();
 
     @Unique
-    private VRPlayerRenderer vivecraft$playerRendererVR;
+    private VRPlayerRenderer vivecraft$playerRendererVRVanilla;
 
     @Unique
-    private VRPlayerRenderer vivecraft$playerRendererVRSeated;
+    private VRPlayerRenderer vivecraft$playerRendererVRArms;
+
+    @Unique
+    private VRPlayerRenderer vivecraft$playerRendererVRLegs;
 
     @Override
-    public Map<String, VRPlayerRenderer> vivecraft$getSkinMapVR() {
-        return this.vivecraft$skinMapVR;
+    public Map<String, VRPlayerRenderer> vivecraft$getSkinMapVRVanilla() {
+        return this.vivecraft$skinMapVRVanilla;
     }
 
     @Override
-    public Map<String, VRPlayerRenderer> vivecraft$getSkinMapVRSeated() {
-        return this.vivecraft$skinMapVRSeated;
+    public Map<String, VRPlayerRenderer> vivecraft$getSkinMapVRArms() {
+        return this.vivecraft$skinMapVRArms;
+    }
+
+    @Override
+    public Map<String, VRPlayerRenderer> vivecraft$getSkinMapVRLegs() {
+        return this.vivecraft$skinMapVRLegs;
     }
 
     @Inject(method = "renderHitbox", at = @At("HEAD"))
@@ -85,16 +95,15 @@ public abstract class EntityRenderDispatcherMixin implements ResourceManagerRelo
                 if (rotInfo.seated ||
                     ClientDataHolderVR.getInstance().vrSettings.playerModelType == VRSettings.PlayerModelType.VANILLA)
                 {
-                    vrPlayerRenderer = this.vivecraft$skinMapVRSeated.getOrDefault(skinType,
-                        this.vivecraft$playerRendererVRSeated);
+                    vrPlayerRenderer = this.vivecraft$skinMapVRVanilla.getOrDefault(skinType,
+                        this.vivecraft$playerRendererVRVanilla);
                 } else if (rotInfo.fbtMode == FBTMode.ARMS_ONLY ||
                     ClientDataHolderVR.getInstance().vrSettings.playerModelType ==
                         VRSettings.PlayerModelType.SPLIT_ARMS)
                 {
-                    vrPlayerRenderer = this.vivecraft$skinMapVR.getOrDefault(skinType, this.vivecraft$playerRendererVR);
+                    vrPlayerRenderer = this.vivecraft$skinMapVRArms.getOrDefault(skinType, this.vivecraft$playerRendererVRArms);
                 } else {
-                    // TODO FBT split legs model
-                    vrPlayerRenderer = this.vivecraft$skinMapVR.getOrDefault(skinType, this.vivecraft$playerRendererVR);
+                    vrPlayerRenderer = this.vivecraft$skinMapVRLegs.getOrDefault(skinType, this.vivecraft$playerRendererVRLegs);
                 }
 
                 cir.setReturnValue(vrPlayerRenderer);
@@ -104,18 +113,29 @@ public abstract class EntityRenderDispatcherMixin implements ResourceManagerRelo
 
     @Inject(method = "onResourceManagerReload", at = @At(value = "HEAD"))
     private void vivecraft$clearVRPlayerRenderer(CallbackInfo ci) {
-        this.vivecraft$skinMapVRSeated.clear();
-        this.vivecraft$skinMapVR.clear();
+        this.vivecraft$skinMapVRVanilla.clear();
+        this.vivecraft$skinMapVRArms.clear();
+        this.vivecraft$skinMapVRLegs.clear();
     }
 
     @Inject(method = "onResourceManagerReload", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderers;createPlayerRenderers(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Ljava/util/Map;"))
     private void vivecraft$reloadVRPlayerRenderer(CallbackInfo ci, @Local EntityRendererProvider.Context context) {
-        this.vivecraft$playerRendererVRSeated = new VRPlayerRenderer(context, false, true);
-        this.vivecraft$skinMapVRSeated.put("default", this.vivecraft$playerRendererVRSeated);
-        this.vivecraft$skinMapVRSeated.put("slim", new VRPlayerRenderer(context, true, true));
+        this.vivecraft$playerRendererVRVanilla = new VRPlayerRenderer(context, false,
+            VRPlayerRenderer.ModelType.VANILLA);
+        this.vivecraft$skinMapVRVanilla.put("default", this.vivecraft$playerRendererVRVanilla);
+        this.vivecraft$skinMapVRVanilla.put("slim",
+            new VRPlayerRenderer(context, true, VRPlayerRenderer.ModelType.VANILLA));
 
-        this.vivecraft$playerRendererVR = new VRPlayerRenderer(context, false, false);
-        this.vivecraft$skinMapVR.put("default", this.vivecraft$playerRendererVR);
-        this.vivecraft$skinMapVR.put("slim", new VRPlayerRenderer(context, true, false));
+        this.vivecraft$playerRendererVRArms = new VRPlayerRenderer(context, false,
+            VRPlayerRenderer.ModelType.SPLIT_ARMS);
+        this.vivecraft$skinMapVRArms.put("default", this.vivecraft$playerRendererVRArms);
+        this.vivecraft$skinMapVRArms.put("slim", new VRPlayerRenderer(context, true,
+            VRPlayerRenderer.ModelType.SPLIT_ARMS));
+
+        this.vivecraft$playerRendererVRLegs = new VRPlayerRenderer(context, false,
+            VRPlayerRenderer.ModelType.SPLIT_ARMS_LEGS);
+        this.vivecraft$skinMapVRLegs.put("default", this.vivecraft$playerRendererVRLegs);
+        this.vivecraft$skinMapVRLegs.put("slim",
+            new VRPlayerRenderer(context, true, VRPlayerRenderer.ModelType.SPLIT_ARMS_LEGS));
     }
 }

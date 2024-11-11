@@ -1193,7 +1193,7 @@ public abstract class MCVR {
         float scale = (AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT) * 0.9375F;
 
         float yaw = Mth.PI - this.dh.vrPlayer.vrdata_room_pre.hmd.getYawRad();
-        Vector3f posAvg = hmdPivotHistory.averagePosition(0.5D);
+        Vector3f posAvg = this.hmdPivotHistory.averagePosition(0.5D);
 
         for (int t = 3; t < (hasExtendedFBT() ? trackableDeviceCount : 6); t++) {
             Matrix4f rotationOffset = this.controllerPose[t].rotateLocalY(-yaw, new Matrix4f());
@@ -1215,62 +1215,9 @@ public abstract class MCVR {
                 this.controllerPose[t].getTranslation(tempV)
                 .sub(posAvg.x, 0F, posAvg.z) // center around headset
                 .rotateY(-yaw)); // remove body rotation
-                //.sub(); // offset to reference point
-            /*Vector3f offset = offsets[t - 3]
-                .rotateY(yawAvg)
-                .add(posAvg.x, 0F, posAvg.z)
-                .sub(this.controllerPose[t].getTranslation(tempV));*/
             this.dh.vrSettings.fbtOffsets[t - 3].set(offset);
         }
-/*
-        if (hasFBT()) {
-            this.dh.vrSettings.fbtOffsets[WAIST_TRACKER - 3].set(
-                this.controllerPose[WAIST_TRACKER].transformDirection(
-                    this.controllerPose[WAIST_TRACKER].getTranslation(tempV)
-                        .sub(0F, 0.75F * scale, 0F)));
-            this.dh.vrSettings.fbtOffsets[RIGHT_FOOT_TRACKER - 3].set(
-                this.controllerPose[RIGHT_FOOT_TRACKER].transformDirection(
-                    this.controllerPose[RIGHT_FOOT_TRACKER].getTranslation(tempV)
-                        .sub(0.125F * scale, 0F, 0F)));
-            this.dh.vrSettings.fbtOffsets[LEFT_FOOT_TRACKER - 3].set(
-                this.controllerPose[LEFT_FOOT_TRACKER].transformDirection(
-                    this.controllerPose[LEFT_FOOT_TRACKER].getTranslation(tempV)
-                        .sub(-0.125F * scale, 0F, 0F)));
 
-
-            this.dh.vrSettings.fbtOffsets[WAIST_TRACKER - 3].set(
-                this.dh.vrSettings.fbtRotations[WAIST_TRACKER - 3].transform(
-                    this.controllerPose[WAIST_TRACKER].getTranslation(tempV).mul(-1)
-                        .sub(0F, 0.75F * scale, 0F)));
-            this.dh.vrSettings.fbtOffsets[RIGHT_FOOT_TRACKER - 3].set(
-                this.dh.vrSettings.fbtRotations[RIGHT_FOOT_TRACKER - 3].transform(
-                    this.controllerPose[RIGHT_FOOT_TRACKER].getTranslation(tempV).mul(-1)
-                        .sub(0.125F * scale, 0F, 0F)));
-            this.dh.vrSettings.fbtOffsets[LEFT_FOOT_TRACKER - 3].set(
-                this.dh.vrSettings.fbtRotations[LEFT_FOOT_TRACKER - 3].transform(
-                    this.controllerPose[LEFT_FOOT_TRACKER].getTranslation(tempV).mul(-1)
-                        .sub(-0.125F * scale, 0F, 0F)));
-        }
-        if (hasExtendedFBT()) {
-            this.dh.vrSettings.fbtOffsets[RIGHT_ELBOW_TRACKER - 3].set(
-                this.controllerPose[RIGHT_ELBOW_TRACKER].transformDirection(
-                    this.controllerPose[RIGHT_ELBOW_TRACKER].getTranslation(tempV)
-                        .sub(0.625F * scale, 1.375F * scale, 0F)));
-            this.dh.vrSettings.fbtOffsets[LEFT_ELBOW_TRACKER - 3].set(
-                this.controllerPose[LEFT_ELBOW_TRACKER].transformDirection(
-                    this.controllerPose[LEFT_ELBOW_TRACKER].getTranslation(tempV)
-                        .sub(-0.625F * scale, 1.375F * scale, 0F)));
-
-            this.dh.vrSettings.fbtOffsets[RIGHT_KNEE_TRACKER - 3].set(
-                this.controllerPose[RIGHT_KNEE_TRACKER].transformDirection(
-                    this.controllerPose[RIGHT_KNEE_TRACKER].getTranslation(tempV)
-                        .sub(0.125F * scale, 0.375F * scale, 0F)));
-            this.dh.vrSettings.fbtOffsets[LEFT_KNEE_TRACKER - 3].set(
-                this.controllerPose[LEFT_KNEE_TRACKER].transformDirection(
-                    this.controllerPose[LEFT_KNEE_TRACKER].getTranslation(tempV)
-                        .sub(-0.125F * scale, 0.375F * scale, 0F)));
-        }
-*/
         if (hasFBT()) {
             this.dh.vrSettings.fbtCalibrated = true;
         }

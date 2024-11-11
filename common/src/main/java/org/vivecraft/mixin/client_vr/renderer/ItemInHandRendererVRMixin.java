@@ -72,7 +72,10 @@ public abstract class ItemInHandRendererVRMixin {
         HumanoidArm side, CallbackInfo ci)
     {
         if (VRState.VR_RUNNING) {
-            vivecraft$vrPlayerArm(poseStack, buffer, combinedLight, swingProgress, side);
+            if (!ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf ||
+                !ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms) {
+                vivecraft$vrPlayerArm(poseStack, buffer, combinedLight, swingProgress, side);
+            }
             ci.cancel();
         }
     }

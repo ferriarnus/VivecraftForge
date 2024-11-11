@@ -375,6 +375,10 @@ public class VRSettings {
     public float playerModelLegScale = 1.0F;
     @SettingField(VrOptions.PLAYER_MODEL_TYPE)
     public PlayerModelType playerModelType = PlayerModelType.SPLIT_ARMS;
+    @SettingField(VrOptions.PLAYER_LIMBS_CONNECTED)
+    public boolean playerLimbsConnected = true;
+    @SettingField(VrOptions.PLAYER_LIMBS_LIMIT)
+    public boolean playerLimbsLimit = true;
     @SettingField(VrOptions.MENU_WORLD_SELECTION)
     public MenuWorld menuWorldSelection = MenuWorld.BOTH;
     @SettingField(VrOptions.MENU_WORLD_FALLBACK)
@@ -1886,6 +1890,8 @@ public class VRSettings {
         PLAYER_MODEL_BODY_SCALE(true, false, 0.1f, 1f, 0.05f, -1), // scales the width of the first person body
         PLAYER_MODEL_LEGS_SCALE(true, false, 0.1f, 1f, 0.05f, -1), // scales the width of the first person legs
         PLAYER_MODEL_TYPE(false, true), // determines how VR player are rendered
+        PLAYER_LIMBS_CONNECTED(false, true), // extends the model arms to connect
+        PLAYER_LIMBS_LIMIT(false, true), // doesn't split connected limbs when over length
         BOW_MODE(false, true) { // Roomscale Bow Mode
 
             @Override

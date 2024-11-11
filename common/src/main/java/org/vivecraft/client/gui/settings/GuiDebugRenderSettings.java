@@ -26,6 +26,8 @@ public class GuiDebugRenderSettings extends GuiListScreen {
         entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_MODEL_BODY_SCALE));
         entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_MODEL_LEGS_SCALE));
         entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_MODEL_TYPE));
+        entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_LIMBS_CONNECTED));
+        entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_LIMBS_LIMIT));
 
         return entries;
     }

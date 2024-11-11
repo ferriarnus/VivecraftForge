@@ -107,11 +107,6 @@ public class ClientUtils {
         return values[index];
     }
 
-    public static int getSkinID() {
-        return 0; // alex slim
-        //return 15; // steve wide
-    }
-
     public static long microTime() {
         return System.nanoTime() / 1000L;
     }

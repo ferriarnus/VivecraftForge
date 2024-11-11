@@ -21,6 +21,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client.render.VRPlayerModel;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.common.utils.MathUtils;
@@ -50,8 +51,9 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
         @Local(argsOnly = true) AbstractClientPlayer player,
         @Share("xRot") LocalFloatRef xRotation, @Share("yRot") LocalFloatRef yRotation)
     {
+        VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
         // only do this if the player model is the vr model
-        if (getParentModel() instanceof VRPlayerModel<AbstractClientPlayer> vrModel && vrModel.getRotInfo() != null) {
+        if (getParentModel() instanceof VRPlayerModel<AbstractClientPlayer> vrModel && rotInfo != null) {
             // attach the cape to the body
             vrModel.getBodyRot().transform(MathUtils.UP, this.vivecraft$tempV);
             xRotation.set((float) Math.atan2(this.vivecraft$tempV.y, this.vivecraft$tempV.z) - Mth.HALF_PI);
@@ -72,7 +74,7 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
             this.vivecraft$tempV.add(vrModel.body.x, vrModel.body.y + 24F, vrModel.body.z);
 
             // no yaw, since we  need the vector to be player rotated anyway
-            ModelUtils.modelToWorld(this.vivecraft$tempV, vrModel.getRotInfo(), 0F, this.vivecraft$tempV);
+            ModelUtils.modelToWorld(this.vivecraft$tempV, rotInfo, 0F, this.vivecraft$tempV);
             original.call(poseStack, this.vivecraft$tempV.x, -this.vivecraft$tempV.y, -this.vivecraft$tempV.z);
         } else {
             original.call(poseStack, x, y, z);
@@ -81,9 +83,10 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
 
     @ModifyVariable(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/player/AbstractClientPlayer;FFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/AbstractClientPlayer;isCrouching()Z"), ordinal = 7)
     private float vivecraft$modifyXRot(
-        float xRot, @Local(argsOnly = true) AbstractClientPlayer player, @Share("xRot") LocalFloatRef xRotation)
+        float xRot, @Local(argsOnly = true) AbstractClientPlayer player,
+        @Local(ordinal = 2, argsOnly = true) float partialTick, @Share("xRot") LocalFloatRef xRotation)
     {
-        if (getParentModel() instanceof VRPlayerModel<AbstractClientPlayer>) {
+        if (getParentModel() instanceof VRPlayerModel<AbstractClientPlayer> vrModel) {
             // rotate the cape with the body
             // cancel out crouch
             if (player.isCrouching()) {
@@ -91,7 +94,8 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
             }
             // rotate with body
             // max of 0 to keep it down when the body bends backwards
-            xRot += Mth.RAD_TO_DEG * Math.max(0F, xRotation.get());
+            float min = (player.isFallFlying() ? 1F : player.getSwimAmount(partialTick)) * -Mth.HALF_PI;
+            xRot += Mth.RAD_TO_DEG * Math.max(min, xRotation.get());
         }
         return xRot;
     }

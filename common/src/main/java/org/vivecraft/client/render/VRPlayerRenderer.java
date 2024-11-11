@@ -13,22 +13,43 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.render.RenderPass;
 
 import java.util.UUID;
 
 public class VRPlayerRenderer extends PlayerRenderer {
     // TODO FBT re add final
-    private static LayerDefinition VR_LAYER_DEF = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, false), 64, 64);
-    private static LayerDefinition VR_LAYER_DEF_ARMS = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, false), 64, 64);
-    private static LayerDefinition VR_LAYER_DEF_SLIM = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, true), 64, 64);
-    private static LayerDefinition VR_LAYER_DEF_ARMS_SLIM = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, true), 64, 64);
+    private static LayerDefinition VR_LAYER_DEF = LayerDefinition.create(
+        VRPlayerModel.createMesh(CubeDeformation.NONE, false), 64, 64);
+    private static LayerDefinition VR_LAYER_DEF_ARMS = LayerDefinition.create(
+        VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, false), 64, 64);
+    private static LayerDefinition VR_LAYER_DEF_ARMS_LEGS = LayerDefinition.create(
+        VRPlayerModel_WithArmsLegs.createMesh(CubeDeformation.NONE, false), 64, 64);
 
-    public VRPlayerRenderer(EntityRendererProvider.Context context, boolean slim, boolean seated) {
+    private static LayerDefinition VR_LAYER_DEF_SLIM = LayerDefinition.create(
+        VRPlayerModel.createMesh(CubeDeformation.NONE, true), 64, 64);
+    private static LayerDefinition VR_LAYER_DEF_ARMS_SLIM = LayerDefinition.create(
+        VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, true), 64, 64);
+    private static LayerDefinition VR_LAYER_DEF_ARMS_LEGS_SLIM = LayerDefinition.create(
+        VRPlayerModel_WithArmsLegs.createMesh(CubeDeformation.NONE, true), 64, 64);
+
+    public enum ModelType {
+        VANILLA,
+        SPLIT_ARMS,
+        SPLIT_ARMS_LEGS
+    }
+
+    public VRPlayerRenderer(EntityRendererProvider.Context context, boolean slim, ModelType type) {
         super(context, slim);
-        this.model = seated ?
-            new VRPlayerModel<>(slim ? VR_LAYER_DEF_SLIM.bakeRoot() : VR_LAYER_DEF.bakeRoot(), slim) :
-            new VRPlayerModel_WithArms<>(slim ? VR_LAYER_DEF_ARMS_SLIM.bakeRoot() : VR_LAYER_DEF_ARMS.bakeRoot(), slim);
+        this.model = switch (type) {
+            case VANILLA -> new VRPlayerModel<>(slim ? VR_LAYER_DEF_SLIM.bakeRoot() : VR_LAYER_DEF.bakeRoot(), slim);
+            case SPLIT_ARMS ->
+                new VRPlayerModel_WithArms<>(slim ? VR_LAYER_DEF_ARMS_SLIM.bakeRoot() : VR_LAYER_DEF_ARMS.bakeRoot(),
+                    slim);
+            case SPLIT_ARMS_LEGS -> new VRPlayerModel_WithArmsLegs<>(
+                slim ? VR_LAYER_DEF_ARMS_LEGS_SLIM.bakeRoot() : VR_LAYER_DEF_ARMS_LEGS.bakeRoot(), slim);
+        };
 
         this.addLayer(new HMDLayer(this));
     }
@@ -47,22 +68,24 @@ public class VRPlayerRenderer extends PlayerRenderer {
         // TODO TEMP
         VR_LAYER_DEF = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, false), 64, 64);
         VR_LAYER_DEF_ARMS = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, false), 64, 64);
-        //VRLayerDef_legs = LayerDefinition.create(VRPlayerModel_WithArmsAndLegs.createMesh(CubeDeformation.NONE, false), 64, 64);
+        VR_LAYER_DEF_ARMS_LEGS = LayerDefinition.create(VRPlayerModel_WithArmsLegs.createMesh(CubeDeformation.NONE, false), 64, 64);
         VR_LAYER_DEF_SLIM = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, true), 64, 64);
         VR_LAYER_DEF_ARMS_SLIM = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, true), 64, 64);
-        //VRLayerDef_legs_slim = LayerDefinition.create(VRPlayerModel_WithArmsAndLegs.createMesh(CubeDeformation.NONE, true), 64, 64);
+        VR_LAYER_DEF_ARMS_LEGS_SLIM = LayerDefinition.create(VRPlayerModel_WithArmsLegs.createMesh(CubeDeformation.NONE, true), 64, 64);
         if (model.slim) {
-            /*if (model.getClass() == VRPlayerModel_WithArmsAndLegs.class) {
-                model = new VRPlayerModel_WithArmsAndLegs<>(VRLayerDef_legs_slim.bakeRoot(), true);
-            } else*/ if (model.getClass() == VRPlayerModel_WithArms.class) {
+            if (model.getClass() == VRPlayerModel_WithArmsLegs.class) {
+                model = new VRPlayerModel_WithArmsLegs<>(VR_LAYER_DEF_ARMS_LEGS_SLIM.bakeRoot(), true);
+            } else
+                if (model.getClass() == VRPlayerModel_WithArms.class) {
                 model = new VRPlayerModel_WithArms<>(VR_LAYER_DEF_ARMS_SLIM.bakeRoot(), true);
             } else if (model.getClass() == VRPlayerModel.class) {
                 model = new VRPlayerModel<>(VR_LAYER_DEF_SLIM.bakeRoot(), true);
             }
         } else {
-            /*if (model.getClass() == VRPlayerModel_WithArmsAndLegs.class) {
-                model = new VRPlayerModel_WithArmsAndLegs<>(VRLayerDef_legs.bakeRoot(), false);
-            } else */if (model.getClass() == VRPlayerModel_WithArms.class) {
+            if (model.getClass() == VRPlayerModel_WithArmsLegs.class) {
+                model = new VRPlayerModel_WithArmsLegs<>(VR_LAYER_DEF_ARMS_LEGS.bakeRoot(), false);
+            } else
+                if (model.getClass() == VRPlayerModel_WithArms.class) {
                 model = new VRPlayerModel_WithArms<>(VR_LAYER_DEF_ARMS.bakeRoot(), false);
             } else if (model.getClass() == VRPlayerModel.class) {
                 model = new VRPlayerModel<>(VR_LAYER_DEF.bakeRoot(), false);
@@ -75,7 +98,12 @@ public class VRPlayerRenderer extends PlayerRenderer {
 
         VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
         if (rotInfo != null) {
-            poseStack.scale(rotInfo.heightScale, rotInfo.heightScale, rotInfo.heightScale);
+            float scale = rotInfo.heightScale;
+            if (VRState.VR_RUNNING && player == Minecraft.getInstance().player) {
+                scale *= rotInfo.worldScale;
+            }
+
+            poseStack.scale(scale, scale, scale);
         }
 
         super.render(player, entityYaw, partialTick, poseStack, buffer, packedLight);

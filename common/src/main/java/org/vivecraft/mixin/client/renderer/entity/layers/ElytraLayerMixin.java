@@ -15,6 +15,7 @@ import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client.render.VRPlayerModel;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.common.utils.MathUtils;
@@ -34,8 +35,9 @@ public abstract class ElytraLayerMixin<T extends LivingEntity, M extends EntityM
         PoseStack instance, float x, float y, float z, Operation<Void> original,
         @Local(argsOnly = true) LivingEntity entity)
     {
+        VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(entity.getUUID());
         // only do this if the player model is the vr model
-        if (getParentModel() instanceof VRPlayerModel<?> vrModel && vrModel.getRotInfo() != null) {
+        if (getParentModel() instanceof VRPlayerModel<?> vrModel && rotInfo != null) {
             vrModel.getBodyRot().transform(MathUtils.UP, this.vivecraft$tempV);
             float xRotation = (float) Math.atan2(this.vivecraft$tempV.y, this.vivecraft$tempV.z) - Mth.HALF_PI;
 
@@ -60,7 +62,7 @@ public abstract class ElytraLayerMixin<T extends LivingEntity, M extends EntityM
             this.vivecraft$tempV.add(vrModel.body.x, vrModel.body.y + 24F, vrModel.body.z);
 
             // no yaw, since we  need the vector to be player rotated anyway
-            ModelUtils.modelToWorld(this.vivecraft$tempV, vrModel.getRotInfo(), 0F, this.vivecraft$tempV);
+            ModelUtils.modelToWorld(this.vivecraft$tempV, rotInfo, 0F, this.vivecraft$tempV);
             original.call(instance, this.vivecraft$tempV.x, -this.vivecraft$tempV.y, -this.vivecraft$tempV.z);
 
             // rotate elytra

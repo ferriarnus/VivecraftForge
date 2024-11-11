@@ -72,11 +72,28 @@ public class MathUtils {
      * @param fraction interpolation amount, 0 will return {@code start}, and 1 return {@code end}
      * @return interpolated vector
      */
-    public static Vec3 vecLerp(Vec3 start, Vec3 end, double fraction) {
+    public static Vec3 vecDLerp(Vec3 start, Vec3 end, double fraction) {
         double x = start.x + (end.x - start.x) * fraction;
         double y = start.y + (end.y - start.y) * fraction;
         double z = start.z + (end.z - start.z) * fraction;
         return new Vec3(x, y, z);
+    }
+
+    /**
+     * lerp {@code start} to the given end point
+     * @param start start point
+     * @param endX X of the end point
+     * @param endY Y of the end point
+     * @param endZ Z of the end point
+     * @param fraction interpolation amount, 0 will return {@code start}, and 1 return {@code end}
+     * @return {@code start} containing the lerped vector
+     */
+    public static Vector3f vecLerp(Vector3f start, float endX, float endY, float endZ, float fraction) {
+        return start.set(
+            start.x + (endX - start.x) * fraction,
+            start.y + (endY - start.y) * fraction,
+            start.z + (endZ - start.z) * fraction
+        );
     }
 
     public static float applyDeadzone(float axis, float deadzone) {

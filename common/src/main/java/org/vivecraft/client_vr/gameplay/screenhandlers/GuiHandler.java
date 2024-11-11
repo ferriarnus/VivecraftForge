@@ -90,6 +90,13 @@ public class GuiHandler {
     public static Vector3f GUI_POS_ROOM = null;
     public static Matrix4f GUI_ROTATION_ROOM = null;
 
+    public static Vec3 GUI_POS_WORLD = null;
+    public static Vector3f GUI_OFFSET_WORLD = new Vector3f();
+    public static Matrix4f GUI_ROTATION_WORLD = new Matrix4f();
+
+    public static Matrix4f GUI_ROTATION_PLAYER_MODEL = new Matrix4f();
+    public static Vec3 GUI_POS_PLAYER_MODEL = Vec3.ZERO;
+
     // for GUI scale override
     public static int GUI_WIDTH = 1280;
     public static int GUI_HEIGHT = 720;
@@ -100,9 +107,6 @@ public class GuiHandler {
     public static int SCALED_WIDTH_MAX;
     public static int SCALED_HEIGHT_MAX;
     private static int PREVIOUS_GUI_SCALE = -1;
-
-    public static Matrix4f guiRotation_playerModel = new Matrix4f();
-    public static Vec3 guiPos_playerModel = Vec3.ZERO;
 
     /**
      * copy of the vanilla method to calculate gui resolution and max scale
@@ -526,47 +530,46 @@ public class GuiHandler {
                     // attach to player model
                     if (DH.vrSettings.vrHudLockMode == VRSettings.HUDLock.HAND) {
                         // hud on hand
-                        guirot = new Matrix4f().set3x3(guiRotation_playerModel);
+                        guirot = new Matrix4f().set3x3(GUI_ROTATION_PLAYER_MODEL);
 
                         guirot.rotateX(Mth.PI * -0.2F);
                         guirot.rotateY(Mth.PI * 0.1F * side);
 
-                        guipos = guiPos_playerModel;
+                        guipos = GUI_POS_PLAYER_MODEL;
 
                         scale = 0.58823526F;
 
                         guilocal.set(
                             -0.05,
-                            0.25F * DH.vrPlayer.vrdata_world_render.worldScale,
-                            0.1);
+                            0.25F,
+                            0.1).mul(DH.vrPlayer.vrdata_world_render.worldScale);
 
                         DH.vr.hudPopup = true;
                     } else if (DH.vrSettings.vrHudLockMode == VRSettings.HUDLock.WRIST) {
                         // hud on wrist
-                        guirot = new Matrix4f().set3x3(guiRotation_playerModel);
+                        guirot = new Matrix4f().set3x3(GUI_ROTATION_PLAYER_MODEL);
 
                         guirot.rotateY(Mth.HALF_PI * side);
                         guirot.rotateX(-Mth.HALF_PI);
 
-                        guipos = guiPos_playerModel;
+                        guipos = GUI_POS_PLAYER_MODEL;
                         DH.vr.hudPopup = true;
 
                         scale = 0.4F;
                         float xOffset = MC.player.getMainArm().getOpposite() ==
-                            (DH.vrSettings.reverseHands ? HumanoidArm.LEFT : HumanoidArm.RIGHT) ? -0.34F : -0.3F;
+                            (DH.vrSettings.reverseHands ? HumanoidArm.LEFT : HumanoidArm.RIGHT) ? -0.176F : -0.136F;
                         float yOffset = 0.12F;
                         float yScaleOffset = 0.05F;
                         if (DH.vrSettings.playerModelType != VRSettings.PlayerModelType.VANILLA) {
                             boolean slim = MC.player.getSkin().model().id().equals("slim");
-                            xOffset += 0.164F;
                             yOffset = slim ? 0.10F : 0.06F;
                             yScaleOffset = slim ? 0.05F : 0.11F;
                         }
 
-                        // TODO FBT maybe add worldscale
                         guilocal.set(xOffset * side,
                             yOffset + yScaleOffset * (1.0F - DH.vrSettings.playerModelArmsScale),
-                            0.14F * DH.vrSettings.playerModelArmsScale);
+                            0.14F * DH.vrSettings.playerModelArmsScale)
+                            .mul(DH.vrPlayer.vrdata_world_render.worldScale);
                     }
                 } else {
                     // attach to controller
@@ -671,6 +674,9 @@ public class GuiHandler {
         poseStack.scale(thescale, thescale, thescale);
 
         GUI_SCALE_APPLIED = thescale;
+        GUI_POS_WORLD = guipos;
+        GUI_ROTATION_WORLD.set(guirot);
+        GUI_OFFSET_WORLD.set(guilocal);
 
         MC.getProfiler().pop();
 

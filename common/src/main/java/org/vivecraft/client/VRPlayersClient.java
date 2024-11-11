@@ -13,6 +13,9 @@ import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.vivecraft.client.extensions.SparkParticleExtension;
+import org.vivecraft.client_vr.VRState;
+import org.vivecraft.client_vr.extensions.GameRendererExtension;
+import org.vivecraft.client_vr.extensions.MinecraftExtension;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.settings.AutoCalibration;
 import org.vivecraft.common.network.FBTMode;
@@ -32,6 +35,13 @@ public class VRPlayersClient {
     private final Map<UUID, RotInfo> vivePlayersLast = new HashMap<>();
     private final Map<UUID, RotInfo> vivePlayersReceived = Collections.synchronizedMap(new HashMap<>());
     private final Map<UUID, Integer> donors = new HashMap<>();
+
+    private static long localPlayerRotInfoFrameIndex = -1;
+    private static RotInfo localPlayerRotInfo;
+
+    private static long localPlayerRotInfoNoScaleFrameIndex = -1;
+    private static RotInfo localPlayerRotInfoNoScale;
+
     private final Random rand = new Random();
     public boolean debug = false;
 
@@ -48,6 +58,8 @@ public class VRPlayersClient {
             INSTANCE.vivePlayers.clear();
             INSTANCE.vivePlayersLast.clear();
             INSTANCE.vivePlayersReceived.clear();
+            localPlayerRotInfo = null;
+            localPlayerRotInfoFrameIndex = -1;
         }
     }
 
@@ -220,13 +232,17 @@ public class VRPlayersClient {
         if (this.debug) {
             uuid = this.mc.player.getUUID();
         }
+        float partialTick = ((MinecraftExtension) Minecraft.getInstance()).vivecraft$getPartialTick();
+
+        if (VRState.VR_RUNNING && this.mc.player != null && uuid.equals(this.mc.player.getUUID())) {
+            return getMainPlayerRotInfo(this.mc.player, partialTick, true);
+        }
 
         RotInfo newRotInfo = this.vivePlayers.get(uuid);
 
         if (newRotInfo != null && this.vivePlayersLast.containsKey(uuid)) {
             RotInfo lastRotInfo = this.vivePlayersLast.get(uuid);
             RotInfo lerpRotInfo = new RotInfo();
-            float partialTick = Minecraft.getInstance().getFrameTime();
 
             lerpRotInfo.reverse = newRotInfo.reverse;
             lerpRotInfo.seated = newRotInfo.seated;
@@ -287,12 +303,22 @@ public class VRPlayersClient {
     }
 
     /**
-     * creates a RotInfo object for the current client VR state
+     * returns the RotInfo object for the current client VR state
      * @param player player to center the data around
      * @param partialTick partial tick to get the player position
      * @return up to date RotInfo
      */
-    public static RotInfo getMainPlayerRotInfo(LivingEntity player, float partialTick) {
+    public static RotInfo getMainPlayerRotInfo(LivingEntity player, float partialTick, boolean noWorldScale) {
+        if (noWorldScale && localPlayerRotInfoNoScale != null &&
+            ClientDataHolderVR.getInstance().frameIndex == localPlayerRotInfoNoScaleFrameIndex)
+        {
+            return localPlayerRotInfoNoScale;
+        } else if (!noWorldScale && localPlayerRotInfo != null &&
+            ClientDataHolderVR.getInstance().frameIndex == localPlayerRotInfoFrameIndex)
+        {
+            return localPlayerRotInfo;
+        }
+
         RotInfo rotInfo = new RotInfo();
 
         VRData data = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld();
@@ -304,6 +330,16 @@ public class VRPlayersClient {
         rotInfo.heightScale = AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT;
         rotInfo.worldScale = ClientDataHolderVR.getInstance().vrPlayer.worldScale;
 
+        float scale = 1F;
+        if (noWorldScale) {
+            localPlayerRotInfoNoScaleFrameIndex = ClientDataHolderVR.getInstance().frameIndex;
+            localPlayerRotInfoNoScale = rotInfo;
+            scale /= rotInfo.worldScale;
+        } else {
+            localPlayerRotInfoFrameIndex = ClientDataHolderVR.getInstance().frameIndex;
+            localPlayerRotInfo = rotInfo;
+        }
+
         rotInfo.leftArmQuat = data.getController(MCVR.OFFHAND_CONTROLLER).getMatrix()
             .getNormalizedRotation(new Quaternionf());
         rotInfo.rightArmQuat = data.getController(MCVR.MAIN_CONTROLLER).getMatrix()
@@ -314,14 +350,19 @@ public class VRPlayersClient {
         rotInfo.rightArmRot = rotInfo.rightArmQuat.transform(MathUtils.BACK, new Vector3f());
         rotInfo.headRot = rotInfo.headQuat.transform(MathUtils.BACK, new Vector3f());
 
-        Vec3 pos = player.getPosition(partialTick);
+        Vec3 pos;
+        if (player == Minecraft.getInstance().player) {
+            pos = ((GameRendererExtension)Minecraft.getInstance().gameRenderer).vivecraft$getRvePos(partialTick);
+        } else {
+            pos = player.getPosition(partialTick);
+        }
 
         rotInfo.leftArmPos = MathUtils.subtractToVector3f(
-            data.getController(MCVR.OFFHAND_CONTROLLER).getPosition(), pos);
+            data.getController(MCVR.OFFHAND_CONTROLLER).getPosition(), pos).mul(scale);
         rotInfo.rightArmPos = MathUtils.subtractToVector3f(
-            data.getController(MCVR.MAIN_CONTROLLER).getPosition(), pos);
+            data.getController(MCVR.MAIN_CONTROLLER).getPosition(), pos).mul(scale);
         rotInfo.headPos = MathUtils.subtractToVector3f(
-            data.hmd.getPosition(), pos);
+            data.hmd.getPosition(), pos).mul(scale, 1F, scale);
 
         if (ClientDataHolderVR.getInstance().vr.hasFBT() && ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated) {
             rotInfo.fbtMode = FBTMode.ARMS_LEGS;
