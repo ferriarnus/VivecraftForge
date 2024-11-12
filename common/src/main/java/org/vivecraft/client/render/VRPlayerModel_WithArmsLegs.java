@@ -10,9 +10,12 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 
 public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayerModel_WithArms<T> {
@@ -23,6 +26,10 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
     public ModelPart rightFootPants;
 
     private final Vector3f tempV3 = new Vector3f();
+    private final Vector3f footOffset = new Vector3f();
+
+    private final Vector3f footPos = new Vector3f();
+    private final Quaternionf footQuat = new Quaternionf();
 
     public VRPlayerModel_WithArmsLegs(ModelPart modelPart, boolean isSlim) {
         super(modelPart, isSlim);
@@ -100,31 +107,86 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
         if (this.rotInfo == null) {
             return;
         }
+        boolean swimming = (this.laying && (player.isInWater() || this.rotInfo.fbtMode == FBTMode.ARMS_ONLY)) || player.isFallFlying();
+        if (!swimming) {
+            float limbRotation = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
+            this.footOffset.set(0, -0.5F, 0)
+                .rotateX(limbRotation)
+                .sub(0, -0.5F, 0)
+                .mul(1F, 0.75F, 1F)
+                .rotateY(-this.bodyYaw);
 
-        // left leg
-        this.rotInfo.leftFootQuat.transform(MathUtils.BACK, this.tempV3);
-        if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-            positionConnectedLimb(this.leftLeg, this.leftFoot, this.rotInfo.leftFootPos, this.tempV3,
-                this.rotInfo.leftFootQuat, this.rotInfo.leftKneePos, true, null);
-        } else {
-            positionSplitLimb(this.leftLeg, this.leftFoot, this.rotInfo.leftFootPos, this.tempV3,
-                this.rotInfo.leftFootQuat, -Mth.HALF_PI, 0F, this.rotInfo.leftKneePos, true, 0F, null);
-        }
+            // left leg
+            Vector3fc kneePos;
+            if (this.rotInfo.fbtMode == FBTMode.ARMS_ONLY) {
+                this.footPos.set(this.leftLeg.x, 24, this.leftLeg.z * 0.5F);
+                ModelUtils.modelToWorld(this.footPos, this.rotInfo, this.bodyYaw, this.footPos);
+                this.footQuat.identity().rotateY(Mth.PI - this.bodyYaw);
+                kneePos = null;
+            } else {
+                this.footPos.set(this.rotInfo.leftFootPos);
+                this.footQuat.set(this.rotInfo.leftFootQuat);
+                kneePos = this.rotInfo.leftKneePos;
+            }
 
-        // right leg
-        this.rotInfo.rightFootQuat.transform(MathUtils.BACK, this.tempV3);
-        if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-            positionConnectedLimb(this.rightLeg, this.rightFoot, this.rotInfo.rightFootPos, this.tempV3,
-                this.rotInfo.rightFootQuat, this.rotInfo.rightKneePos, true, null);
-        } else {
-            positionSplitLimb(this.rightLeg, this.rightFoot, this.rotInfo.rightFootPos, this.tempV3,
-                this.rotInfo.rightFootQuat, -Mth.HALF_PI, 0F, this.rotInfo.rightKneePos, true, 0F, null);
+            this.footQuat.transform(MathUtils.BACK, this.tempV3);
+            this.footPos.add(this.footOffset);
+            if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
+                positionConnectedLimb(this.leftLeg, this.leftFoot, this.footPos, this.tempV3,
+                    this.footQuat, kneePos, false, null);
+            } else {
+                positionSplitLimb(this.leftLeg, this.leftFoot, this.footPos, this.tempV3,
+                    this.footQuat, -Mth.HALF_PI, 0F, kneePos, false, null);
+            }
+
+
+            // right leg
+            if (this.rotInfo.fbtMode == FBTMode.ARMS_ONLY) {
+                this.footPos.set(this.rightLeg.x, 24, this.rightLeg.z * 0.5F);
+                ModelUtils.modelToWorld(this.footPos, this.rotInfo, this.bodyYaw, this.footPos);
+                kneePos = null;
+            } else {
+                this.footPos.set(this.rotInfo.rightFootPos);
+                this.footQuat.set(this.rotInfo.rightFootQuat);
+                kneePos = this.rotInfo.rightKneePos;
+            }
+
+            this.footQuat.transform(MathUtils.BACK, this.tempV3);
+            this.footPos.add(-this.footOffset.x, this.footOffset.y, -this.footOffset.z);
+            if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
+                positionConnectedLimb(this.rightLeg, this.rightFoot, this.footPos, this.tempV3,
+                    this.footQuat, kneePos, false, null);
+            } else {
+                positionSplitLimb(this.rightLeg, this.rightFoot, this.footPos, this.tempV3,
+                    this.footQuat, -Mth.HALF_PI, 0F, kneePos, false, null);
+            }
         }
 
         if (this.layAmount > 0F) {
             ModelUtils.applySwimRotationOffset(player, this.xRot, this.tempV, this.tempV2,
                 this.leftLeg, this.rightLeg,
                 this.leftFoot, this.rightFoot);
+        }
+
+        if (swimming) {
+            // align the feet with the legs
+            this.tempV.set(0, 12, 0)
+                .rotateZ(this.leftLeg.zRot)
+                .rotateY(this.leftLeg.yRot)
+                .rotateX(this.leftLeg.xRot);
+            this.leftFoot.setPos(
+                this.leftLeg.x + this.tempV.x,
+                this.leftLeg.y + this.tempV.y,
+                this.leftLeg.z + this.tempV.z);
+            this.leftFoot.setRotation(this.leftLeg.xRot, this.leftLeg.yRot, this.leftLeg.zRot);
+            this.rightFoot.setPos(this.rightLeg.x, this.rightLeg.y, this.rightLeg.z);
+            this.rightFoot.setPos(
+                this.rightLeg.x + this.tempV.x,
+                this.rightLeg.y + this.tempV.y,
+                this.rightLeg.z - this.tempV.z);
+            this.rightFoot.setRotation(this.rightLeg.xRot, this.rightLeg.yRot, this.rightLeg.zRot);
+
+
         }
 
         this.leftPants.copyFrom(this.leftLeg);

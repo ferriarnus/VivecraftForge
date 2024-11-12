@@ -208,12 +208,12 @@ public class ModelUtils {
         tempVDir.set(targetX - part.x, targetY - part.y, targetZ - part.z);
 
         // convert to world space
-        tempVDir.set(-tempVDir.x, -tempVDir.y, tempVDir.z);
+        tempVDir.set(tempVDir.x, tempVDir.y, tempVDir.z);
 
-        tempVDir.cross(MathUtils.RIGHT, tempVUp);
+        tempVDir.cross(MathUtils.LEFT, tempVUp);
 
         // rotate model
-        pointAt(-Mth.PI, tempVDir, tempVUp, tempM);
+        pointAtModel(tempVDir, tempVUp, tempM);
     }
 
     /**
@@ -238,9 +238,11 @@ public class ModelUtils {
      * @param tempM Matrix3f object to work with, contains the rotation after the call
      */
     public static void pointAtModel(Vector3f tempDir, Vector3fc upDir, Matrix3f tempM) {
-        tempM.setLookAlong(tempDir, upDir).transpose();
+        tempM.setLookAlong(
+            -tempDir.x(), -tempDir.y(), tempDir.z(),
+            -upDir.x(), -upDir.y(), upDir.z()).transpose();
         // ModelParts are rotated 90°
-        tempM.rotateX(-Mth.HALF_PI);
+        tempM.rotateX(Mth.HALF_PI);
     }
 
     /**
@@ -265,32 +267,6 @@ public class ModelUtils {
      */
     public static void setRotation(ModelPart part, Matrix3fc rotation, Vector3f tempV) {
         rotation.getEulerAnglesZYX(tempV);
-        // ModelPart x and y axes are flipped
-        // this can be nan when it is perfectly aligned with pointing left. 0 isn't right here, but beter than nan
-        part.setRotation(-tempV.x, Float.isNaN(tempV.y) ? 0F : -tempV.y, tempV.z);
-    }
-
-    /**
-     * sets the rotation of the ModelPart to be equal to the given Matrix
-     * @param part ModelPart to set the rotation of
-     * @param rotation Matrix holding the worldspace rotation
-     * @param tempV Vector3f object to work with, contains the euler angles after the call
-     */
-    public static void setModelRotation(ModelPart part, Matrix3fc rotation, Vector3f tempV) {
-        rotation.getEulerAnglesZYX(tempV);
-        // ModelPart x and y axes are flipped
-        // this can be nan when it is perfectly aligned with pointing left. 0 isn't right here, but beter than nan
-        part.setRotation(tempV.x, Float.isNaN(tempV.y) ? 0F : tempV.y, tempV.z);
-    }
-
-    /**
-     * sets the rotation of the ModelPart to be equal to the given Quaternion
-     * @param part ModelPart to set the rotation of
-     * @param rotation Quaternion holding the worldspace rotation
-     * @param tempV Vector3f object to work with, contains the euler angles after the call
-     */
-    public static void setRotation(ModelPart part, Quaternionfc rotation, Vector3f tempV) {
-        MathUtils.getEulerAnglesZYX(rotation, tempV);
         // ModelPart x and y axes are flipped
         // this can be nan when it is perfectly aligned with pointing left. 0 isn't right here, but beter than nan
         part.setRotation(-tempV.x, Float.isNaN(tempV.y) ? 0F : -tempV.y, tempV.z);
@@ -325,7 +301,7 @@ public class ModelUtils {
     }
 
     /**
-     * applies the attack animation, and applies rotation changes to the provided matrix, if attack arm equals {@code armCheck}
+     * applies the attack animation, and applies rotation changes to the provided matrix
      * @param arm player arm to apply the animation to
      * @param attackTime progress of the attack animation 0-1
      * @param isMainPlayer if the ModelPart is from the main player
@@ -335,6 +311,7 @@ public class ModelUtils {
     public static void swingAnimation(
         HumanoidArm arm, float attackTime, boolean isMainPlayer, Matrix3f tempM, Vector3f tempV)
     {
+        // zero it always, since it's supposed to have the offset at the end
         tempV.zero();
         if (attackTime > 0.0F) {
             if (!isMainPlayer || ClientDataHolderVR.getInstance().swingType == VRFirstPersonArmSwing.Attack) {
@@ -372,6 +349,39 @@ public class ModelUtils {
                     }
                 }
             }
+        }
+    }
+    /**
+     * applies the attack animation with an offset rotation point, and applies rotation changes to the provided matrix
+     * @param part ModelPart ot rotate/offset
+     * @param arm player arm to apply the animation to
+     * @param offset offset for the model rotation
+     * @param attackTime progress of the attack animation 0-1
+     * @param isMainPlayer if the ModelPart is from the main player
+     * @param tempM rotation of the arm in world space, this matrix will be modified
+     * @param tempV Vector3f object to work with
+     * @param tempV2 Vector3f object to work with
+     */
+    public static void swingAnimation(
+        ModelPart part, HumanoidArm arm, float offset, float attackTime, boolean isMainPlayer, Matrix3f tempM,
+        Vector3f tempV, Vector3f tempV2)
+    {
+        if (attackTime > 0.0F) {
+            // need to get the pre and post rotation point, to offset the modelPart correctly
+            tempM.transform(0,  offset, 0, tempV2);
+
+            swingAnimation(arm, attackTime, isMainPlayer, tempM, tempV);
+            // apply offset from the animation
+            part.x -= tempV.x;
+            part.y -= tempV.y;
+            part.z += tempV.z;
+
+            tempM.transform(0,  offset, 0, tempV);
+
+            // apply the offset from the rotation point
+            part.x += tempV2.x - tempV.x;
+            part.y += tempV2.y - tempV.y;
+            part.z -= tempV2.z - tempV.z;
         }
     }
 

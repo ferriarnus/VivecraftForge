@@ -97,9 +97,8 @@ public abstract class EntityRenderDispatcherMixin implements ResourceManagerRelo
                 {
                     vrPlayerRenderer = this.vivecraft$skinMapVRVanilla.getOrDefault(skinType,
                         this.vivecraft$playerRendererVRVanilla);
-                } else if (rotInfo.fbtMode == FBTMode.ARMS_ONLY ||
-                    ClientDataHolderVR.getInstance().vrSettings.playerModelType ==
-                        VRSettings.PlayerModelType.SPLIT_ARMS)
+                } else if (ClientDataHolderVR.getInstance().vrSettings.playerModelType ==
+                    VRSettings.PlayerModelType.SPLIT_ARMS)
                 {
                     vrPlayerRenderer = this.vivecraft$skinMapVRArms.getOrDefault(skinType, this.vivecraft$playerRendererVRArms);
                 } else {

@@ -133,7 +133,8 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             ModelUtils.setRotation(this.body, this.tempM, this.tempV);
         } else if (noLowerBodyAnimation) {
             // with only arms simply rotate the body in place
-            this.body.setRotation(Mth.PI * (this.body.y / 24F), 0F, 0F);
+            this.body.setRotation(
+                Mth.PI * (this.body.y / 24F) * (this instanceof VRPlayerModel_WithArmsLegs ? 0.5F : 1F), 0F, 0F);
         } else {
             // body/arm position with waist tracker
             // if there is a waist tracker, align the body to that
@@ -226,15 +227,17 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         // regular positioning
         if (this.layAmount < 1.0F) {
             // move legs back with bend
-            float newLegZ;
+            float newLegY = 12F;
+            float newLegZ = 2F;
             if (!this.riding) {
                 newLegZ = this.body.z + 10F * Mth.sin(this.body.xRot);
-            } else {
-                newLegZ = 2F;
+                if (this instanceof VRPlayerModel_WithArmsLegs<T>) {
+                    newLegY += 10F * Mth.sin(this.body.xRot);
+                }
             }
 
             if (this.rotInfo.fbtMode == FBTMode.ARMS_ONLY) {
-                this.leftLeg.y = Mth.lerp(this.layAmount, 12F, this.leftLeg.y);
+                this.leftLeg.y = Mth.lerp(this.layAmount, newLegY, this.leftLeg.y);
                 this.leftLeg.z = Mth.lerp(this.layAmount, newLegZ, this.leftLeg.z);
 
                 this.rightLeg.y = this.leftLeg.y;
@@ -315,19 +318,20 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
 
             // legs only when not sitting
             if (!this.riding && !noLowerBodyAnimation &&
-                (this.getClass() == VRPlayerModel.class || this.getClass() == VRPlayerModel_WithArms.class))
+                !(this instanceof VRPlayerModel_WithArmsLegs))
+            //this.getClass() == VRPlayerModel.class || this.getClass() == VRPlayerModel_WithArms.class))
             {
                 // vanilla walking animation on top
-                float limbRotation = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount - this.xRot;
+                float limbRotation = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
 
                 ModelUtils.pointModelAtLocal(this.rightLeg, this.rotInfo.rightFootPos, this.rotInfo.rightFootQuat,
                     this.rotInfo, this.bodyYaw, this.tempV, this.tempV2, this.tempM);
-                this.tempM.rotateLocalX(limbRotation);
+                this.tempM.rotateLocalX(limbRotation - this.xRot);
                 ModelUtils.setRotation(this.rightLeg, this.tempM, this.tempV);
 
                 ModelUtils.pointModelAtLocal(this.leftLeg, this.rotInfo.leftFootPos, this.rotInfo.leftFootQuat,
                     this.rotInfo, this.bodyYaw, this.tempV, this.tempV2, this.tempM);
-                this.tempM.rotateLocalX(limbRotation);
+                this.tempM.rotateLocalX(-limbRotation - this.xRot);
                 ModelUtils.setRotation(this.leftLeg, this.tempM, this.tempV);
             }
         }
