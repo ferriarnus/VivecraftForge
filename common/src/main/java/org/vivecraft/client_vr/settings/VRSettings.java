@@ -380,7 +380,7 @@ public class VRSettings {
     @SettingField(separate = true)
     public Vector3f vrFixedCampos = new Vector3f(-1.0F, 2.5F, 2.7F);
     @SettingField(config = "vrFixedCamrot", separate = true)
-    public Quaternionf vrFixedCamrotQuat = new Quaternionf(.962f, .125f, .239f, .041f);
+    public Quaternionf vrFixedCamrotQuat = new Quaternionf(-.125f, -.239f, -.041f, .962f);
     @SettingField(separate = true)
     public Vector3f mrMovingCamOffset = new Vector3f(0F, 0F, 0F);
     @SettingField(config = "mrMovingCamOffsetRot", separate = true)
