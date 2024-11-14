@@ -15,7 +15,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.ResourceLocation;
@@ -46,7 +45,6 @@ import org.vivecraft.client_vr.gameplay.screenhandlers.RadialHandler;
 import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.client_vr.render.RenderPass;
-import org.vivecraft.client_vr.settings.AutoCalibration;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.mod_compat_vr.ShadersHelper;
 import org.vivecraft.mod_compat_vr.immersiveportals.ImmersivePortalsHelper;
@@ -644,7 +642,7 @@ public class VREffectsHelper {
      * @return if the gui should be occluded
      */
     private static boolean shouldOccludeGui() {
-        if (DATA_HOLDER.currentPass == RenderPass.THIRD || DATA_HOLDER.currentPass == RenderPass.CAMERA) {
+        if (RenderPass.isThirdPerson(DATA_HOLDER.currentPass)) {
             return true;
         } else {
             Vec3 pos = DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(DATA_HOLDER.currentPass).getPosition();
@@ -697,7 +695,7 @@ public class VREffectsHelper {
      * @param poseStack PoseStack to use for positioning
      */
     public static void renderVrShadow(float partialTick, boolean depthAlways, PoseStack poseStack) {
-        if (DATA_HOLDER.currentPass == RenderPass.THIRD || DATA_HOLDER.currentPass == RenderPass.CAMERA) {
+        if (RenderPass.isThirdPerson(DATA_HOLDER.currentPass)) {
             return;
         }
         if (!MC.player.isAlive()) return;
@@ -772,7 +770,7 @@ public class VREffectsHelper {
         RenderHelper.applyStereo(DATA_HOLDER.currentPass, posestack);
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
 
-        if (DATA_HOLDER.currentPass == RenderPass.THIRD || DATA_HOLDER.currentPass == RenderPass.CAMERA) {
+        if (RenderPass.isThirdPerson(DATA_HOLDER.currentPass)) {
             RenderSystem.depthFunc(GL11C.GL_LEQUAL);
         } else {
             RenderSystem.depthFunc(GL11C.GL_ALWAYS);
@@ -1134,9 +1132,7 @@ public class VREffectsHelper {
             ))
         {
             return false;
-        } else if (DATA_HOLDER.currentPass != RenderPass.LEFT &&
-            DATA_HOLDER.currentPass != RenderPass.RIGHT &&
-            DATA_HOLDER.currentPass != RenderPass.CENTER)
+        } else if (!RenderPass.isFirstPerson(DATA_HOLDER.currentPass))
         {
             // it doesn't look very good
             return false;

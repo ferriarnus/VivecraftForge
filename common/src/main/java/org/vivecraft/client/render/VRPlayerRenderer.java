@@ -7,11 +7,15 @@ import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.render.armor.VRArmorModel_WithArms;
+import org.vivecraft.client.render.armor.VRArmorLayer;
+import org.vivecraft.client.render.armor.VRArmorModel_WithArmsLegs;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.render.RenderPass;
@@ -70,6 +74,27 @@ public class VRPlayerRenderer extends PlayerRenderer {
         };
 
         this.addLayer(new HMDLayer(this));
+
+        VRArmorLayer.createLayers();
+        if (type != ModelType.VANILLA) {
+            // remove vanilla armor layer
+            this.layers.stream()
+                .filter(layer -> layer.getClass() == HumanoidArmorLayer.class)
+                .findFirst()
+                .ifPresent(this.layers::remove);
+            // add split armor layer
+            if (type == ModelType.SPLIT_ARMS) {
+                this.addLayer(new VRArmorLayer<>(this,
+                    new VRArmorModel_WithArms<>(VRArmorLayer.VRArmorDef_arms_inner.bakeRoot()),
+                    new VRArmorModel_WithArms<>(VRArmorLayer.VRArmorDef_arms_outer.bakeRoot()),
+                    context.getModelManager()));
+            } else {
+                this.addLayer(new VRArmorLayer<>(this,
+                    new VRArmorModel_WithArmsLegs<>(VRArmorLayer.VRArmorDef_arms_legs_inner.bakeRoot()),
+                    new VRArmorModel_WithArmsLegs<>(VRArmorLayer.VRArmorDef_arms_legs_outer.bakeRoot()),
+                    context.getModelManager()));
+            }
+        }
     }
 
     /**
@@ -77,7 +102,12 @@ public class VRPlayerRenderer extends PlayerRenderer {
      * @return if a layer of the given class is already registered
      */
     public boolean hasLayerType(RenderLayer<?,?> renderLayer) {
-        return this.layers.stream().anyMatch(layer -> layer.getClass() == renderLayer.getClass());
+        return this.layers.stream().anyMatch(layer -> {
+            if (renderLayer.getClass() == HumanoidArmorLayer.class) {
+                return layer.getClass() == renderLayer.getClass() || layer.getClass() == VRArmorLayer.class;
+            }
+            return layer.getClass() == renderLayer.getClass();
+        });
     }
 
     @Override
@@ -104,7 +134,12 @@ public class VRPlayerRenderer extends PlayerRenderer {
     public Vec3 getRenderOffset(AbstractClientPlayer player, float partialTick) {
         // idk why we do this anymore
         // this changes the offset to only apply when swimming, instead of crouching
-        return player.isVisuallySwimming() ? new Vec3(0.0D, -0.125D, 0.0D) : Vec3.ZERO;
+        if (VRState.VR_RUNNING && player == Minecraft.getInstance().player) {
+            return player.isVisuallySwimming() ?
+                new Vec3(0.0F, -0.125F * ClientDataHolderVR.getInstance().vrPlayer.worldScale, 0.0F) : Vec3.ZERO;
+        } else {
+            return player.isVisuallySwimming() ? new Vec3(0.0D, -0.125D, 0.0D) : Vec3.ZERO;
+        }
     }
 
     @Override
@@ -124,10 +159,7 @@ public class VRPlayerRenderer extends PlayerRenderer {
         }
         if (player == Minecraft.getInstance().player &&
             ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
-            (ClientDataHolderVR.getInstance().currentPass == RenderPass.LEFT ||
-                ClientDataHolderVR.getInstance().currentPass == RenderPass.RIGHT ||
-                ClientDataHolderVR.getInstance().currentPass == RenderPass.CENTER
-            ))
+            RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass))
         {
             // hide the head or you won't see anything
             this.getModel().head.visible = false;
@@ -136,16 +168,21 @@ public class VRPlayerRenderer extends PlayerRenderer {
             // hide arms when using the VR arms
             if (!ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms) {
                 hideHands();
+            } else if (this.getModel() instanceof VRPlayerModel<?> vrModel) {
+                if (ClientDataHolderVR.getInstance().leftMenuHand) {
+                    vrModel.hideLeftHand();
+                }
+                if (ClientDataHolderVR.getInstance().rightMenuHand) {
+                    vrModel.hideRightHand();
+                }
             }
         }
     }
 
     private void hideHands() {
-        if (this.getModel() instanceof VRPlayerModel_WithArms<?> armsModel) {
-            armsModel.leftHand.visible = false;
-            armsModel.rightHand.visible = false;
-            armsModel.leftHandSleeve.visible = false;
-            armsModel.rightHandSleeve.visible = false;
+        if (this.getModel() instanceof VRPlayerModel<?> vrModel) {
+            vrModel.hideLeftHand();
+            vrModel.hideRightHand();
         } else {
             getModel().leftArm.visible = false;
             getModel().rightArm.visible = false;

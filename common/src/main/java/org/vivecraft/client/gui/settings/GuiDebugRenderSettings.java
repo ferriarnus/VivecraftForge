@@ -1,7 +1,9 @@
 package org.vivecraft.client.gui.settings;
 
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
 import org.vivecraft.client.gui.widgets.SettingsList;
 import org.vivecraft.client_vr.settings.VRSettings;
 
@@ -28,6 +30,13 @@ public class GuiDebugRenderSettings extends GuiListScreen {
         entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_MODEL_TYPE));
         entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_LIMBS_CONNECTED));
         entries.add(SettingsList.vrOptionToEntry(VRSettings.VrOptions.PLAYER_LIMBS_LIMIT));
+
+        entries.add(new SettingsList.WidgetEntry(
+            Component.literal("calibrate"),
+            Button.builder(Component.literal("calibrate"), button -> this.minecraft.setScreen(new FBTCalibrationScreen(this)))
+                .size(SettingsList.WidgetEntry.VALUE_BUTTON_WIDTH, 20)
+                .build()
+        ));
 
         return entries;
     }

@@ -22,7 +22,6 @@ import org.vivecraft.client.extensions.EntityRenderDispatcherExtension;
 import org.vivecraft.client.render.VRPlayerRenderer;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.settings.VRSettings;
-import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.Utils;
 
 import java.util.HashMap;

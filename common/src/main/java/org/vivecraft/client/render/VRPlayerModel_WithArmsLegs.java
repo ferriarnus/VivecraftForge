@@ -2,6 +2,7 @@ package org.vivecraft.client.render;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
@@ -13,17 +14,21 @@ import net.minecraft.world.entity.LivingEntity;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+import org.vivecraft.client.render.models.FeetModel;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 
-public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayerModel_WithArms<T> {
+public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayerModel_WithArms<T> implements FeetModel {
+    public static final int LOWER_EXTENSION = 2;
+    public static final int UPPER_EXTENSION = 2;
+
     // thighs use the vanilla leg parts
-    public ModelPart leftFoot;
-    public ModelPart rightFoot;
-    public ModelPart leftFootPants;
-    public ModelPart rightFootPants;
+    public final ModelPart leftFoot;
+    public final ModelPart rightFoot;
+    public final ModelPart leftFootPants;
+    public final ModelPart rightFootPants;
 
     private final Vector3f tempV3 = new Vector3f();
     private final Vector3f footOffset = new Vector3f();
@@ -31,18 +36,18 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
     private final Vector3f footPos = new Vector3f();
     private final Quaternionf footQuat = new Quaternionf();
 
-    public VRPlayerModel_WithArmsLegs(ModelPart modelPart, boolean isSlim) {
-        super(modelPart, isSlim);
-        this.leftFoot = modelPart.getChild("left_foot");
-        this.rightFoot = modelPart.getChild("right_foot");
-        this.leftFootPants = modelPart.getChild("left_foot_pants");
-        this.rightFootPants = modelPart.getChild("right_foot_pants");
+    public VRPlayerModel_WithArmsLegs(ModelPart root, boolean isSlim) {
+        super(root, isSlim);
+        this.leftFoot = root.getChild("left_foot");
+        this.rightFoot = root.getChild("right_foot");
+        this.leftFootPants = root.getChild("left_foot_pants");
+        this.rightFootPants = root.getChild("right_foot_pants");
 
         // copy textures
-        textureHackUpper(this.leftLeg, this.leftFoot);
-        textureHackUpper(this.rightLeg, this.rightFoot);
-        textureHack(this.rightPants, this.leftFootPants);
-        textureHack(this.leftPants, this.rightFootPants);
+        ModelUtils.textureHackUpper(this.leftLeg, this.leftFoot);
+        ModelUtils.textureHackUpper(this.rightLeg, this.rightFoot);
+        ModelUtils.textureHackUpper(this.leftPants, this.rightFootPants);
+        ModelUtils.textureHackUpper(this.rightPants, this.leftFootPants);
     }
 
     public static MeshDefinition createMesh(CubeDeformation cubeDeformation, boolean slim) {
@@ -50,27 +55,27 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
         PartDefinition partDefinition = meshDefinition.getRoot();
 
         boolean connected = ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected;
-        int upperExtension = connected ? 2 : 0;
-        int lowerExtension = connected ? 2 : 0;
+        int upperExtension = connected ? UPPER_EXTENSION : 0;
+        int lowerExtension = connected ? LOWER_EXTENSION : 0;
         float lowerShrinkage = connected ? -0.05F : 0F;
 
         // feet
         partDefinition.addOrReplaceChild("left_foot", CubeListBuilder.create()
                 .texOffs(16, 55 - lowerExtension)
                 .addBox(-2.0F, -5.0F - lowerExtension, -2.0F, 4.0F, 5.0F + lowerExtension, 4.0F, cubeDeformation.extend(lowerShrinkage)),
-            PartPose.offset(1.9F, 19.0F, 0.0F));
+            PartPose.offset(1.9F, 24.0F, 0.0F));
         partDefinition.addOrReplaceChild("left_foot_pants", CubeListBuilder.create()
                 .texOffs(0, 55 - lowerExtension)
                 .addBox(-2.0F, -5.0F - lowerExtension, -2.0F, 4.0F, 5.0F + lowerExtension, 4.0F, cubeDeformation.extend(0.25F + lowerShrinkage)),
-            PartPose.offset(1.9F, 19.0F, 0.0F));
+            PartPose.offset(1.9F, 24.0F, 0.0F));
         partDefinition.addOrReplaceChild("right_foot", CubeListBuilder.create()
                 .texOffs(0, 23 - lowerExtension)
                 .addBox(-2.0F, -5.0F - lowerExtension, -2.0F, 4.0F, 5.0F + lowerExtension, 4.0F, cubeDeformation.extend(lowerShrinkage)),
-            PartPose.offset(-1.9F, 19.0F, 0.0F));
+            PartPose.offset(-1.9F, 24.0F, 0.0F));
         partDefinition.addOrReplaceChild("right_foot_pants", CubeListBuilder.create()
                 .texOffs(0, 39 - lowerExtension)
                 .addBox(-2.0F, -5.0F - lowerExtension, -2.0F, 4.0F, 5.0F + lowerExtension, 4.0F, cubeDeformation.extend(0.25F + lowerShrinkage)),
-            PartPose.offset(-1.9F, 19.0F, 0.0F));
+            PartPose.offset(-1.9F, 24.0F, 0.0F));
 
         // thighs
         partDefinition.addOrReplaceChild("left_leg", CubeListBuilder.create()
@@ -120,7 +125,7 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
             Vector3fc kneePos;
             if (this.rotInfo.fbtMode == FBTMode.ARMS_ONLY) {
                 this.footPos.set(this.leftLeg.x, 24, this.leftLeg.z * 0.5F);
-                ModelUtils.modelToWorld(this.footPos, this.rotInfo, this.bodyYaw, this.footPos);
+                ModelUtils.modelToWorld(this.footPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.footPos);
                 this.footQuat.identity().rotateY(Mth.PI - this.bodyYaw);
                 kneePos = null;
             } else {
@@ -143,7 +148,7 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
             // right leg
             if (this.rotInfo.fbtMode == FBTMode.ARMS_ONLY) {
                 this.footPos.set(this.rightLeg.x, 24, this.rightLeg.z * 0.5F);
-                ModelUtils.modelToWorld(this.footPos, this.rotInfo, this.bodyYaw, this.footPos);
+                ModelUtils.modelToWorld(this.footPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.footPos);
                 kneePos = null;
             } else {
                 this.footPos.set(this.rotInfo.rightFootPos);
@@ -195,6 +200,25 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
         this.rightFootPants.copyFrom(this.rightFoot);
         this.leftFootPants.visible = this.leftPants.visible;
         this.rightFootPants.visible = this.rightPants.visible;
+    }
+
+    @Override
+    public ModelPart getLeftFoot() {
+        return this.leftFoot;
+    }
+
+    @Override
+    public ModelPart getRightFoot() {
+        return this.rightFoot;
+    }
+
+    @Override
+    public void copyPropertiesTo(HumanoidModel<T> model) {
+        super.copyPropertiesTo(model);
+        if (model instanceof FeetModel feetModel) {
+            feetModel.getLeftFoot().copyFrom(this.leftFoot);
+            feetModel.getRightFoot().copyFrom(this.rightFoot);
+        }
     }
 
     @Override

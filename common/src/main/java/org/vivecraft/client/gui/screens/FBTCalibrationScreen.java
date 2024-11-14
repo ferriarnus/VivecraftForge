@@ -12,11 +12,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
-import org.lwjgl.glfw.GLFW;
+import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client_vr.ClientDataHolderVR;
-import org.vivecraft.client_vr.MethodHolder;
 import org.vivecraft.client_vr.VRState;
-import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.AutoCalibration;
@@ -49,9 +47,8 @@ public class FBTCalibrationScreen extends Screen {
 
     @Override
     protected void init() {
-        this.addRenderableWidget(Button.builder(Component.translatable("gui.cancel"), p -> {
-                this.minecraft.setScreen(this.parent);
-            })
+        this.addRenderableWidget(
+            Button.builder(Component.translatable("gui.cancel"), p -> this.minecraft.setScreen(this.parent))
             .pos(this.width / 2 - 75, this.height - 32)
             .width(150)
             .build());
@@ -173,10 +170,15 @@ public class FBTCalibrationScreen extends Screen {
         BufferUploader.drawWithShader(builder.end());
 
         if (VRState.VR_RUNNING) {
-            // TODO FBT these bindings are not what I thought they would be
+            ClientDataHolderVR.getInstance().vr.getInputAction(VivecraftVRMod.INSTANCE.keyVRInteract)
+                .setEnabled(ControllerType.LEFT, true);
+            ClientDataHolderVR.getInstance().vr.getInputAction(VivecraftVRMod.INSTANCE.keyVRInteract)
+                .setEnabled(ControllerType.RIGHT, true);
+
             if (this.leftHandAtPosition && this.rightHandAtPosition &&
-                (GuiHandler.KEY_LEFT_CLICK.isDown() &&GuiHandler.KEY_RIGHT_CLICK.isDown()) ||
-                (MethodHolder.isKeyDown(GLFW.GLFW_KEY_ENTER)))
+                VivecraftVRMod.INSTANCE.keyVRInteract.isDown(ControllerType.LEFT) &&
+                VivecraftVRMod.INSTANCE.keyVRInteract.isDown(ControllerType.RIGHT) &&
+                VivecraftVRMod.INSTANCE.keyVRInteract.consumeClick())
             {
                 AutoCalibration.calibrateManual();
                 ClientDataHolderVR.getInstance().vr.calibrateFBT();

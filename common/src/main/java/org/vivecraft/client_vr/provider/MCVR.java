@@ -442,37 +442,30 @@ public abstract class MCVR {
         if (this.mc.player.getInventory() == null) return;
         if (this.dh.climbTracker.isGrabbingLadder() && ClimbTracker.isClaws(this.mc.player.getMainHandItem())) return;
         if (!this.dh.interactTracker.isActive(this.mc.player)) return;
+        if (GuiHandler.GUI_POS_WORLD == null) return;
 
         Vector3fc main = this.getAimSource(MAIN_CONTROLLER);
-        Vector3fc off = this.getAimSource(OFFHAND_CONTROLLER);
-        Vector3fc barStartPos;
-        Vector3fc barEndPos;
 
-        float offsetDir = this.dh.vrSettings.reverseHands ? -1F : 1F;
+        // TODO this is one frame behind, does it matter?
 
-        // hotbar position based on settings
-        if (this.dh.vrSettings.vrHudLockMode == VRSettings.HUDLock.WRIST) {
-            float offset = this.mc.player.getMainArm().getOpposite() ==
-                (this.dh.vrSettings.reverseHands ? HumanoidArm.LEFT : HumanoidArm.RIGHT) ? 0.03F : 0.0F;
-            barStartPos = this.getAimRotation(1)
-                .transformDirection(offsetDir * 0.02F, 0.05F, 0.26F + offset, new Vector3f());
-            barEndPos = this.getAimRotation(1)
-                .transformDirection(offsetDir * 0.02F, 0.05F, 0.01F + offset, new Vector3f());
-        } else if (this.dh.vrSettings.vrHudLockMode == VRSettings.HUDLock.HAND) {
-            barStartPos = this.getAimRotation(1)
-                .transformDirection(offsetDir * -0.18F, 0.08F, -0.01F, new Vector3f());
-            barEndPos = this.getAimRotation(1)
-                .transformDirection(offsetDir * 0.19F, 0.04F, -0.08F, new Vector3f());
-        } else {
-            return; //how did u get here
-        }
+        Vector3f tempV = new Vector3f();
+        VRData worldData = this.dh.vrPlayer.getVRDataWorld();
+        Vector3f guiPos = MathUtils.subtractToVector3f(GuiHandler.GUI_POS_WORLD, worldData.origin);
 
-        float guiScaleFactor = (float) this.mc.getWindow().getGuiScale() / GuiHandler.GUI_SCALE_FACTOR_MAX;
+        float scale =
+            GuiHandler.GUI_SCALE_APPLIED * (float) this.mc.getWindow().getGuiScale() / GuiHandler.GUI_SCALE_FACTOR_MAX;
+        // offset from center to the left of the hotbar
+        GuiHandler.GUI_OFFSET_WORLD.add(-0.32F * scale, -0.38F * GuiHandler.GUI_SCALE_APPLIED, 0, tempV);
 
-        Vector3fc barMidPos =  new Vector3f(barStartPos).add(barEndPos).mul(0.5F);
+        Vector3f barStart = guiPos.add(GuiHandler.GUI_ROTATION_WORLD.transformDirection(tempV), new Vector3f());
+        Vector3f barEnd = barStart.add(
+            GuiHandler.GUI_ROTATION_WORLD.transformDirection(MathUtils.LEFT, tempV).mul(0.64F * scale), new Vector3f());
 
-        Vector3fc barStart = new Vector3f(barMidPos).lerp(barStartPos, guiScaleFactor).add(off);
-        Vector3fc barEnd = new Vector3f(barMidPos).lerp(barEndPos, guiScaleFactor).add(off);
+        barStart.div(worldData.worldScale);
+        barEnd.div(worldData.worldScale);
+
+        barStart.rotateY(-worldData.rotation_radians);
+        barEnd.rotateY(-worldData.rotation_radians);
 
         Vector3fc barLine = barStart.sub(barEnd, new Vector3f());
         Vector3fc handToBar = barStart.sub(main, new Vector3f());

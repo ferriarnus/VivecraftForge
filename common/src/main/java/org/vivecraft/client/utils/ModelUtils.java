@@ -12,11 +12,72 @@ import org.vivecraft.client.Xplat;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.render.VRFirstPersonArmSwing;
 import org.vivecraft.common.utils.MathUtils;
+import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 import org.vivecraft.mod_compat_vr.pehkui.PehkuiHelper;
+import org.vivecraft.mod_compat_vr.sodium.SodiumHelper;
 
 import java.lang.Math;
 
 public class ModelUtils {
+    /**
+     * copies the bottom face texture from the {@code source} ModelPart to the top/bottom face of the {@code target} ModelPart
+     * @param source ModelPart to copy the top/bottom face from
+     * @param target ModelPart to copy the top/bottom face to
+     */
+    public static void textureHack(ModelPart source, ModelPart target) {
+        // some mods remove the base parts
+        if (source.cubes.isEmpty()) return;
+
+        copyUV(source.cubes.get(0).polygons[1], target.cubes.get(0).polygons[1]);
+        copyUV(source.cubes.get(0).polygons[1], target.cubes.get(0).polygons[0]);
+
+        // sodium has custom internal ModelPart geometry which also needs to be modified
+        if (SodiumHelper.isLoaded()) {
+            SodiumHelper.copyModelCuboidUV(source, target, 3, 3);
+            SodiumHelper.copyModelCuboidUV(source, target, 3, 2);
+        }
+    }
+
+    /**
+     * copies the bottom face texture from the {@code source} ModelPart to the {@code target} ModelPart,
+     * and replaces the bottom {@code source} face, and the top {@code target} face with the top {@code source} face
+     * @param source ModelPart to copy the top/bottom face from
+     * @param target ModelPart to copy the top/bottom face to
+     */
+    public static void textureHackUpper(ModelPart source, ModelPart target) {
+        // some mods remove the base parts
+        if (source.cubes.isEmpty()) return;
+
+        // set bottom of target
+        copyUV(source.cubes.get(0).polygons[1], target.cubes.get(0).polygons[1]);
+        // set those to the top of the source
+        copyUV(source.cubes.get(0).polygons[0], target.cubes.get(0).polygons[0]);
+        copyUV(source.cubes.get(0).polygons[0], source.cubes.get(0).polygons[1]);
+
+        // sodium has custom internal ModelPart geometry which also needs to be modified
+        if (SodiumHelper.isLoaded()) {
+            SodiumHelper.copyModelCuboidUV(source, target, 3, 3);
+            SodiumHelper.copyModelCuboidUV(source, target, 2, 2);
+            SodiumHelper.copyModelCuboidUV(source, source, 2, 3);
+        }
+    }
+
+    /**
+     * copies the UV from the {@code source} Polygon to the {@code target} Polygon
+     * @param source Polygon to copy the UV from
+     * @param target Polygon to copy the UV to
+     */
+    private static void copyUV(ModelPart.Polygon source, ModelPart.Polygon target) {
+        for (int i = 0; i < source.vertices.length; i++) {
+            ModelPart.Vertex newVertex = new ModelPart.Vertex(target.vertices[i].pos, source.vertices[i].u, source.vertices[i].v);
+            // Optifine has custom internal polygon data which also needs to be modified
+            if (OptifineHelper.isOptifineLoaded()) {
+                OptifineHelper.copyRenderPositions(target.vertices[i], newVertex);
+            }
+            target.vertices[i] = newVertex;
+        }
+    }
+
     /**
      * calculates how far down the player is bending over
      * @param entity Player entity to check for
@@ -51,14 +112,17 @@ public class ModelUtils {
      * @param position Position to convert
      * @param rotInfo player VR info
      * @param bodyYaw players Y rotation
+     * @param removeWorldScale when set will cancel out the worldScale
      * @param out Vector3f to store the result in
      */
-    public static void worldToModel(Vector3fc position, VRPlayersClient.RotInfo rotInfo, float bodyYaw, Vector3f out) {
+    public static void worldToModel(Vector3fc position, VRPlayersClient.RotInfo rotInfo, float bodyYaw, boolean removeWorldScale, Vector3f out) {
         out.set(position);
         if (Xplat.isModLoaded("pehkui")) {
             // remove pehkui scale from that, since the whole entity is scaled
             // TODO FBT which of those is correct
             //out.div(PehkuiHelper.getEntityEyeHeightScale(Minecraft.getInstance().player, Minecraft.getInstance().getFrameTime()));
+        }
+        if (removeWorldScale) {
             out.div(rotInfo.worldScale);
         }
         final float scale = 0.9375F * rotInfo.heightScale;
@@ -95,13 +159,15 @@ public class ModelUtils {
      * @param modelPosition source point in model space
      * @param rotInfo player VR info
      * @param bodyYaw players Y rotation
+     * @param removeWorldScale when set will cancel out the worldScale
      * @param out Vector3f to store the result in
      * @return {@code out} vector
      */
     public static Vector3f modelToWorld(
-        Vector3fc modelPosition, VRPlayersClient.RotInfo rotInfo, float bodyYaw, Vector3f out)
+        Vector3fc modelPosition, VRPlayersClient.RotInfo rotInfo, float bodyYaw, boolean removeWorldScale, Vector3f out)
     {
-        return modelToWorld(modelPosition.x(), modelPosition.y(), modelPosition.z(), rotInfo, bodyYaw, out);
+        return modelToWorld(modelPosition.x(), modelPosition.y(), modelPosition.z(), rotInfo, bodyYaw, removeWorldScale,
+            out);
     }
 
     /**
@@ -111,11 +177,12 @@ public class ModelUtils {
      * @param z z coordinate of the source point
      * @param rotInfo player VR info
      * @param bodyYaw players Y rotation
+     * @param applyWorldScale when set will apply the worldScale
      * @param out Vector3f to store the result in
      * @return {@code out} vector
      */
     public static Vector3f modelToWorld(
-        float x, float y, float z, VRPlayersClient.RotInfo rotInfo, float bodyYaw, Vector3f out)
+        float x, float y, float z, VRPlayersClient.RotInfo rotInfo, float bodyYaw, boolean applyWorldScale, Vector3f out)
     {
         final float scale = 0.9375F * rotInfo.heightScale;
         out.set(-x, -y, z)
@@ -126,6 +193,8 @@ public class ModelUtils {
             // remove pehkui scale from that, since the whole entity is scaled
             // TODO FBT which of those is correct
             //out.div(PehkuiHelper.getEntityEyeHeightScale(Minecraft.getInstance().player, Minecraft.getInstance().getFrameTime()));
+        }
+        if (applyWorldScale) {
             out.mul(rotInfo.worldScale);
         }
         return out;
@@ -138,16 +207,17 @@ public class ModelUtils {
      * @param targetRot target rotation the {@code part} should respect
      * @param rotInfo players data
      * @param bodyYaw players Y rotation
+     * @param applyWorldScale when set will apply the worldScale
      * @param tempVDir Vector3f object to work with, contains the euler angles after the call
      * @param tempVUp second Vector3f object to work with, contains the euler angles after the call
      * @param tempM Matrix3f object to work with, contains the rotation after the call
      */
     public static void pointModelAtLocal(
         ModelPart part, Vector3fc target, Quaternionfc targetRot, VRPlayersClient.RotInfo rotInfo, float bodyYaw,
-        Vector3f tempVDir, Vector3f tempVUp, Matrix3f tempM)
+        boolean applyWorldScale, Vector3f tempVDir, Vector3f tempVUp, Matrix3f tempM)
     {
         // concert model to world space
-        modelToWorld(part.x, part.y, part.z, rotInfo, bodyYaw, tempVDir);
+        modelToWorld(part.x, part.y, part.z, rotInfo, bodyYaw, applyWorldScale, tempVDir);
         // calculate direction
         target.sub(tempVDir, tempVDir);
 

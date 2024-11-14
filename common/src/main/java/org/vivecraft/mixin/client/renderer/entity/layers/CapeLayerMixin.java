@@ -74,7 +74,7 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
             this.vivecraft$tempV.add(vrModel.body.x, vrModel.body.y + 24F, vrModel.body.z);
 
             // no yaw, since we  need the vector to be player rotated anyway
-            ModelUtils.modelToWorld(this.vivecraft$tempV, rotInfo, 0F, this.vivecraft$tempV);
+            ModelUtils.modelToWorld(this.vivecraft$tempV, rotInfo, 0F, false, this.vivecraft$tempV);
             original.call(poseStack, this.vivecraft$tempV.x, -this.vivecraft$tempV.y, -this.vivecraft$tempV.z);
         } else {
             original.call(poseStack, x, y, z);

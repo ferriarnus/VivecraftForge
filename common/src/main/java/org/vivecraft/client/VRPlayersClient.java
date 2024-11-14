@@ -39,9 +39,6 @@ public class VRPlayersClient {
     private static long localPlayerRotInfoFrameIndex = -1;
     private static RotInfo localPlayerRotInfo;
 
-    private static long localPlayerRotInfoNoScaleFrameIndex = -1;
-    private static RotInfo localPlayerRotInfoNoScale;
-
     private final Random rand = new Random();
     public boolean debug = false;
 
@@ -78,8 +75,9 @@ public class VRPlayersClient {
     }
 
     public void update(UUID uuid, VrPlayerState vrPlayerState, float worldScale, float heightScale, boolean localPlayer) {
-        if (!localPlayer && this.mc.player.getUUID().equals(uuid))
+        if (!localPlayer && this.mc.player.getUUID().equals(uuid)) {
             return; // Don't update local player from server packet
+            }
 
         Vector3fc hmdDir = vrPlayerState.hmd().orientation().transform(MathUtils.BACK, new Vector3f());
         Vector3fc controller0Dir = vrPlayerState.controller0().orientation().transform(MathUtils.BACK, new Vector3f());
@@ -235,7 +233,7 @@ public class VRPlayersClient {
         float partialTick = ((MinecraftExtension) Minecraft.getInstance()).vivecraft$getPartialTick();
 
         if (VRState.VR_RUNNING && this.mc.player != null && uuid.equals(this.mc.player.getUUID())) {
-            return getMainPlayerRotInfo(this.mc.player, partialTick, true);
+            return getMainPlayerRotInfo(this.mc.player, partialTick);
         }
 
         RotInfo newRotInfo = this.vivePlayers.get(uuid);
@@ -308,12 +306,8 @@ public class VRPlayersClient {
      * @param partialTick partial tick to get the player position
      * @return up to date RotInfo
      */
-    public static RotInfo getMainPlayerRotInfo(LivingEntity player, float partialTick, boolean noWorldScale) {
-        if (noWorldScale && localPlayerRotInfoNoScale != null &&
-            ClientDataHolderVR.getInstance().frameIndex == localPlayerRotInfoNoScaleFrameIndex)
-        {
-            return localPlayerRotInfoNoScale;
-        } else if (!noWorldScale && localPlayerRotInfo != null &&
+    public static RotInfo getMainPlayerRotInfo(LivingEntity player, float partialTick) {
+        if (localPlayerRotInfo != null &&
             ClientDataHolderVR.getInstance().frameIndex == localPlayerRotInfoFrameIndex)
         {
             return localPlayerRotInfo;
@@ -330,15 +324,8 @@ public class VRPlayersClient {
         rotInfo.heightScale = AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT;
         rotInfo.worldScale = ClientDataHolderVR.getInstance().vrPlayer.worldScale;
 
-        float scale = 1F;
-        if (noWorldScale) {
-            localPlayerRotInfoNoScaleFrameIndex = ClientDataHolderVR.getInstance().frameIndex;
-            localPlayerRotInfoNoScale = rotInfo;
-            scale /= rotInfo.worldScale;
-        } else {
-            localPlayerRotInfoFrameIndex = ClientDataHolderVR.getInstance().frameIndex;
-            localPlayerRotInfo = rotInfo;
-        }
+        localPlayerRotInfoFrameIndex = ClientDataHolderVR.getInstance().frameIndex;
+        localPlayerRotInfo = rotInfo;
 
         rotInfo.leftArmQuat = data.getController(MCVR.OFFHAND_CONTROLLER).getMatrix()
             .getNormalizedRotation(new Quaternionf());
@@ -358,11 +345,10 @@ public class VRPlayersClient {
         }
 
         rotInfo.leftArmPos = MathUtils.subtractToVector3f(
-            data.getController(MCVR.OFFHAND_CONTROLLER).getPosition(), pos).mul(scale);
+            data.getController(MCVR.OFFHAND_CONTROLLER).getPosition(), pos);
         rotInfo.rightArmPos = MathUtils.subtractToVector3f(
-            data.getController(MCVR.MAIN_CONTROLLER).getPosition(), pos).mul(scale);
-        rotInfo.headPos = MathUtils.subtractToVector3f(
-            data.hmd.getPosition(), pos).mul(scale, 1F, scale);
+            data.getController(MCVR.MAIN_CONTROLLER).getPosition(), pos);
+        rotInfo.headPos = MathUtils.subtractToVector3f(data.hmd.getPosition(), pos);
 
         if (ClientDataHolderVR.getInstance().vr.hasFBT() && ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated) {
             rotInfo.fbtMode = FBTMode.ARMS_LEGS;

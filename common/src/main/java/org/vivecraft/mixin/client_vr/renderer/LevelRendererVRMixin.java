@@ -38,11 +38,9 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.vivecraft.client_vr.ClientDataHolderVR;
-import org.vivecraft.client_vr.MethodHolder;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.extensions.LevelRendererExtension;
-import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.gameplay.trackers.InteractTracker;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.render.helpers.VREffectsHelper;
@@ -169,6 +167,12 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
         }
     }
 
+    @ModifyExpressionValue(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;shouldRender(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/culling/Frustum;DDD)Z"))
+    private boolean vivecraft$dontCullPlayer(boolean doRender, @Local Entity entity) {
+        return doRender ||
+            (ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf && entity == Minecraft.getInstance().player);
+    }
+
     @ModifyExpressionValue(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isSleeping()Z"))
     private boolean vivecraft$noPlayerWhenSleeping(boolean isSleeping) {
         // no self render, we don't want an out-of-body experience
@@ -253,25 +257,23 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;endBatch()V", ordinal = 0, shift = Shift.AFTER))
     private void vivecraft$renderVrStuffPart1(
         CallbackInfo ci, @Local(argsOnly = true) PoseStack poseStack, @Local(argsOnly = true) float partialTick,
-        @Share("leftMenu") LocalBooleanRef leftMenu, @Share("rightMenu") LocalBooleanRef rightMenu,
         @Share("guiRendered") LocalBooleanRef guiRendered)
     {
         if (RenderPassType.isVanilla()) return;
 
-        leftMenu.set(MethodHolder.isInMenuRoom() || this.minecraft.screen != null || KeyboardHandler.SHOWING);
-        rightMenu.set(leftMenu.get() || (ClientDataHolderVR.getInstance().interactTracker.hotbar >= 0 &&
-            ClientDataHolderVR.getInstance().vrSettings.vrTouchHotbar
-        ));
-
         if (this.transparencyChain != null) {
-            VREffectsHelper.renderVRFabulous(partialTick, (LevelRenderer) (Object) this, rightMenu.get(), leftMenu.get(), poseStack);
+            VREffectsHelper.renderVRFabulous(partialTick, (LevelRenderer) (Object) this,
+                ClientDataHolderVR.getInstance().rightMenuHand, ClientDataHolderVR.getInstance().leftMenuHand,
+                poseStack);
         } else {
-            VREffectsHelper.renderVrFast(partialTick, false, rightMenu.get(), leftMenu.get(), poseStack);
+            VREffectsHelper.renderVrFast(partialTick, false, ClientDataHolderVR.getInstance().rightMenuHand,
+                ClientDataHolderVR.getInstance().leftMenuHand, poseStack);
             if (ShadersHelper.isShaderActive() && ClientDataHolderVR.getInstance().vrSettings.shaderGUIRender ==
                 VRSettings.ShaderGUIRender.BEFORE_TRANSLUCENT_SOLID)
             {
                 // shaders active, and render gui before translucents
-                VREffectsHelper.renderVrFast(partialTick, true, rightMenu.get(), leftMenu.get(), poseStack);
+                VREffectsHelper.renderVrFast(partialTick, true, ClientDataHolderVR.getInstance().rightMenuHand,
+                    ClientDataHolderVR.getInstance().leftMenuHand, poseStack);
                 guiRendered.set(true);
             }
         }
@@ -280,14 +282,17 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", shift = Shift.BEFORE, ordinal = 3))
     private void vivecraft$renderVrStuffPart2(
         CallbackInfo ci, @Local(argsOnly = true) PoseStack poseStack, @Local(argsOnly = true) float partialTick,
-        @Share("leftMenu") LocalBooleanRef leftMenu, @Share("rightMenu") LocalBooleanRef rightMenu,
         @Share("guiRendered") LocalBooleanRef guiRendered)
     {
         if (RenderPassType.isVanilla()) return;
 
-        if (this.transparencyChain == null && (!ShadersHelper.isShaderActive() || ClientDataHolderVR.getInstance().vrSettings.shaderGUIRender == VRSettings.ShaderGUIRender.AFTER_TRANSLUCENT)) {
+        if (this.transparencyChain == null && (!ShadersHelper.isShaderActive() ||
+            ClientDataHolderVR.getInstance().vrSettings.shaderGUIRender == VRSettings.ShaderGUIRender.AFTER_TRANSLUCENT
+        ))
+        {
             // no shaders, or shaders, and gui after translucents
-            VREffectsHelper.renderVrFast(partialTick, true, rightMenu.get(), leftMenu.get(), poseStack);
+            VREffectsHelper.renderVrFast(partialTick, true, ClientDataHolderVR.getInstance().rightMenuHand,
+                ClientDataHolderVR.getInstance().leftMenuHand, poseStack);
             guiRendered.set(true);
         }
     }
@@ -297,13 +302,13 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
     @Inject(method = "renderLevel", at = @At("RETURN"))
     private void vivecraft$renderVrStuffFinal(
         CallbackInfo ci, @Local(argsOnly = true) PoseStack poseStack, @Local(argsOnly = true) float partialTick,
-        @Share("leftMenu") LocalBooleanRef leftMenu, @Share("rightMenu") LocalBooleanRef rightMenu,
         @Share("guiRendered") LocalBooleanRef guiRendered)
     {
         if (RenderPassType.isVanilla()) return;
 
         if (!guiRendered.get() && this.transparencyChain == null) {
-            VREffectsHelper.renderVrFast(partialTick, true, rightMenu.get(), leftMenu.get(), poseStack);
+            VREffectsHelper.renderVrFast(partialTick, true, ClientDataHolderVR.getInstance().rightMenuHand,
+                ClientDataHolderVR.getInstance().leftMenuHand, poseStack);
         }
     }
 

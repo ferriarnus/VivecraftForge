@@ -56,7 +56,7 @@ public abstract class EntityRenderDispatcherVRMixin implements EntityRenderDispa
             return this.camera.rotation();
         } else {
             Vec3 source;
-            if (ClientDataHolderVR.getInstance().currentPass == RenderPass.THIRD || ClientDataHolderVR.getInstance().currentPass == RenderPass.CAMERA) {
+            if (RenderPass.isThirdPerson(ClientDataHolderVR.getInstance().currentPass)) {
                 source = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().getEye(ClientDataHolderVR.getInstance().currentPass).getPosition();
             } else {
                 source = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().getEye(RenderPass.CENTER).getPosition();

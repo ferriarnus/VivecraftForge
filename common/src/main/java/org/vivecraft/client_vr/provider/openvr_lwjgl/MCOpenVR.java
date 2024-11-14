@@ -20,6 +20,7 @@ import org.lwjgl.openvr.*;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.vivecraft.client.VivecraftVRMod;
+import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
 import org.vivecraft.client.utils.FileUtils;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client.utils.ClientUtils;
@@ -793,6 +794,9 @@ public class MCOpenVR extends MCVR {
             activeSets.add(VRInputActionSet.GUI);
             if (ClientDataHolderVR.getInstance().vrSettings.ingameBindingsInGui) {
                 activeSets.add(VRInputActionSet.INGAME);
+            }
+            if (this.mc.screen instanceof FBTCalibrationScreen) {
+                activeSets.add(VRInputActionSet.CONTEXTUAL);
             }
         }
 

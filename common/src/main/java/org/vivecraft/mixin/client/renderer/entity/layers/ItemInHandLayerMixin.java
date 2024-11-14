@@ -25,13 +25,8 @@ import org.vivecraft.client_vr.render.RenderPass;
 public abstract class ItemInHandLayerMixin {
 
     @Inject(method = "renderArmWithItem", at = @At("HEAD"), cancellable = true)
-    private void vivecraft$noItemsInFirstPerson(CallbackInfo ci, @Local(argsOnly = true) LivingEntity livingEntity) {
-        if (livingEntity == Minecraft.getInstance().player &&
-            (ClientDataHolderVR.getInstance().currentPass == RenderPass.LEFT ||
-                ClientDataHolderVR.getInstance().currentPass == RenderPass.RIGHT ||
-                ClientDataHolderVR.getInstance().currentPass == RenderPass.CENTER
-            ))
-        {
+    private void vivecraft$noItemsInFirstPerson(CallbackInfo ci, @Local(argsOnly = true) LivingEntity entity) {
+        if (entity == Minecraft.getInstance().player && RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass)) {
             ci.cancel();
         }
     }

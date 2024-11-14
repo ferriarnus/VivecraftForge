@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vivecraft.client.Xplat;
 import org.vivecraft.client.render.VRPlayerRenderer;
+import org.vivecraft.client.render.armor.VRArmorLayer;
 import org.vivecraft.client.utils.LangHelper;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
@@ -222,9 +223,9 @@ public class VRSettings {
     public boolean fbtCalibrated = false;
     @SettingField
     public boolean fbtExtendedCalibrated = false;
-    @SettingField(config = "FBTOFFSETS", separate = true)
+    @SettingField(config = "FBTOFFSETS")
     public Vector3f[] fbtOffsets = getFbtOffsetDefault();
-    @SettingField(config = "FBTROTATIONS", separate = true)
+    @SettingField(config = "FBTROTATIONS")
     public Quaternionf[] fbtRotations = getFbtRotationsDefault();
     @SettingField
     public boolean alwaysSimulateKeyboard = false;
@@ -1891,13 +1892,14 @@ public class VRSettings {
         PLAYER_MODEL_BODY_SCALE(true, false, 0.1f, 1f, 0.05f, -1), // scales the width of the first person body
         PLAYER_MODEL_LEGS_SCALE(true, false, 0.1f, 1f, 0.05f, -1), // scales the width of the first person legs
         PLAYER_MODEL_TYPE(false, true), // determines how VR player are rendered
-        PLAYER_LIMBS_CONNECTED(false, true) {
+        PLAYER_LIMBS_CONNECTED(false, true) { // extends the model arms to connect
             @Override
             public void onOptionChange() {
                 VRPlayerRenderer.createLayers();
+                VRArmorLayer.createLayers();
                 Minecraft.getInstance().reloadResourcePacks();
             }
-        }, // extends the model arms to connect
+        },
         PLAYER_LIMBS_LIMIT(false, true), // doesn't split connected limbs when over length
         BOW_MODE(false, true) { // Roomscale Bow Mode
 

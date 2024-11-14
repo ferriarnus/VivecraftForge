@@ -57,6 +57,9 @@ public class ClientDataHolderVR {
     public RenderPass currentPass;
     public boolean isFirstPass;
 
+    public boolean leftMenuHand;
+    public boolean rightMenuHand;
+
     public int tickCounter;
 
     public VRFirstPersonArmSwing swingType = VRFirstPersonArmSwing.Attack;

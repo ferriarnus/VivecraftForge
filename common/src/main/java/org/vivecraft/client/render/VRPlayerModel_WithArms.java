@@ -5,9 +5,8 @@ import com.google.common.collect.Iterables;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.ModelPart.Polygon;
-import net.minecraft.client.model.geom.ModelPart.Vertex;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
@@ -18,133 +17,77 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import org.joml.Quaternionfc;
 import org.joml.Vector3fc;
+import org.vivecraft.client.render.models.HandModel;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.render.RenderPass;
-import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
-import org.vivecraft.mod_compat_vr.sodium.SodiumHelper;
 
-public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerModel<T> {
+public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerModel<T> implements HandModel {
+    public static final int LOWER_EXTENSION = 2;
+    public static final int UPPER_EXTENSION = 3;
+
     // shoulders use the vanilla arm parts
-    public ModelPart leftHand;
-    public ModelPart rightHand;
-    public ModelPart leftHandSleeve;
-    public ModelPart rightHandSleeve;
+    public final ModelPart leftHand;
+    public final ModelPart rightHand;
+    public final ModelPart leftHandSleeve;
+    public final ModelPart rightHandSleeve;
 
-    public VRPlayerModel_WithArms(ModelPart modelPart, boolean isSlim) {
-        super(modelPart, isSlim);
-        this.leftHandSleeve = modelPart.getChild("left_hand_sleeve");
-        this.rightHandSleeve = modelPart.getChild("right_hand_sleeve");
-        this.rightHand = modelPart.getChild("right_hand");
-        this.leftHand = modelPart.getChild("left_hand");
+    public VRPlayerModel_WithArms(ModelPart root, boolean isSlim) {
+        super(root, isSlim);
+        this.leftHandSleeve = root.getChild("left_hand_sleeve");
+        this.rightHandSleeve = root.getChild("right_hand_sleeve");
+        this.leftHand = root.getChild("left_hand");
+        this.rightHand = root.getChild("right_hand");
 
         // copy textures
-        textureHack(this.leftArm, this.leftHand);
-        textureHack(this.rightArm, this.rightHand);
-        textureHack(this.rightSleeve, this.rightHandSleeve);
-        textureHack(this.leftSleeve, this.leftHandSleeve);
-    }
-
-    /**
-     * copies the bottom face texture from the {@code source} ModelPart to the top/bottom face of the {@code target} ModelPart
-     * @param source ModelPart to copy the top/bottom face from
-     * @param target ModelPart to copy the top/bottom face to
-     */
-    protected void textureHack(ModelPart source, ModelPart target) {
-        // some mods remove the base parts
-        if (source.cubes.isEmpty()) return;
-
-        copyUV(source.cubes.get(0).polygons[1], target.cubes.get(0).polygons[1]);
-        copyUV(source.cubes.get(0).polygons[1], target.cubes.get(0).polygons[0]);
-
-        // sodium has custom internal ModelPart geometry which also needs to be modified
-        if (SodiumHelper.isLoaded()) {
-            SodiumHelper.copyModelCuboidUV(source, target, 3, 3);
-            SodiumHelper.copyModelCuboidUV(source, target, 3, 2);
-        }
-    }
-
-    /**
-     * copies the top/bottom face texture from the {@code source} ModelPart to the {@code target} ModelPart
-     * @param source ModelPart to copy the top/bottom face from
-     * @param target ModelPart to copy the top/bottom face to
-     */
-    protected void textureHackUpper(ModelPart source, ModelPart target) {
-        // some mods remove the base parts
-        if (source.cubes.isEmpty()) return;
-
-        // set bottom of target
-        copyUV(source.cubes.get(0).polygons[1], target.cubes.get(0).polygons[1]);
-        // set those to the top of the source
-        copyUV(source.cubes.get(0).polygons[0], target.cubes.get(0).polygons[0]);
-        copyUV(source.cubes.get(0).polygons[0], source.cubes.get(0).polygons[1]);
-
-        // sodium has custom internal ModelPart geometry which also needs to be modified
-        if (SodiumHelper.isLoaded()) {
-            SodiumHelper.copyModelCuboidUV(source, target, 3, 3);
-            SodiumHelper.copyModelCuboidUV(source, target, 2, 2);
-            SodiumHelper.copyModelCuboidUV(source, source, 2, 3);
-        }
-    }
-
-    /**
-     * copies the UV from the {@code source} Polygon to the {@code target} Polygon
-     * @param source Polygon to copy the UV from
-     * @param target Polygon to copy the UV to
-     */
-    private void copyUV(Polygon source, Polygon target) {
-        for (int i = 0; i < source.vertices.length; i++) {
-            Vertex newVertex = new Vertex(target.vertices[i].pos, source.vertices[i].u, source.vertices[i].v);
-            // Optifine has custom internal polygon data which also needs to be modified
-            if (OptifineHelper.isOptifineLoaded()) {
-                OptifineHelper.copyRenderPositions(target.vertices[i], newVertex);
-            }
-            target.vertices[i] = newVertex;
-        }
+        ModelUtils.textureHack(this.leftArm, this.leftHand);
+        ModelUtils.textureHack(this.rightArm, this.rightHand);
+        ModelUtils.textureHack(this.leftSleeve, this.leftHandSleeve);
+        ModelUtils.textureHack(this.rightSleeve, this.rightHandSleeve);
     }
 
     public static MeshDefinition createMesh(CubeDeformation cubeDeformation, boolean slim) {
         MeshDefinition meshDefinition = VRPlayerModel.createMesh(cubeDeformation, slim);
         PartDefinition partDefinition = meshDefinition.getRoot();
         boolean connected = ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected;
-        int upperExtension = connected ? 3 : 0;
-        int lowerExtension = connected ? 2 : 0;
+        int upperExtension = connected ? UPPER_EXTENSION : 0;
+        int lowerExtension = connected ? LOWER_EXTENSION : 0;
         float lowerShrinkage = connected ? -0.05F : 0F;
 
         if (slim) {
             partDefinition.addOrReplaceChild("left_hand", CubeListBuilder.create()
                     .texOffs(32, 55 - lowerExtension)
                     .addBox(-1.5F, -5.0F - lowerExtension, -2.0F, 3.0F, 5.0F +  lowerExtension, 4.0F, cubeDeformation.extend(lowerShrinkage)),
-                PartPose.offset(5.0F, 2.5F, 0.0F));
+                PartPose.offset(5.5F, 12.0F, 0.0F));
             partDefinition.addOrReplaceChild("left_hand_sleeve", CubeListBuilder.create()
                     .texOffs(48, 55 - lowerExtension)
                     .addBox(-1.5F, -5.0F - lowerExtension, -2.0F, 3.0F, 5.0F +  lowerExtension, 4.0F, cubeDeformation.extend(0.25f + lowerShrinkage)),
-                PartPose.offset(5.0F, 2.5F, 0.0F));
+                PartPose.offset(5.5F, 12.0F, 0.0F));
             partDefinition.addOrReplaceChild("right_hand", CubeListBuilder.create()
                     .texOffs(40, 23 - lowerExtension)
                     .addBox(-1.5F, -5.0F - lowerExtension, -2.0F, 3.0F, 5.0F + lowerExtension, 4.0F, cubeDeformation.extend(lowerShrinkage)),
-                PartPose.offset(-5.0F, 2.5F, 0.0F));
+                PartPose.offset(-5.5F, 12.0F, 0.0F));
             partDefinition.addOrReplaceChild("right_hand_sleeve", CubeListBuilder.create()
                     .texOffs(40, 39 - lowerExtension)
                     .addBox(-1.5F, -5.0F - lowerExtension, -2.0F, 3.0F, 5.0F +  lowerExtension, 4.0F, cubeDeformation.extend(0.25f + lowerShrinkage)),
-                PartPose.offset(-5.0F, 2.5F, 0.0F));
+                PartPose.offset(-5.5F, 12.0F, 0.0F));
             partDefinition.addOrReplaceChild("left_arm", CubeListBuilder.create()
                     .texOffs(32, 48)
                     .addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F + upperExtension, 4.0F, cubeDeformation),
-                PartPose.offset(5.0F, 2.5F, 0.0F));
+                PartPose.offset(5.0F, 2.0F, 0.0F));
             partDefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create()
                     .texOffs(48, 48)
                     .addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F + upperExtension, 4.0F, cubeDeformation.extend(0.25f)),
-                PartPose.offset(5.0F, 2.5F, 0.0F));
+                PartPose.offset(5.0F, 2.0F, 0.0F));
             partDefinition.addOrReplaceChild("right_arm", CubeListBuilder.create()
                     .texOffs(40, 16)
                     .addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F + upperExtension, 4.0F, cubeDeformation),
-                PartPose.offset(-5.0F, 2.5F, 0.0F));
+                PartPose.offset(-5.0F, 2.0F, 0.0F));
             partDefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create()
                     .texOffs(40, 32)
                     .addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F + upperExtension, 4.0F, cubeDeformation.extend(0.25f)),
-                PartPose.offset(-5.0F, 2.5F, 0.0F));
+                PartPose.offset(-5.0F, 2.0F, 0.0F));
         } else {
             partDefinition.addOrReplaceChild("left_hand", CubeListBuilder.create()
                     .texOffs(32, 55 - lowerExtension)
@@ -210,12 +153,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         }
 
         float limbScale = 1F;
-        if (player == Minecraft.getInstance().player &&
-            (ClientDataHolderVR.getInstance().currentPass == RenderPass.LEFT ||
-                ClientDataHolderVR.getInstance().currentPass == RenderPass.RIGHT ||
-                ClientDataHolderVR.getInstance().currentPass == RenderPass.CENTER
-            ))
-        {
+        if (player == Minecraft.getInstance().player && RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass)) {
             limbScale = ClientDataHolderVR.getInstance().vrSettings.playerModelArmsScale;
         }
 
@@ -226,6 +164,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             positionConnectedLimb(actualLeftShoulder, actualLeftHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmRot,
                 this.rotInfo.leftArmQuat, this.rotInfo.leftElbowPos, true, HumanoidArm.LEFT);
 
+            this.tempM.rotateLocalX(this.xRot);
             this.tempM.transform(offset, 0, 0, this.tempV);
             actualLeftHand.x += this.tempV.x;
             actualLeftHand.y += this.tempV.y;
@@ -239,13 +178,15 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
         {
             GuiHandler.GUI_ROTATION_PLAYER_MODEL.set3x3(this.tempM);
+            // undo lay rotation
+            GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateLocalX(this.xRot);
             // ModelParts are rotated 90°
             GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateX(-Mth.HALF_PI);
             // undo body yaw
             GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateLocalY(-this.bodyYaw - Mth.PI);
 
             ModelUtils.modelToWorld(actualLeftHand.x, actualLeftHand.y, actualLeftHand.z,
-                this.rotInfo, this.bodyYaw, this.tempV);
+                this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV);
 
             GuiHandler.GUI_POS_PLAYER_MODEL = player.getPosition(Minecraft.getInstance().getFrameTime())
                 .add(this.tempV.x, this.tempV.y, this.tempV.z);
@@ -257,6 +198,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
                 this.rotInfo.rightArmRot, this.rotInfo.rightArmQuat, this.rotInfo.rightElbowPos, true,
                 HumanoidArm.RIGHT);
 
+            this.tempM.rotateLocalX(this.xRot);
             this.tempM.transform(-offset, 0, 0, this.tempV);
             actualRightHand.x += this.tempV.x;
             actualRightHand.y += this.tempV.y;
@@ -280,8 +222,8 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         this.rightHandSleeve.copyFrom(this.rightHand);
         this.leftSleeve.copyFrom(this.leftArm);
         this.rightSleeve.copyFrom(this.rightArm);
-        this.leftHandSleeve.visible = this.leftSleeve.visible;
-        this.rightHandSleeve.visible = this.rightSleeve.visible;
+        this.leftHandSleeve.visible &= this.leftSleeve.visible;
+        this.rightHandSleeve.visible &= this.rightSleeve.visible;
     }
 
     /**
@@ -300,7 +242,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         float lowerXOffset, Vector3fc jointPos, boolean jointDown, HumanoidArm arm)
     {
         // place lower directly at the lower point
-        ModelUtils.worldToModel(lowerPos, this.rotInfo, this.bodyYaw, this.tempV);
+        ModelUtils.worldToModel(lowerPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV);
         lower.setPos(this.tempV.x, this.tempV.y, this.tempV.z);
 
         // joint estimation
@@ -316,7 +258,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
                 lower.x - lowerXOffset, lower.y, lower.z,
                 this.tempV2, 12.0F, this.tempV);
         } else {
-            ModelUtils.worldToModel(jointPos, this.rotInfo, this.bodyYaw, this.tempV);
+            ModelUtils.worldToModel(jointPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV);
         }
 
         // upper position and rotation
@@ -354,7 +296,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         Vector3fc jointPos, boolean jointDown, HumanoidArm arm)
     {
         // position lower
-        ModelUtils.worldToModel(lowerPos, this.rotInfo, this.bodyYaw, this.tempV);
+        ModelUtils.worldToModel(lowerPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV);
         float armLength = 12F;
         // limit length to 12, no limb stretching, for now
         float length = this.tempV.distance(upper.x, upper.y, upper.z);
@@ -387,7 +329,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
                 lower.x, lower.y, lower.z,
                 this.tempV2, armLength, this.tempV);
         } else {
-            ModelUtils.worldToModel(jointPos, this.rotInfo, this.bodyYaw, this.tempV);
+            ModelUtils.worldToModel(jointPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV);
         }
 
         // if we inverted this before we need to reset it
@@ -424,6 +366,15 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
     }
 
     @Override
+    public void copyPropertiesTo(HumanoidModel<T> model) {
+        super.copyPropertiesTo(model);
+        if (model instanceof HandModel handModel) {
+            handModel.getLeftHand().copyFrom(this.leftHand);
+            handModel.getRightHand().copyFrom(this.rightHand);
+        }
+    }
+
+    @Override
     public void setAllVisible(boolean visible) {
         super.setAllVisible(visible);
 
@@ -431,6 +382,28 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         this.rightHand.visible = visible;
         this.leftHandSleeve.visible = visible;
         this.rightHandSleeve.visible = visible;
+    }
+
+    @Override
+    public ModelPart getLeftHand() {
+        return this.leftHand;
+    }
+
+    @Override
+    public ModelPart getRightHand() {
+        return this.rightHand;
+    }
+
+    @Override
+    public void hideLeftHand() {
+        this.leftHand.visible = false;
+        this.leftHandSleeve.visible = false;
+    }
+
+    @Override
+    public void hideRightHand() {
+        this.rightHand.visible = false;
+        this.rightHandSleeve.visible = false;
     }
 
     @Override
