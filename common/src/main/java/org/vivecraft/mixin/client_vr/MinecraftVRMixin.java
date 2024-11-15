@@ -68,6 +68,7 @@ import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 import org.vivecraft.client_vr.menuworlds.MenuWorldDownloader;
 import org.vivecraft.client_vr.menuworlds.MenuWorldExporter;
+import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.VRInputAction;
 import org.vivecraft.client_vr.render.RenderConfigException;
 import org.vivecraft.client_vr.render.VRFirstPersonArmSwing;
@@ -524,7 +525,7 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
                 }
                 ClientDataHolderVR.getInstance().incorrectGarbageCollector = "";
             }
-            // server watrnings
+            // server warnings
             if (ClientDataHolderVR.getInstance().vrPlayer.chatWarningTimer >= 0 &&
                 --ClientDataHolderVR.getInstance().vrPlayer.chatWarningTimer == 0)
             {
@@ -548,6 +549,14 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
                     ClientDataHolderVR.getInstance().vrPlayer.vrSwitchWarning = false;
                 }
                 ClientNetworking.DISPLAYED_CHAT_WARNING = true;
+            }
+            if (!ClientDataHolderVR.getInstance().showedFbtCalibrationNotification &&
+                ((MCVR.get().hasFBT() && !ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated) ||
+                    (MCVR.get().hasExtendedFBT() && !ClientDataHolderVR.getInstance().vrSettings.fbtExtendedCalibrated)
+                ))
+            {
+                ClientDataHolderVR.getInstance().showedFbtCalibrationNotification = true;
+                this.gui.getChat().addMessage(Component.translatable("vivecraft.messages.calibratefbtchat"));
             }
         }
 

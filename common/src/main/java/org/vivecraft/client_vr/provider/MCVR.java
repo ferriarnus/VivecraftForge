@@ -80,6 +80,7 @@ public abstract class MCVR {
     public Vector3fHistory[] controllerHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     public Vector3fHistory[] controllerForwardHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     public Vector3fHistory[] controllerUpHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
+    public Vector3fHistory[] feetHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     protected float gunAngle = 0.0F;
     protected boolean gunStyle;
     public boolean initialized;
@@ -749,6 +750,8 @@ public abstract class MCVR {
                 }
 
             }
+            this.feetHistory[0].add(new Vector3f(this.getAimSource(RIGHT_FOOT_TRACKER)));
+            this.feetHistory[1].add(new Vector3f(this.getAimSource(LEFT_FOOT_TRACKER)));
         }
     }
 

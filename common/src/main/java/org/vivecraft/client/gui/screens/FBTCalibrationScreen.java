@@ -41,6 +41,8 @@ public class FBTCalibrationScreen extends Screen {
         this.parent = parent;
         this.wasFbtCalibrated = ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated;
         this.wasFbtExtendedCalibrated = ClientDataHolderVR.getInstance().vrSettings.fbtExtendedCalibrated;
+        // mark as shown, since the user is currently calibrating
+        ClientDataHolderVR.getInstance().showedFbtCalibrationNotification = true;
         ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated = false;
         ClientDataHolderVR.getInstance().vrSettings.fbtExtendedCalibrated = false;
     }
@@ -67,15 +69,22 @@ public class FBTCalibrationScreen extends Screen {
     }
 
     @Override
+    public void onClose() {
+        this.minecraft.setScreen(this.parent);
+    }
+
+    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 0xFFFFFF);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("vivecraft.message.fbtcalibration.1"),
+        guiGraphics.drawCenteredString(this.font, Component.translatable("vivecraft.messages.fbtcalibration.1"),
             this.width / 2, 30, 0xFFFFFF);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("vivecraft.message.fbtcalibration.2"),
+        guiGraphics.drawCenteredString(this.font, Component.translatable("vivecraft.messages.fbtcalibration.2"),
             this.width / 2, 40, 0xFFFFFF);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("vivecraft.message.fbtcalibration.3"),
+        guiGraphics.drawCenteredString(this.font, Component.translatable("vivecraft.messages.fbtcalibration.3"),
             this.width / 2, 50, 0xFFFFFF);
+        guiGraphics.drawCenteredString(this.font, Component.translatable("vivecraft.messages.fbtcalibration.4"),
+            this.width / 2, 60, 0xFFFFFF);
 
         checkPosition();
 
@@ -182,6 +191,7 @@ public class FBTCalibrationScreen extends Screen {
             {
                 AutoCalibration.calibrateManual();
                 ClientDataHolderVR.getInstance().vr.calibrateFBT();
+                this.minecraft.gui.getChat().addMessage(Component.translatable("vivecraft.messages.fbtcalibrationsuccess"));
                 ClientDataHolderVR.getInstance().vrSettings.saveOptions();
                 this.calibrated = true;
                 this.minecraft.setScreen(this.parent);

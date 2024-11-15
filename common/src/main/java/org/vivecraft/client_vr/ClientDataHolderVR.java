@@ -67,6 +67,7 @@ public class ClientDataHolderVR {
     // showed chat notifications
     public boolean showedUpdateNotification;
     public boolean showedStencilMessage;
+    public boolean showedFbtCalibrationNotification;
 
     public static ClientDataHolderVR getInstance() {
         if (INSTANCE == null) {
