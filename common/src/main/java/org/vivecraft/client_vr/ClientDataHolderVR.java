@@ -53,9 +53,6 @@ public class ClientDataHolderVR {
 
     public int tickCounter;
 
-    public float watereffect;
-    public float portaleffect;
-    public float pumpkineffect;
     public static boolean isfphand;
     public VRFirstPersonArmSwing swingType = VRFirstPersonArmSwing.Attack;
 

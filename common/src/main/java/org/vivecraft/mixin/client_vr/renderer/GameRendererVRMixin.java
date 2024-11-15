@@ -74,10 +74,6 @@ public abstract class GameRendererVRMixin
     @Unique
     private boolean vivecraft$inwater;
     @Unique
-    private boolean vivecraft$wasinwater;
-    @Unique
-    private boolean vivecraft$inportal;
-    @Unique
     private float vivecraft$inBlock = 0.0F;
     @Unique
     private double vivecraft$rveX;
@@ -635,24 +631,6 @@ public abstract class GameRendererVRMixin
     @Unique
     public boolean vivecraft$isInWater() {
         return this.vivecraft$inwater;
-    }
-
-    @Override
-    @Unique
-    public boolean vivecraft$wasInWater() {
-        return this.vivecraft$wasinwater;
-    }
-
-    @Override
-    @Unique
-    public void vivecraft$setWasInWater(boolean b) {
-        this.vivecraft$wasinwater = b;
-    }
-
-    @Override
-    @Unique
-    public boolean vivecraft$isInPortal() {
-        return this.vivecraft$inportal;
     }
 
     @Override

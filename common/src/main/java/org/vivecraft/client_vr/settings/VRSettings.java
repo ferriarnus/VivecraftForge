@@ -315,8 +315,18 @@ public class VRSettings {
     //Rendering
     @SettingField(VrOptions.FSAA)
     public boolean useFsaa = false;   // default to off
-    @SettingField(VrOptions.LOW_HEALTH_INDICATOR)
-    public boolean low_health_indicator = true;   // default to on
+    @SettingField(value = VrOptions.LOW_HEALTH_INDICATOR, config = "low_health_indicator")
+    public boolean lowHealthIndicator = true;   // default to on
+    @SettingField(VrOptions.HIT_INDICATOR)
+    public boolean hitIndicator = true;   // default to on
+    @SettingField(VrOptions.WATER_EFFECT)
+    public boolean waterEffect = true;   // default to on
+    @SettingField(VrOptions.PORTAL_EFFECT)
+    public boolean portalEffect = true;   // default to on
+    @SettingField(VrOptions.FREEZE_EFFECT)
+    public boolean freezeEffect = true;   // default to on
+    @SettingField(VrOptions.PUMPKIN_EFFECT)
+    public boolean pumpkinEffect = true;   // default to on
     @SettingField(value = VrOptions.FOV_REDUCTION, config = "fovReduction")
     public boolean useFOVReduction = false;   // default to off
     @SettingField(VrOptions.FOV_REDUCTION_OFFSET)
@@ -1374,6 +1384,11 @@ public class VRSettings {
         //HMD/render
         FSAA(false, true), // Lanczos Scaler
         LOW_HEALTH_INDICATOR(false, true), // red low health pulse
+        HIT_INDICATOR(false, true), // red flash when hit
+        WATER_EFFECT(false, true), // distortion when entering/exiting water
+        PORTAL_EFFECT(false, true), // distortion when standing in portal
+        FREEZE_EFFECT(false, true), // blue tint when freezing
+        PUMPKIN_EFFECT(false, true), // orange fov reduction for carved pumpkin
         MIRROR_DISPLAY(false, true) { // Desktop Mirror
 
             @Override

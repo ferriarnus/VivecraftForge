@@ -37,9 +37,14 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
     private static final VRSettings.VrOptions[] SOptions = new VRSettings.VrOptions[]{
         VRSettings.VrOptions.MIRROR_EYE
     };
-    private final VROptionEntry[] MROptions = new VROptionEntry[]{
-        new VROptionEntry("vivecraft.options.screen.mixedreality.button", (button, mousePos) -> {
+    private final VROptionEntry[] MROptions = new VROptionEntry[]{new VROptionEntry(
+        "vivecraft.options.screen.mixedreality.button", (button, mousePos) -> {
         Minecraft.getInstance().setScreen(new GuiMixedRealitySettings(this));
+        return true;
+    })};
+    private final VROptionEntry[] postEffects = new VROptionEntry[]{new VROptionEntry(
+        "vivecraft.options.screen.posteffects.button", (button, mousePos) -> {
+        Minecraft.getInstance().setScreen(new GuiPostEffectsSettings(this));
         return true;
     })};
 
@@ -71,17 +76,15 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
 
         super.init(buttons, true);
 
-        if (this.dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY) {
-            super.init(this.MROptions, false);
-        } else if (this.dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.FIRST_PERSON) {
-            super.init(UDOptions, false);
-        } else if (this.dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON) {
-            super.init(TUDOptions, false);
-        } else if (this.dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.CROPPED) {
-            super.init(CROPOptions, false);
-        } else if (this.dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.SINGLE) {
-            super.init(SOptions, false);
+        switch(this.dataHolder.vrSettings.displayMirrorMode) {
+            case MIXED_REALITY -> super.init(this.MROptions, false);
+            case FIRST_PERSON -> super.init(UDOptions, false);
+            case THIRD_PERSON -> super.init(TUDOptions, false);
+            case CROPPED -> super.init(CROPOptions, false);
+            case SINGLE -> super.init(SOptions, false);
         }
+
+        super.init(this.postEffects, false);
 
         super.addDefaultButtons();
 

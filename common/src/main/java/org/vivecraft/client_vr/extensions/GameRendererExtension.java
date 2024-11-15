@@ -12,21 +12,6 @@ public interface GameRendererExtension {
     boolean vivecraft$isInWater();
 
     /**
-     * @return if the camera was in water last frame
-     */
-    boolean vivecraft$wasInWater();
-
-    /**
-     * sets if the camera was in water
-     */
-    void vivecraft$setWasInWater(boolean b);
-
-    /**
-     * @return if the player in a portal
-     */
-    boolean vivecraft$isInPortal();
-
-    /**
      * @return if the camera in a block
      */
     float vivecraft$isInBlock();

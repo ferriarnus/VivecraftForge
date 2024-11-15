@@ -7,13 +7,13 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL43;
-import org.vivecraft.client.Xplat;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.extensions.WindowExtension;
@@ -26,6 +26,10 @@ public class ShaderHelper {
 
     private static final Minecraft mc = Minecraft.getInstance();
     private static final ClientDataHolderVR dataHolder = ClientDataHolderVR.getInstance();
+
+    private static float fovReduction = 1.0F;
+    private static float waterEffect;
+    private static boolean wasInWater;
 
     /**
      * renders a fullscreen quad with the given shader, and the given RenderTarget bound as "Sampler0"
@@ -77,8 +81,6 @@ public class ShaderHelper {
         BufferUploader.draw(builder.end());
     }
 
-    private static float fovReduction = 1.0F;
-
     /**
      * does post-processing for the vr pass
      * this includes red damage indicator
@@ -101,64 +103,68 @@ public class ShaderHelper {
             float blue = 0.0F;
             float time = (float) Util.getMillis() / 1000.0F;
 
-            if (mc.player != null && mc.level != null) {
-                GameRendererExtension gameRendererExtension = ((GameRendererExtension) mc.gameRenderer);
+            float pumpkinEffect = 0.0F;
+            float portalEffect = 0.0F;
 
-                if (gameRendererExtension.vivecraft$wasInWater() != gameRendererExtension.vivecraft$isInWater()) {
+            if (mc.player != null && mc.level != null) {
+
+                boolean isInWater = ((GameRendererExtension) mc.gameRenderer).vivecraft$isInWater();
+                if (dataHolder.vrSettings.waterEffect && wasInWater != isInWater) {
                     // water state changed, start effect
-                    dataHolder.watereffect = 2.3F;
+                    waterEffect = 2.3F;
                 } else {
-                    if (((GameRendererExtension) mc.gameRenderer).vivecraft$isInWater()) {
+                    if (isInWater) {
                         // slow falloff in water
-                        dataHolder.watereffect -= 1F / 120F;
+                        waterEffect -= 1F / 120F;
                     } else {
                         // fast falloff outside water
-                        dataHolder.watereffect -= 1F / 60F;
+                        waterEffect -= 1F / 60F;
                     }
 
-                    if (dataHolder.watereffect < 0.0F) {
-                        dataHolder.watereffect = 0.0F;
-                    }
-                }
-
-                gameRendererExtension.vivecraft$setWasInWater(gameRendererExtension.vivecraft$isInWater());
-
-                if (Xplat.isModLoaded("iris") || Xplat.isModLoaded("oculus")) {
-                    if (!IrisHelper.hasWaterEffect()) {
-                        dataHolder.watereffect = 0.0F;
+                    if (waterEffect < 0.0F) {
+                        waterEffect = 0.0F;
                     }
                 }
 
-                if (gameRendererExtension.vivecraft$isInPortal()) {
-                    dataHolder.portaleffect = 1.0F;
-                } else {
-                    dataHolder.portaleffect -= 0.016666668F;
+                wasInWater = isInWater;
 
-                    if (dataHolder.portaleffect < 0.0F) {
-                        dataHolder.portaleffect = 0.0F;
-                    }
+                if (IrisHelper.isLoaded() && !IrisHelper.hasWaterEffect()) {
+                    waterEffect = 0.0F;
+                }
+
+                if (Mth.lerp(partialTick, mc.player.oSpinningEffectIntensity, mc.player.spinningEffectIntensity) >
+                    0.0F && !mc.player.hasEffect(MobEffects.CONFUSION))
+                {
+
+                }
+
+                float portalTime = Mth.lerp(partialTick, mc.player.oSpinningEffectIntensity,
+                    mc.player.spinningEffectIntensity);
+                if (dataHolder.vrSettings.portalEffect &&
+                    // vanilla check for portal overlay
+                    portalTime > 0.0F && !mc.player.hasEffect(MobEffects.CONFUSION))
+                {
+                    portalEffect = portalTime;
                 }
 
                 ItemStack itemstack = mc.player.getInventory().getArmor(3);
 
-                if (itemstack.getItem() == Blocks.CARVED_PUMPKIN.asItem() &&
+                if (dataHolder.vrSettings.pumpkinEffect && itemstack.getItem() == Blocks.CARVED_PUMPKIN.asItem() &&
                     (!itemstack.hasTag() || itemstack.getTag().getInt("CustomModelData") == 0))
                 {
-                    dataHolder.pumpkineffect = 1.0F;
-                } else {
-                    dataHolder.pumpkineffect = 0.0F;
+                    pumpkinEffect = 1.0F;
                 }
 
                 float hurtTimer = (float) mc.player.hurtTime - partialTick;
                 float healthPercent = 1.0F - mc.player.getHealth() / mc.player.getMaxHealth();
                 healthPercent = (healthPercent - 0.5F) * 0.75F;
 
-                if (hurtTimer > 0.0F) { // hurt flash
+                if (dataHolder.vrSettings.hitIndicator && hurtTimer > 0.0F) { // hurt flash
                     hurtTimer = hurtTimer / (float) mc.player.hurtDuration;
                     hurtTimer = healthPercent +
                         Mth.sin(hurtTimer * hurtTimer * hurtTimer * hurtTimer * (float) Math.PI) * 0.5F;
                     red = hurtTimer;
-                } else if (dataHolder.vrSettings.low_health_indicator) { // red due to low health
+                } else if (dataHolder.vrSettings.lowHealthIndicator) { // red due to low health
                     red = healthPercent * Mth.abs(Mth.sin((2.5F * time) / (1.0F - healthPercent + 0.1F)));
 
                     if (mc.player.isCreative()) {
@@ -167,7 +173,7 @@ public class ShaderHelper {
                 }
 
                 float freeze = mc.player.getPercentFrozen();
-                if (freeze > 0) {
+                if (dataHolder.vrSettings.freezeEffect && freeze > 0) {
                     blue = red;
                     blue = Math.max(freeze / 2, blue);
                     red = 0;
@@ -193,12 +199,11 @@ public class ShaderHelper {
                     fovReduction = 1.0F;
                 }
             } else {
-                dataHolder.watereffect = 0.0F;
-                dataHolder.portaleffect = 0.0F;
-                dataHolder.pumpkineffect = 0.0F;
+                waterEffect = 0.0F;
+                fovReduction = 1.0F;
             }
 
-            if (dataHolder.pumpkineffect > 0.0F) {
+            if (pumpkinEffect > 0.0F) {
                 VRShaders._FOVReduction_RadiusUniform.set(0.3F);
                 VRShaders._FOVReduction_BorderUniform.set(0.0F);
             } else {
@@ -212,9 +217,9 @@ public class ShaderHelper {
             VRShaders._Overlay_FreezeAlpha.set(blue);
             VRShaders._Overlay_BlackAlpha.set(black);
             VRShaders._Overlay_time.set(time);
-            VRShaders._Overlay_waterAmplitude.set(dataHolder.watereffect);
-            VRShaders._Overlay_portalAmplitutde.set(dataHolder.portaleffect);
-            VRShaders._Overlay_pumpkinAmplitutde.set(dataHolder.pumpkineffect);
+            VRShaders._Overlay_waterAmplitude.set(waterEffect);
+            VRShaders._Overlay_portalAmplitutde.set(portalEffect);
+            VRShaders._Overlay_pumpkinAmplitutde.set(pumpkinEffect);
         }
 
         // this needs to be set for each eye
