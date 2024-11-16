@@ -256,6 +256,12 @@ public class VRData {
             Vector3f dir = this.waist.getDirection().lerp(this.hmd.getDirection(), 0.5F);
             return (float) Math.atan2(-dir.x, dir.z);
         } else {
+            if (!ClientDataHolderVR.getInstance().vr.isControllerTracking(0) ||
+                !ClientDataHolderVR.getInstance().vr.isControllerTracking(1))
+            {
+                return this.hmd.getYawRad();
+            }
+
             Vec3 headPos = this.hmd.getPosition();
 
             Vector3f c1Pos = this.c1.getPosition().subtract(headPos).toVector3f();

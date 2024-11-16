@@ -15,6 +15,7 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionfc;
 import org.joml.Vector3fc;
 import org.vivecraft.client.render.models.HandModel;
@@ -157,55 +158,83 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             limbScale = ClientDataHolderVR.getInstance().vrSettings.playerModelArmsScale;
         }
 
-        float offset = (this.slim ? 0.5F : 1F) * limbScale * (this.rotInfo.reverse ? -1F : 1F);
+        if (this.rotInfo.leftArmPos.distanceSquared(this.rotInfo.rightArmPos) > 0.001F) {
+            float offset = (this.slim ? 0.5F : 1F) * limbScale * (this.rotInfo.reverse ? -1F : 1F);
 
-        // left arm
-        if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-            positionConnectedLimb(actualLeftShoulder, actualLeftHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmRot,
-                this.rotInfo.leftArmQuat, this.rotInfo.leftElbowPos, true, HumanoidArm.LEFT);
+            // left arm
+            if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
+                positionConnectedLimb(actualLeftShoulder, actualLeftHand, this.rotInfo.leftArmPos,
+                    this.rotInfo.leftArmRot, this.rotInfo.leftArmQuat, this.rotInfo.leftElbowPos, true,
+                    HumanoidArm.LEFT);
 
-            this.tempM.rotateLocalX(this.xRot);
-            this.tempM.transform(offset, 0, 0, this.tempV);
-            actualLeftHand.x += this.tempV.x;
-            actualLeftHand.y += this.tempV.y;
-            actualLeftHand.z -= this.tempV.z;
+                this.tempM.rotateLocalX(this.xRot);
+                this.tempM.transform(offset, 0, 0, this.tempV);
+                actualLeftHand.x += this.tempV.x;
+                actualLeftHand.y += this.tempV.y;
+                actualLeftHand.z -= this.tempV.z;
+            } else {
+                positionSplitLimb(actualLeftShoulder, actualLeftHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmRot,
+                    this.rotInfo.leftArmQuat, 0F, offset, this.rotInfo.leftElbowPos, true, HumanoidArm.LEFT);
+            }
+
+            if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
+                ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
+            {
+                GuiHandler.GUI_ROTATION_PLAYER_MODEL.set3x3(this.tempM);
+                // undo lay rotation
+                GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateLocalX(this.xRot);
+                // ModelParts are rotated 90°
+                GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateX(-Mth.HALF_PI);
+                // undo body yaw
+                GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateLocalY(-this.bodyYaw - Mth.PI);
+
+                ModelUtils.modelToWorld(actualLeftHand.x, actualLeftHand.y, actualLeftHand.z, this.rotInfo,
+                    this.bodyYaw, this.isMainPlayer, this.tempV);
+
+                GuiHandler.GUI_POS_PLAYER_MODEL = player.getPosition(Minecraft.getInstance().getFrameTime())
+                    .add(this.tempV.x, this.tempV.y, this.tempV.z);
+            }
+
+            // right arm
+            if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
+                positionConnectedLimb(actualRightShoulder, actualRightHand, this.rotInfo.rightArmPos,
+                    this.rotInfo.rightArmRot, this.rotInfo.rightArmQuat, this.rotInfo.rightElbowPos, true,
+                    HumanoidArm.RIGHT);
+
+                this.tempM.rotateLocalX(this.xRot);
+                this.tempM.transform(-offset, 0, 0, this.tempV);
+                actualRightHand.x += this.tempV.x;
+                actualRightHand.y += this.tempV.y;
+                actualRightHand.z -= this.tempV.z;
+            } else {
+                positionSplitLimb(actualRightShoulder, actualRightHand, this.rotInfo.rightArmPos,
+                    this.rotInfo.rightArmRot, this.rotInfo.rightArmQuat, 0F, -offset, this.rotInfo.rightElbowPos, true,
+                    HumanoidArm.RIGHT);
+            }
         } else {
-            positionSplitLimb(actualLeftShoulder, actualLeftHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmRot,
-                this.rotInfo.leftArmQuat, 0F, offset, this.rotInfo.leftElbowPos, true, HumanoidArm.LEFT);
-        }
-
-        if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
-            ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
-        {
-            GuiHandler.GUI_ROTATION_PLAYER_MODEL.set3x3(this.tempM);
-            // undo lay rotation
-            GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateLocalX(this.xRot);
-            // ModelParts are rotated 90°
-            GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateX(-Mth.HALF_PI);
-            // undo body yaw
-            GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateLocalY(-this.bodyYaw - Mth.PI);
-
-            ModelUtils.modelToWorld(actualLeftHand.x, actualLeftHand.y, actualLeftHand.z,
-                this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV);
-
-            GuiHandler.GUI_POS_PLAYER_MODEL = player.getPosition(Minecraft.getInstance().getFrameTime())
-                .add(this.tempV.x, this.tempV.y, this.tempV.z);
-        }
-
-        // right arm
-        if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-            positionConnectedLimb(actualRightShoulder, actualRightHand, this.rotInfo.rightArmPos,
-                this.rotInfo.rightArmRot, this.rotInfo.rightArmQuat, this.rotInfo.rightElbowPos, true,
-                HumanoidArm.RIGHT);
-
-            this.tempM.rotateLocalX(this.xRot);
-            this.tempM.transform(-offset, 0, 0, this.tempV);
+            this.tempV.set(-limbScale, 10, 0)
+                .rotateZ(actualRightShoulder.zRot)
+                .rotateY(actualRightShoulder.yRot)
+                .rotateX(actualRightShoulder.xRot);
+            actualRightHand.copyFrom(actualRightShoulder);
             actualRightHand.x += this.tempV.x;
             actualRightHand.y += this.tempV.y;
-            actualRightHand.z -= this.tempV.z;
-        } else {
-            positionSplitLimb(actualRightShoulder, actualRightHand, this.rotInfo.rightArmPos, this.rotInfo.rightArmRot,
-                this.rotInfo.rightArmQuat, 0F, -offset, this.rotInfo.rightElbowPos, true, HumanoidArm.RIGHT);
+            actualRightHand.z += this.tempV.z;
+
+            this.tempV.set(limbScale, 10, 0)
+                .rotateZ(actualLeftShoulder.zRot)
+                .rotateY(actualLeftShoulder.yRot)
+                .rotateX(actualLeftShoulder.xRot);
+            actualLeftHand.copyFrom(actualLeftShoulder);
+            actualLeftHand.x += this.tempV.x;
+            actualLeftHand.y += this.tempV.y;
+            actualLeftHand.z += this.tempV.z;
+
+            if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
+                ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
+            {
+                GuiHandler.GUI_POS_PLAYER_MODEL = Vec3.ZERO;
+            }
         }
 
         // first person scale

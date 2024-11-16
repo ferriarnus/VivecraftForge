@@ -99,12 +99,6 @@ public class VRHotkeys {
                 }
             }
 
-            if (key == GLFW.GLFW_KEY_LEFT_SHIFT) {
-                ClientDataHolderVR.getInstance().vrSettings.setOptionValue(VRSettings.VrOptions.PLAYER_MODEL_TYPE);
-
-                gotKey = true;
-            }
-
             if (key == GLFW.GLFW_KEY_F12 && DEBUG) {
                 Screen current = minecraft.screen;
                 minecraft.setScreen(new WinScreen(false, () -> minecraft.setScreen(current)));

@@ -248,8 +248,10 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         }
 
         // arms/legs only when standing
-        if (!this.rotInfo.seated) {
-            if (this.getClass() == VRPlayerModel.class) {
+        if (!this.rotInfo.seated || this.isMainPlayer) {
+            if (this.getClass() == VRPlayerModel.class &&
+                this.rotInfo.leftArmPos.distanceSquared(this.rotInfo.rightArmPos) > 0.001F)
+            {
                 ModelPart actualLeftArm = this.leftArm;
                 ModelPart actualRightArm = this.rightArm;
                 if (this.rotInfo.reverse) {
@@ -319,10 +321,7 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             }
 
             // legs only when not sitting
-            if (!this.riding && !noLowerBodyAnimation &&
-                !(this instanceof VRPlayerModel_WithArmsLegs))
-            //this.getClass() == VRPlayerModel.class || this.getClass() == VRPlayerModel_WithArms.class))
-            {
+            if (!this.riding && !noLowerBodyAnimation && !(this instanceof VRPlayerModel_WithArmsLegs)) {
                 // vanilla walking animation on top
                 float limbRotation = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
 

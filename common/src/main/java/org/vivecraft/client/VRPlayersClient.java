@@ -17,6 +17,7 @@ import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.extensions.MinecraftExtension;
 import org.vivecraft.client_vr.provider.MCVR;
+import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.AutoCalibration;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
@@ -345,9 +346,9 @@ public class VRPlayersClient {
         }
 
         rotInfo.leftArmPos = MathUtils.subtractToVector3f(
-            data.getController(MCVR.OFFHAND_CONTROLLER).getPosition(), pos);
+            RenderHelper.getControllerRenderPos(MCVR.OFFHAND_CONTROLLER), pos);
         rotInfo.rightArmPos = MathUtils.subtractToVector3f(
-            data.getController(MCVR.MAIN_CONTROLLER).getPosition(), pos);
+            RenderHelper.getControllerRenderPos(MCVR.MAIN_CONTROLLER), pos);
         rotInfo.headPos = MathUtils.subtractToVector3f(data.hmd.getPosition(), pos);
 
         if (ClientDataHolderVR.getInstance().vr.hasFBT() && ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated) {
@@ -458,7 +459,9 @@ public class VRPlayersClient {
          */
         public float getBodyYawRad() {
             Vector3f dir = new Vector3f();
-            if (this.seated) {
+            if (this.seated ||
+                (this.fbtMode == FBTMode.ARMS_ONLY && this.leftArmPos.distanceSquared(this.rightArmPos) < 0.001F))
+            {
                 // in seated use the head direction
                 dir.set(this.headRot);
             } else if (this.fbtMode != FBTMode.ARMS_ONLY) {

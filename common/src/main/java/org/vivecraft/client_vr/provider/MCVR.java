@@ -11,6 +11,7 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.TorchBlock;
+import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.lwjgl.glfw.GLFW;
 import org.vivecraft.client.VivecraftVRMod;
@@ -443,7 +444,7 @@ public abstract class MCVR {
         if (this.mc.player.getInventory() == null) return;
         if (this.dh.climbTracker.isGrabbingLadder() && ClimbTracker.isClaws(this.mc.player.getMainHandItem())) return;
         if (!this.dh.interactTracker.isActive(this.mc.player)) return;
-        if (GuiHandler.GUI_POS_WORLD == null) return;
+        if (GuiHandler.GUI_POS_WORLD == Vec3.ZERO) return;
 
         Vector3fc main = this.getAimSource(MAIN_CONTROLLER);
 

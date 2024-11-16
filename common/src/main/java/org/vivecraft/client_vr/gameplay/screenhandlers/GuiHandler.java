@@ -526,7 +526,9 @@ public class GuiHandler {
                         position.z + direction.z * DH.vrPlayer.vrdata_world_render.worldScale * DH.vrSettings.hudDistance);
 
                     scale = DH.vrSettings.hudScale;
-                } else if (DH.vrSettings.shouldRenderSelf && DH.vrSettings.shouldRenderModelArms) {
+                } else if (GUI_POS_PLAYER_MODEL != Vec3.ZERO && DH.vrSettings.shouldRenderSelf &&
+                    DH.vrSettings.shouldRenderModelArms)
+                {
                     // attach to player model
                     if (DH.vrSettings.vrHudLockMode == VRSettings.HUDLock.HAND) {
                         // hud on hand
