@@ -405,7 +405,7 @@ public class ServerConfig {
 
         // fix any enums that are loaded as strings first
         for (ConfigBuilder.ConfigValue<?> configValue: builder.getConfigValues()) {
-            if (configValue instanceof ConfigBuilder.EnumValue enumValue) {
+            if (configValue instanceof ConfigBuilder.EnumValue enumValue && enumValue.get() != null) {
                 enumValue.set(enumValue.getEnumValue(enumValue.get()));
             }
         }
