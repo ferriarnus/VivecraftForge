@@ -164,8 +164,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             // left arm
             if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
                 positionConnectedLimb(actualLeftShoulder, actualLeftHand, this.rotInfo.leftArmPos,
-                    this.rotInfo.leftArmRot, this.rotInfo.leftArmQuat, this.rotInfo.leftElbowPos, true,
-                    HumanoidArm.LEFT);
+                    this.rotInfo.leftArmQuat, this.rotInfo.leftElbowPos, true, HumanoidArm.LEFT);
 
                 this.tempM.rotateLocalX(this.xRot);
                 this.tempM.transform(offset, 0, 0, this.tempV);
@@ -175,14 +174,14 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             } else {
                 positionSplitLimb(actualLeftShoulder, actualLeftHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmRot,
                     this.rotInfo.leftArmQuat, 0F, offset, this.rotInfo.leftElbowPos, true, HumanoidArm.LEFT);
+                // undo lay rotation
+                this.tempM.rotateLocalX(this.xRot);
             }
 
             if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
                 ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
             {
                 GuiHandler.GUI_ROTATION_PLAYER_MODEL.set3x3(this.tempM);
-                // undo lay rotation
-                GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateLocalX(this.xRot);
                 // ModelParts are rotated 90°
                 GuiHandler.GUI_ROTATION_PLAYER_MODEL.rotateX(-Mth.HALF_PI);
                 // undo body yaw
@@ -198,8 +197,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             // right arm
             if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
                 positionConnectedLimb(actualRightShoulder, actualRightHand, this.rotInfo.rightArmPos,
-                    this.rotInfo.rightArmRot, this.rotInfo.rightArmQuat, this.rotInfo.rightElbowPos, true,
-                    HumanoidArm.RIGHT);
+                    this.rotInfo.rightArmQuat, this.rotInfo.rightElbowPos, true, HumanoidArm.RIGHT);
 
                 this.tempM.rotateLocalX(this.xRot);
                 this.tempM.transform(-offset, 0, 0, this.tempV);
@@ -314,15 +312,14 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
      * @param upper upper body part (shoulder/thigh)
      * @param lower lower body part (hand/foot)
      * @param lowerPos player space position the lower body part should be at
-     * @param lowerDir player space direction the lower body part should account for
      * @param lowerRot direction the lower body part should face
      * @param jointPos elbow/knee position, if {@code null} a middle point will be estimated
      * @param jointDown if the estimated joint should prefer up/forward or down/back
      * @param arm arm this is positioning, to check if the swing animation should be applied
      */
     protected void positionConnectedLimb(
-        ModelPart upper, ModelPart lower, Vector3fc lowerPos, Vector3fc lowerDir, Quaternionfc lowerRot,
-        Vector3fc jointPos, boolean jointDown, HumanoidArm arm)
+        ModelPart upper, ModelPart lower, Vector3fc lowerPos, Quaternionfc lowerRot, Vector3fc jointPos,
+        boolean jointDown, HumanoidArm arm)
     {
         // position lower
         ModelUtils.worldToModel(lowerPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV);
@@ -340,11 +337,9 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         // arm dir
         this.tempV.sub(upper.x, upper.y, upper.z);
 
-        // hand direction
-        ModelUtils.worldToModelDirection(lowerDir, this.bodyYaw, this.tempV2);
-        if (jointDown) {
-            this.tempV2.mul(-1F);
-        }
+        // hand direction, up forward/down back
+        lowerRot.transform(0F, jointDown ? -1F : 1F, jointDown ? 1F : -1F, this.tempV2);
+        ModelUtils.worldToModelDirection(this.tempV2, this.bodyYaw, this.tempV2);
 
         // calculate the vector perpendicular to the arm dir
         float dot = this.tempV.dot(this.tempV2) / this.tempV.dot(this.tempV);
@@ -361,7 +356,6 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             ModelUtils.worldToModel(jointPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV);
         }
 
-        // if we inverted this before we need to reset it
         // invert joint dir, use it for up in the point at
         if (jointDown) {
             this.tempV2.mul(-1F);

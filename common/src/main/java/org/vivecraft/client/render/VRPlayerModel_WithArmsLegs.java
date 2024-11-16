@@ -134,12 +134,11 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
                 kneePos = this.rotInfo.leftKneePos;
             }
 
-            this.footQuat.transform(MathUtils.BACK, this.tempV3);
             this.footPos.add(this.footOffset);
             if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-                positionConnectedLimb(this.leftLeg, this.leftFoot, this.footPos, this.tempV3,
-                    this.footQuat, kneePos, false, null);
+                positionConnectedLimb(this.leftLeg, this.leftFoot, this.footPos, this.footQuat, kneePos, false, null);
             } else {
+                this.footQuat.transform(MathUtils.BACK, this.tempV3);
                 positionSplitLimb(this.leftLeg, this.leftFoot, this.footPos, this.tempV3,
                     this.footQuat, -Mth.HALF_PI, 0F, kneePos, false, null);
             }
@@ -156,12 +155,11 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
                 kneePos = this.rotInfo.rightKneePos;
             }
 
-            this.footQuat.transform(MathUtils.BACK, this.tempV3);
             this.footPos.add(-this.footOffset.x, this.footOffset.y, -this.footOffset.z);
             if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-                positionConnectedLimb(this.rightLeg, this.rightFoot, this.footPos, this.tempV3,
-                    this.footQuat, kneePos, false, null);
+                positionConnectedLimb(this.rightLeg, this.rightFoot, this.footPos, this.footQuat, kneePos, false, null);
             } else {
+                this.footQuat.transform(MathUtils.BACK, this.tempV3);
                 positionSplitLimb(this.rightLeg, this.rightFoot, this.footPos, this.tempV3,
                     this.footQuat, -Mth.HALF_PI, 0F, kneePos, false, null);
             }
