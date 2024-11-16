@@ -90,7 +90,7 @@ public class GuiHandler {
     public static Vector3f GUI_POS_ROOM = null;
     public static Matrix4f GUI_ROTATION_ROOM = null;
 
-    public static Vec3 GUI_POS_WORLD = null;
+    public static Vec3 GUI_POS_WORLD = Vec3.ZERO;
     public static Vector3f GUI_OFFSET_WORLD = new Vector3f();
     public static Matrix4f GUI_ROTATION_WORLD = new Matrix4f();
 
