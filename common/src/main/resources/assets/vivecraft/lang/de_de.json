@@ -492,7 +492,7 @@
   "vivecraft.options.RENDER_DEBUG_HEAD_HITBOX": "Kopf Kollisionsboxen",
   "vivecraft.options.RENDER_DEBUG_DEVICE_AXES": "Lokale Geräte Achsen",
   "vivecraft.options.RENDER_DEBUG_PLAYER_AXES": "Remote Geräte Achsen",
-  "vivecraft.options.SHOW_PLAYER_MODEL": "Zeige Spieler Modell",
+  "vivecraft.options.SHOW_PLAYER_MODEL": "Zeige Spielermodell",
   "vivecraft.options.SHOW_PLAYER_MODEL_ARMS": "Benutze Modell Arme",
   "vivecraft.options.PLAYER_MODEL_ARMS_SCALE": "Armgröße",
   "vivecraft.options.PLAYER_MODEL_BODY_SCALE": "Körpergröße",

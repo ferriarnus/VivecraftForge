@@ -494,7 +494,7 @@
   "vivecraft.options.RENDER_DEBUG_HEAD_HITBOX": "Head Hitboxes",
   "vivecraft.options.RENDER_DEBUG_DEVICE_AXES": "Local Device Axes",
   "vivecraft.options.RENDER_DEBUG_PLAYER_AXES": "Remote Device Axes",
-  "vivecraft.options.SHOW_PLAYER_MODEL": "Show Player Model",
+  "vivecraft.options.SHOW_PLAYER_MODEL": "Show Playermodel",
   "vivecraft.options.SHOW_PLAYER_MODEL_ARMS": "Use Model Arms",
   "vivecraft.options.PLAYER_MODEL_ARMS_SCALE": "Arms Size",
   "vivecraft.options.PLAYER_MODEL_BODY_SCALE": "Body Size",
