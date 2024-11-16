@@ -88,7 +88,7 @@ public class KeyboardInputVRMixin extends Input {
             Vector2 moveStrafe = dataHolder.vr.getInputAction(VivecraftVRMod.INSTANCE.keyFreeMoveStrafe).getAxis2DUseTracked();
             Vector2 moveRotate = dataHolder.vr.getInputAction(VivecraftVRMod.INSTANCE.keyFreeMoveRotate).getAxis2DUseTracked();
 
-            if (moveStrafe.getX() != 0.0F && moveStrafe.getY() != 0.0F) {
+            if (moveStrafe.getX() != 0.0F || moveStrafe.getY() != 0.0F) {
                 setMovement = true;
                 forwardAxis = moveStrafe.getY();
 
