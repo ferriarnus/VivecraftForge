@@ -460,7 +460,7 @@ public class VRPlayersClient {
         public float getBodyYawRad() {
             Vector3f dir = new Vector3f();
             if (this.seated ||
-                (this.fbtMode == FBTMode.ARMS_ONLY && this.leftArmPos.distanceSquared(this.rightArmPos) < 0.001F))
+                (this.fbtMode == FBTMode.ARMS_ONLY && this.leftArmPos.distanceSquared(this.rightArmPos) < 0.0F))
             {
                 // in seated use the head direction
                 dir.set(this.headRot);

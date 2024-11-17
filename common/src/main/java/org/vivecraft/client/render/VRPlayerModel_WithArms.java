@@ -158,7 +158,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             limbScale = ClientDataHolderVR.getInstance().vrSettings.playerModelArmsScale;
         }
 
-        if (this.rotInfo.leftArmPos.distanceSquared(this.rotInfo.rightArmPos) > 0.001F) {
+        if (this.rotInfo.leftArmPos.distanceSquared(this.rotInfo.rightArmPos) > 0.0F) {
             float offset = (this.slim ? 0.5F : 1F) * limbScale * (this.rotInfo.reverse ? -1F : 1F);
 
             // left arm
@@ -166,6 +166,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
                 positionConnectedLimb(actualLeftShoulder, actualLeftHand, this.rotInfo.leftArmPos,
                     this.rotInfo.leftArmQuat, this.rotInfo.leftElbowPos, true, HumanoidArm.LEFT);
 
+                // undo lay rotation
                 this.tempM.rotateLocalX(this.xRot);
                 this.tempM.transform(offset, 0, 0, this.tempV);
                 actualLeftHand.x += this.tempV.x;
@@ -298,7 +299,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         // lower rotation
         ModelUtils.toModelDir(this.bodyYaw, lowerRot, this.tempM);
 
-        if (arm != null && this.attackArm == arm) {
+        if (ClientDataHolderVR.getInstance().vrSettings.playerArmAnim && arm != null && this.attackArm == arm) {
             ModelUtils.swingAnimation(lower, arm, -3F, this.attackTime, this.isMainPlayer, this.tempM,
                 this.tempV, this.tempV2);
         }
@@ -324,6 +325,11 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         // position lower
         ModelUtils.worldToModel(lowerPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV);
         float armLength = 12F;
+        if (arm != null) {
+            // reduce arm length to the side, since the model shoulders don't align with human shoulders
+            this.tempV.normalize(this.tempV2);
+            armLength -= 2F * this.tempV2.x * this.tempV2.x;
+        }
         // limit length to 12, no limb stretching, for now
         float length = this.tempV.distance(upper.x, upper.y, upper.z);
         if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsLimit && length > armLength) {
@@ -379,7 +385,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
         ModelUtils.pointAtModel(this.tempV, this.tempV2, this.tempM);
 
-        if (arm != null && this.attackArm == arm) {
+        if (ClientDataHolderVR.getInstance().vrSettings.playerArmAnim && arm != null && this.attackArm == arm) {
             ModelUtils.swingAnimation(lower, arm, -armLength * 0.5F, this.attackTime, this.isMainPlayer, this.tempM,
                 this.tempV, this.tempV2);
         }

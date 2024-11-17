@@ -255,6 +255,11 @@ public class NullVR extends MCVR {
                     this.vrActive = !this.vrActive;
                     return true;
                 }
+                if (key == GLFW.GLFW_KEY_KP_ADD) {
+                    mod.keyVRInteract.pressKey(ControllerType.LEFT);
+                    mod.keyVRInteract.pressKey(ControllerType.RIGHT);
+                    return true;
+                }
 
                 int offset = MethodHolder.isKeyDown(GLFW.GLFW_KEY_RIGHT_ALT) ? -1 : 1;
 

@@ -381,6 +381,10 @@ public class VRSettings {
     public boolean playerLimbsConnected = true;
     @SettingField(VrOptions.PLAYER_LIMBS_LIMIT)
     public boolean playerLimbsLimit = true;
+    @SettingField(VrOptions.PLAYER_WALK_ANIM)
+    public boolean playerWalkAnim = true;
+    @SettingField(VrOptions.PLAYER_ARM_ANIM)
+    public boolean playerArmAnim = true;
     @SettingField(VrOptions.MENU_WORLD_SELECTION)
     public MenuWorld menuWorldSelection = MenuWorld.BOTH;
     @SettingField(VrOptions.MENU_WORLD_FALLBACK)
@@ -1901,6 +1905,8 @@ public class VRSettings {
             }
         },
         PLAYER_LIMBS_LIMIT(false, true), // doesn't split connected limbs when over length
+        PLAYER_WALK_ANIM(false, true), // if the walk animation should show on top of fbt
+        PLAYER_ARM_ANIM(false, true), // if the player arm should swing with attacks, item using
         BOW_MODE(false, true) { // Roomscale Bow Mode
 
             @Override

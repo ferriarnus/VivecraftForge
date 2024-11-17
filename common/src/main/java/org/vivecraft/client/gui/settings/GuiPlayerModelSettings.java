@@ -19,7 +19,9 @@ public class GuiPlayerModelSettings extends GuiVROptionsBase {
         new VROptionEntry(VRSettings.VrOptions.PLAYER_LIMBS_CONNECTED),
         new VROptionEntry(VRSettings.VrOptions.PLAYER_MODEL_BODY_SCALE),
         new VROptionEntry(VRSettings.VrOptions.PLAYER_LIMBS_LIMIT),
-        new VROptionEntry(VRSettings.VrOptions.PLAYER_MODEL_LEGS_SCALE)
+        new VROptionEntry(VRSettings.VrOptions.PLAYER_MODEL_LEGS_SCALE),
+        new VROptionEntry(VRSettings.VrOptions.PLAYER_WALK_ANIM),
+        new VROptionEntry(VRSettings.VrOptions.PLAYER_ARM_ANIM)
     };
 
     private final VROptionEntry[] fbtCalibration = new VROptionEntry[]{new VROptionEntry(
