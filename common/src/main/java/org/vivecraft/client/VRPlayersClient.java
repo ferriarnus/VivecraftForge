@@ -13,9 +13,9 @@ import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.vivecraft.client.extensions.SparkParticleExtension;
+import org.vivecraft.client.utils.ClientUtils;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
-import org.vivecraft.client_vr.extensions.MinecraftExtension;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.AutoCalibration;
@@ -78,7 +78,7 @@ public class VRPlayersClient {
     public void update(UUID uuid, VrPlayerState vrPlayerState, float worldScale, float heightScale, boolean localPlayer) {
         if (!localPlayer && this.mc.player.getUUID().equals(uuid)) {
             return; // Don't update local player from server packet
-            }
+        }
 
         Vector3fc hmdDir = vrPlayerState.hmd().orientation().transform(MathUtils.BACK, new Vector3f());
         Vector3fc controller0Dir = vrPlayerState.controller0().orientation().transform(MathUtils.BACK, new Vector3f());
@@ -231,7 +231,7 @@ public class VRPlayersClient {
         if (this.debug) {
             uuid = this.mc.player.getUUID();
         }
-        float partialTick = ((MinecraftExtension) Minecraft.getInstance()).vivecraft$getPartialTick();
+        float partialTick = ClientUtils.getCurrentPartialTick();
 
         if (VRState.VR_RUNNING && this.mc.player != null && uuid.equals(this.mc.player.getUUID())) {
             return getMainPlayerRotInfo(this.mc.player, partialTick);
@@ -460,7 +460,7 @@ public class VRPlayersClient {
         public float getBodyYawRad() {
             Vector3f dir = new Vector3f();
             if (this.seated ||
-                (this.fbtMode == FBTMode.ARMS_ONLY && this.leftArmPos.distanceSquared(this.rightArmPos) < 0.0F))
+                (this.fbtMode == FBTMode.ARMS_ONLY && this.leftArmPos.distanceSquared(this.rightArmPos) == 0.0F))
             {
                 // in seated use the head direction
                 dir.set(this.headRot);

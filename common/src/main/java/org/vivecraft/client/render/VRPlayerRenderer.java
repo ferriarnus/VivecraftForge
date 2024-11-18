@@ -16,6 +16,7 @@ import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client.render.armor.VRArmorModel_WithArms;
 import org.vivecraft.client.render.armor.VRArmorLayer;
 import org.vivecraft.client.render.armor.VRArmorModel_WithArmsLegs;
+import org.vivecraft.client.utils.ScaleHelper;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.render.RenderPass;
@@ -111,7 +112,10 @@ public class VRPlayerRenderer extends PlayerRenderer {
     }
 
     @Override
-    public void render(AbstractClientPlayer player, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
+    public void render(
+        AbstractClientPlayer player, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer,
+        int packedLight)
+    {
 
         poseStack.pushPose();
 
@@ -119,7 +123,14 @@ public class VRPlayerRenderer extends PlayerRenderer {
         if (rotInfo != null) {
             float scale = rotInfo.heightScale;
             if (VRState.VR_RUNNING && player == Minecraft.getInstance().player) {
-                scale *= rotInfo.worldScale;
+                // remove entity scale, since the entity is already scaled by that before
+                scale *= rotInfo.worldScale / ScaleHelper.getEntityEyeHeightScale(player, partialTick);
+            }
+
+            if (player.isAutoSpinAttack()) {
+                // offset player to head
+                float offset = player.getViewXRot(partialTick) / 90F * 0.2F;
+                poseStack.translate(0, rotInfo.headPos.y() + offset,0);
             }
 
             poseStack.scale(scale, scale, scale);

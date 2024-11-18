@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.phys.Vec3;
+import org.vivecraft.client_vr.extensions.MinecraftExtension;
 import org.vivecraft.client_vr.settings.VRSettings;
 
 import java.io.BufferedReader;
@@ -16,6 +17,7 @@ import java.util.Random;
 
 public class ClientUtils {
 
+    private static final Minecraft MC = Minecraft.getInstance();
     private static final Random AV_RANDOMIZER = new Random();
 
     /**
@@ -99,6 +101,13 @@ public class ClientUtils {
         Minecraft minecraft = Minecraft.getInstance();
         Screenshot.grab(minecraft.gameDirectory, fb, text ->
             minecraft.execute(() -> minecraft.gui.getChat().addMessage(text)));
+    }
+
+    /**
+     * @return current partialTick, or pausePartialTick when paused
+     */
+    public static float getCurrentPartialTick() {
+        return ((MinecraftExtension) MC).vivecraft$getPartialTick();
     }
 
     public static <T extends Enum<T>> T getNextEnum(T current, int offset) {

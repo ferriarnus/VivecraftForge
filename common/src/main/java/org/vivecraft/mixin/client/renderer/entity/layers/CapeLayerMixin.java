@@ -49,7 +49,7 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
     @WrapOperation(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/player/AbstractClientPlayer;FFFFFF)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
     private void vivecraft$modifyOffset(
         PoseStack poseStack, float x, float y, float z, Operation<Void> original,
-        @Local(argsOnly = true) AbstractClientPlayer player,
+        @Local(argsOnly = true) AbstractClientPlayer player, @Local(argsOnly = true, ordinal = 2) float partialTick,
         @Share("xRot") LocalFloatRef xRotation, @Share("yRot") LocalFloatRef yRotation)
     {
         VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
@@ -75,7 +75,7 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
             this.vivecraft$tempV.add(vrModel.body.x, vrModel.body.y + 24F, vrModel.body.z);
 
             // no yaw, since we  need the vector to be player rotated anyway
-            ModelUtils.modelToWorld(this.vivecraft$tempV, rotInfo, 0F, false, this.vivecraft$tempV);
+            ModelUtils.modelToWorld(player, this.vivecraft$tempV, rotInfo, 0F, false, false, this.vivecraft$tempV);
             original.call(poseStack, this.vivecraft$tempV.x, -this.vivecraft$tempV.y, -this.vivecraft$tempV.z);
         } else {
             original.call(poseStack, x, y, z);

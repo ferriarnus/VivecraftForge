@@ -1,19 +1,15 @@
 package org.vivecraft.client.utils;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Pose;
 import org.joml.*;
 import org.vivecraft.client.VRPlayersClient;
-import org.vivecraft.client.Xplat;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.render.VRFirstPersonArmSwing;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
-import org.vivecraft.mod_compat_vr.pehkui.PehkuiHelper;
 import org.vivecraft.mod_compat_vr.sodium.SodiumHelper;
 
 import java.lang.Math;
@@ -84,16 +80,14 @@ public class ModelUtils {
      * @param rotInfo RotInfo for the given player
      * @return 0-1 of how far the player is bending over
      */
-    public static float getBendProgress(LivingEntity entity, VRPlayersClient.RotInfo rotInfo) {
+    public static float getBendProgress(LivingEntity entity, VRPlayersClient.RotInfo rotInfo, Vector3fc headPivot) {
         // no bending when spinning
         if (entity.isAutoSpinAttack()) return 0.0F;
 
-        float eyeHeight = entity.getEyeHeight(Pose.STANDING) * rotInfo.worldScale;
-        if (Xplat.isModLoaded("pehkui")) {
-            // remove pehkui scale from that, since the whole entity is scaled
-            eyeHeight /= PehkuiHelper.getEntityEyeHeightScale(entity, Minecraft.getInstance().getFrameTime());
-        }
-        float heightOffset = Mth.clamp(rotInfo.headPos.y() - eyeHeight * rotInfo.heightScale * 0.95F, -eyeHeight, 0F);
+        //default player eye height, -0.2 neck offset
+        float eyeHeight = 1.42F * rotInfo.worldScale;
+
+        float heightOffset = Mth.clamp(headPivot.y() - eyeHeight * rotInfo.heightScale, -eyeHeight, 0F);
 
         float progress = heightOffset / -eyeHeight;
 
@@ -109,22 +103,30 @@ public class ModelUtils {
 
     /**
      * converts a player local point to player model space
+     * @param player player this position is from
      * @param position Position to convert
      * @param rotInfo player VR info
      * @param bodyYaw players Y rotation
-     * @param removeWorldScale when set will cancel out the worldScale
+     * @param useWorldScale when set will cancel out the worldScale, instead of entity scale
      * @param out Vector3f to store the result in
      */
-    public static void worldToModel(Vector3fc position, VRPlayersClient.RotInfo rotInfo, float bodyYaw, boolean removeWorldScale, Vector3f out) {
+    public static void worldToModel(
+        LivingEntity player, Vector3fc position, VRPlayersClient.RotInfo rotInfo, float bodyYaw,
+        boolean useWorldScale, Vector3f out)
+    {
         out.set(position);
-        if (Xplat.isModLoaded("pehkui")) {
-            // remove pehkui scale from that, since the whole entity is scaled
-            // TODO FBT which of those is correct
-            //out.div(PehkuiHelper.getEntityEyeHeightScale(Minecraft.getInstance().player, Minecraft.getInstance().getFrameTime()));
+
+        if (player.isAutoSpinAttack()) {
+            out.y += 1F;
         }
-        if (removeWorldScale) {
+
+        if (useWorldScale) {
+            // the main player has the entity scale in its world scale
             out.div(rotInfo.worldScale);
+        } else {
+            out.div(ScaleHelper.getEntityEyeHeightScale(player, ClientUtils.getCurrentPartialTick()));
         }
+
         final float scale = 0.9375F * rotInfo.heightScale;
         out.sub(0.0F, 1.501F * scale, 0.0F) // move to player center
             .rotateY(-Mth.PI + bodyYaw) // apply player rotation
@@ -156,101 +158,80 @@ public class ModelUtils {
 
     /**
      * converts a player model space point to player local space
+     * @param player player this position is from
      * @param modelPosition source point in model space
      * @param rotInfo player VR info
      * @param bodyYaw players Y rotation
-     * @param removeWorldScale when set will cancel out the worldScale
+     * @param applyScale if the woldScale/entity scale should be applied
+     * @param useWorldScale when set will apply the worldScale, instead of entity scale
      * @param out Vector3f to store the result in
      * @return {@code out} vector
      */
     public static Vector3f modelToWorld(
-        Vector3fc modelPosition, VRPlayersClient.RotInfo rotInfo, float bodyYaw, boolean removeWorldScale, Vector3f out)
+        LivingEntity player, Vector3fc modelPosition, VRPlayersClient.RotInfo rotInfo, float bodyYaw,
+        boolean applyScale, boolean useWorldScale, Vector3f out)
     {
-        return modelToWorld(modelPosition.x(), modelPosition.y(), modelPosition.z(), rotInfo, bodyYaw, removeWorldScale,
-            out);
+        return modelToWorld(player, modelPosition.x(), modelPosition.y(), modelPosition.z(), rotInfo, bodyYaw,
+            applyScale, useWorldScale, out);
     }
 
     /**
      * converts a player model space point to player local space
+     * @param player player this position is from
      * @param x x coordinate of the source point
      * @param y y coordinate of the source point
      * @param z z coordinate of the source point
      * @param rotInfo player VR info
      * @param bodyYaw players Y rotation
-     * @param applyWorldScale when set will apply the worldScale
+     * @param applyScale if the woldScale/entity scale should be applied
+     * @param useWorldScale when set will apply the worldScale, instead of entity scale
      * @param out Vector3f to store the result in
      * @return {@code out} vector
      */
     public static Vector3f modelToWorld(
-        float x, float y, float z, VRPlayersClient.RotInfo rotInfo, float bodyYaw, boolean applyWorldScale, Vector3f out)
+        LivingEntity player, float x, float y, float z, VRPlayersClient.RotInfo rotInfo, float bodyYaw,
+        boolean applyScale, boolean useWorldScale, Vector3f out)
     {
         final float scale = 0.9375F * rotInfo.heightScale;
         out.set(-x, -y, z)
             .mul(scale / 16.0F)
             .rotateY(Mth.PI - bodyYaw)
             .add(0.0F, 1.501F * scale, 0.0F);
-        if (Xplat.isModLoaded("pehkui")) {
-            // remove pehkui scale from that, since the whole entity is scaled
-            // TODO FBT which of those is correct
-            //out.div(PehkuiHelper.getEntityEyeHeightScale(Minecraft.getInstance().player, Minecraft.getInstance().getFrameTime()));
+
+        if (applyScale) {
+            if (useWorldScale) {
+                // the main player has the entity scale in its world scale
+                out.mul(rotInfo.worldScale);
+            } else {
+                out.mul(ScaleHelper.getEntityEyeHeightScale(player, ClientUtils.getCurrentPartialTick()));
+            }
         }
-        if (applyWorldScale) {
-            out.mul(rotInfo.worldScale);
-        }
+
         return out;
     }
 
     /**
      * rotates the ModelPart {@code part} to point at the given player local world space point
+     * @param player player this position is from
      * @param part ModelPart to rotate
      * @param target target point the {@code part} should face, player local in world space
      * @param targetRot target rotation the {@code part} should respect
      * @param rotInfo players data
      * @param bodyYaw players Y rotation
-     * @param applyWorldScale when set will apply the worldScale
+     * @param applyScale if the woldScale/entity scale should be applied
+     * @param useWorldScale when set will apply the worldScale, instead of entity scale
      * @param tempVDir Vector3f object to work with, contains the euler angles after the call
      * @param tempVUp second Vector3f object to work with, contains the euler angles after the call
      * @param tempM Matrix3f object to work with, contains the rotation after the call
      */
     public static void pointModelAtLocal(
-        ModelPart part, Vector3fc target, Quaternionfc targetRot, VRPlayersClient.RotInfo rotInfo, float bodyYaw,
-        boolean applyWorldScale, Vector3f tempVDir, Vector3f tempVUp, Matrix3f tempM)
+        LivingEntity player, ModelPart part, Vector3fc target, Quaternionfc targetRot, VRPlayersClient.RotInfo rotInfo,
+        float bodyYaw, boolean applyScale, boolean useWorldScale, Vector3f tempVDir, Vector3f tempVUp, Matrix3f tempM)
     {
-        // concert model to world space
-        modelToWorld(part.x, part.y, part.z, rotInfo, bodyYaw, applyWorldScale, tempVDir);
+        // convert model to world space
+        modelToWorld(player, part.x, part.y, part.z, rotInfo, bodyYaw, applyScale, useWorldScale, tempVDir);
         // calculate direction
         target.sub(tempVDir, tempVDir);
-
-        // get the up vector the ModelPart should face
-        targetRot.transform(MathUtils.RIGHT, tempVUp);
-        tempVDir.cross(tempVUp, tempVUp);
-
-        // rotate model
-        pointAt(bodyYaw, tempVDir, tempVUp, tempM);
-    }
-
-    /**
-     * rotates the ModelPart {@code part} to point at the given model space point
-     * @param part ModelPart to rotate
-     * @param targetX x coordinate of the target point the {@code part} should face, ine model space
-     * @param targetY y coordinate of the target point the {@code part} should face, ine model space
-     * @param targetZ z coordinate of the target point the {@code part} should face, ine model space
-     * @param targetRot target rotation the {@code part} should respect
-     * @param bodyYaw players Y rotation
-     * @param tempVDir Vector3f object to work with, contains the euler angles after the call
-     * @param tempVUp second Vector3f object to work with, contains the up vector after the call
-     * @param tempM Matrix3f object to work with, contains the rotation after the call
-     */
-    public static void pointModelAtModel(
-        ModelPart part, float targetX, float targetY, float targetZ, Quaternionfc targetRot, float bodyYaw,
-        Vector3f tempVDir, Vector3f tempVUp, Matrix3f tempM)
-    {
-        // TODO FBT remove unnecessary bodyYaw
-        // calculate direction
-        tempVDir.set(targetX - part.x, targetY - part.y, targetZ - part.z);
-
-        // convert to world space
-        modelToWorldDirection(tempVDir, bodyYaw, tempVDir);
 
         // get the up vector the ModelPart should face
         targetRot.transform(MathUtils.RIGHT, tempVUp);
@@ -271,15 +252,13 @@ public class ModelUtils {
      * @param tempM Matrix3f object to work with, contains the rotation after the call
      */
     public static void pointModelAtModel(
-        ModelPart part, float targetX, float targetY, float targetZ,
-        Vector3f tempVDir, Vector3f tempVUp, Matrix3f tempM)
+        ModelPart part, float targetX, float targetY, float targetZ, Vector3f tempVDir,
+        Vector3f tempVUp, Matrix3f tempM)
     {
         // calculate direction
         tempVDir.set(targetX - part.x, targetY - part.y, targetZ - part.z);
 
-        // convert to world space
-        tempVDir.set(tempVDir.x, tempVDir.y, tempVDir.z);
-
+        // get the up vector the ModelPart should face
         tempVDir.cross(MathUtils.LEFT, tempVUp);
 
         // rotate model

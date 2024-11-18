@@ -133,8 +133,13 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
             Vector3fc kneePos;
             if (this.rotInfo.fbtMode == FBTMode.ARMS_ONLY) {
                 this.footPos.set(this.leftLeg.x, 24, this.leftLeg.z);
-                ModelUtils.modelToWorld(this.footPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.footPos);
+                ModelUtils.modelToWorld(player, this.footPos, this.rotInfo, this.bodyYaw, true, this.isMainPlayer,
+                    this.footPos);
                 this.footQuat.identity().rotateY(Mth.PI - this.bodyYaw);
+                if (player.isAutoSpinAttack()) {
+                    // player is offset 1 block during the spin
+                    this.footPos.y -= 1F;
+                }
                 kneePos = null;
             } else {
                 this.footPos.set(this.rotInfo.leftFootPos);
@@ -144,17 +149,23 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
 
             this.footPos.add(this.footOffset);
             if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-                positionConnectedLimb(this.leftLeg, this.leftFoot, this.footPos, this.footQuat, kneePos, false, null);
+                positionConnectedLimb(player, this.leftLeg, this.leftFoot, this.footPos, this.footQuat, kneePos, false,
+                    null);
             } else {
                 this.footQuat.transform(MathUtils.BACK, this.tempV3);
-                positionSplitLimb(this.leftLeg, this.leftFoot, this.footPos, this.tempV3,
-                    this.footQuat, -Mth.HALF_PI, 0F, kneePos, false, null);
+                positionSplitLimb(player, this.leftLeg, this.leftFoot, this.footPos, this.tempV3, this.footQuat,
+                    -Mth.HALF_PI, 0F, kneePos, false, null);
             }
 
             // right leg
             if (this.rotInfo.fbtMode == FBTMode.ARMS_ONLY) {
                 this.footPos.set(this.rightLeg.x, 24, this.rightLeg.z);
-                ModelUtils.modelToWorld(this.footPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.footPos);
+                ModelUtils.modelToWorld(player, this.footPos, this.rotInfo, this.bodyYaw, true, this.isMainPlayer,
+                    this.footPos);
+                if (player.isAutoSpinAttack()) {
+                    // player is offset 1 block during the spin
+                    this.footPos.y -= 1F;
+                }
                 kneePos = null;
             } else {
                 this.footPos.set(this.rotInfo.rightFootPos);
@@ -164,11 +175,12 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
 
             this.footPos.add(-this.footOffset.x, this.footOffset.y, -this.footOffset.z);
             if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-                positionConnectedLimb(this.rightLeg, this.rightFoot, this.footPos, this.footQuat, kneePos, false, null);
+                positionConnectedLimb(player, this.rightLeg, this.rightFoot, this.footPos, this.footQuat, kneePos,
+                    false, null);
             } else {
                 this.footQuat.transform(MathUtils.BACK, this.tempV3);
-                positionSplitLimb(this.rightLeg, this.rightFoot, this.footPos, this.tempV3,
-                    this.footQuat, -Mth.HALF_PI, 0F, kneePos, false, null);
+                positionSplitLimb(player, this.rightLeg, this.rightFoot, this.footPos, this.tempV3, this.footQuat,
+                    -Mth.HALF_PI, 0F, kneePos, false, null);
             }
         }
 
@@ -197,6 +209,10 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
         if (this.isMainPlayer && RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass)) {
             this.leftFoot.xScale = this.leftFoot.zScale = this.rightFoot.xScale = this.rightFoot.zScale =
                 ClientDataHolderVR.getInstance().vrSettings.playerModelLegScale;
+        }
+
+        if (player.isAutoSpinAttack()) {
+            spinOffset(player, this.leftLeg, this.rightLeg, this.leftFoot, this.rightFoot);
         }
 
         this.leftPants.copyFrom(this.leftLeg);

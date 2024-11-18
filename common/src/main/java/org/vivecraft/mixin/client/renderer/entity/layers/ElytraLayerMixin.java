@@ -33,7 +33,7 @@ public abstract class ElytraLayerMixin<T extends LivingEntity, M extends EntityM
     @WrapOperation(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
     private void vivecraft$elytraPosition(
         PoseStack instance, float x, float y, float z, Operation<Void> original,
-        @Local(argsOnly = true) LivingEntity entity)
+        @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true, ordinal = 2) float partialTick)
     {
         VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(entity.getUUID());
         // only do this if the player model is the vr model
@@ -62,7 +62,7 @@ public abstract class ElytraLayerMixin<T extends LivingEntity, M extends EntityM
             this.vivecraft$tempV.add(vrModel.body.x, vrModel.body.y + 24F, vrModel.body.z);
 
             // no yaw, since we  need the vector to be player rotated anyway
-            ModelUtils.modelToWorld(this.vivecraft$tempV, rotInfo, 0F, false, this.vivecraft$tempV);
+            ModelUtils.modelToWorld(entity, this.vivecraft$tempV, rotInfo, 0F, false, false, this.vivecraft$tempV);
             original.call(instance, this.vivecraft$tempV.x, -this.vivecraft$tempV.y, -this.vivecraft$tempV.z);
 
             // rotate elytra
