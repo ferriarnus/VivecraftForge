@@ -166,6 +166,14 @@ public class VRArmHelper {
      * @param partialTick current partial tick
      */
     public static void renderVRHand_Main(PoseStack poseStack, float partialTick) {
+        // don't render claws with model arms
+        if (DATA_HOLDER.climbTracker.isClimbeyClimb() &&
+            ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
+            ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
+        {
+            return;
+        }
+
         poseStack.pushPose();
         RenderHelper.setupRenderingAtController(0, poseStack);
         ItemStack item = MC.player.getMainHandItem();
@@ -215,47 +223,53 @@ public class VRArmHelper {
      * @param renderTeleport if the teleport arc should be rendered
      */
     public static void renderVRHand_Offhand(PoseStack poseStack, float partialTick, boolean renderTeleport) {
-        poseStack.pushPose();
-        RenderHelper.setupRenderingAtController(1, poseStack);
-        ItemStack item = MC.player.getOffhandItem();
-        ItemStack override = null; // physicalGuiManager.getOffhandOverride();
+        // don't render claws with model arms
+        if (!ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf ||
+            !ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms ||
+            !DATA_HOLDER.climbTracker.isClimbeyClimb())
+        {
+            poseStack.pushPose();
+            RenderHelper.setupRenderingAtController(1, poseStack);
+            ItemStack item = MC.player.getOffhandItem();
+            ItemStack override = null; // physicalGuiManager.getOffhandOverride();
 
-        if (override != null) {
-            item = override;
+            if (override != null) {
+                item = override;
+            }
+
+            // climbey override
+            if (DATA_HOLDER.climbTracker.isClimbeyClimb() && !ClimbTracker.isClaws(item) && override == null) {
+                item = MC.player.getMainHandItem();
+            }
+
+            // Roomscale bow override
+            item = getBowOverride(item, InteractionHand.OFF_HAND);
+
+            if (OptifineHelper.isOptifineLoaded() && OptifineHelper.isShaderActive()) {
+                // if we don't do this shaders render the hands wrong
+                OptifineHelper.beginEntities();
+            }
+
+            MC.gameRenderer.lightTexture().turnOnLightLayer();
+
+            MultiBufferSource.BufferSource bufferSource = MC.renderBuffers().bufferSource();
+            MC.gameRenderer.itemInHandRenderer.renderArmWithItem(MC.player, partialTick,
+                0.0F, InteractionHand.OFF_HAND, MC.player.getAttackAnim(partialTick), item, 0.0F,
+                poseStack, bufferSource,
+                MC.getEntityRenderDispatcher().getPackedLightCoords(MC.player, partialTick));
+
+            bufferSource.endBatch();
+
+            MC.gameRenderer.lightTexture().turnOffLightLayer();
+
+            if (OptifineHelper.isOptifineLoaded() && OptifineHelper.isShaderActive()) {
+                // undo the thing we did before
+                OptifineHelper.endEntities();
+            }
+
+            // back to hmd rendering
+            poseStack.popPose();
         }
-
-        // climbey override
-        if (DATA_HOLDER.climbTracker.isClimbeyClimb() && !ClimbTracker.isClaws(item) && override == null) {
-            item = MC.player.getMainHandItem();
-        }
-
-        // Roomscale bow override
-        item = getBowOverride(item, InteractionHand.OFF_HAND);
-
-        if (OptifineHelper.isOptifineLoaded() && OptifineHelper.isShaderActive()) {
-            // if we don't do this shaders render the hands wrong
-            OptifineHelper.beginEntities();
-        }
-
-        MC.gameRenderer.lightTexture().turnOnLightLayer();
-
-        MultiBufferSource.BufferSource bufferSource = MC.renderBuffers().bufferSource();
-        MC.gameRenderer.itemInHandRenderer.renderArmWithItem(MC.player, partialTick,
-            0.0F, InteractionHand.OFF_HAND, MC.player.getAttackAnim(partialTick), item, 0.0F,
-            poseStack, bufferSource,
-            MC.getEntityRenderDispatcher().getPackedLightCoords(MC.player, partialTick));
-
-        bufferSource.endBatch();
-
-        MC.gameRenderer.lightTexture().turnOffLightLayer();
-
-        if (OptifineHelper.isOptifineLoaded() && OptifineHelper.isShaderActive()) {
-            // undo the thing we did before
-            OptifineHelper.endEntities();
-        }
-
-        // back to hmd rendering
-        poseStack.popPose();
 
         // teleport arc
         if (renderTeleport) {

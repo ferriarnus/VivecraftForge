@@ -18,7 +18,7 @@ public class CustomHeadLayerMixin {
     private void vivecraft$noHelmetInFirstPerson(
         CallbackInfo ci, @Local(argsOnly = true) LivingEntity entity)
     {
-        if (VRState.vrRunning && entity == Minecraft.getInstance().player &&
+        if (VRState.VR_RUNNING && entity == Minecraft.getInstance().player &&
             RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass))
         {
             ci.cancel();

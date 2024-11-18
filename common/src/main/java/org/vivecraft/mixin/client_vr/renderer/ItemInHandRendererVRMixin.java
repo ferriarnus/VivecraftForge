@@ -72,10 +72,7 @@ public abstract class ItemInHandRendererVRMixin {
         HumanoidArm side, CallbackInfo ci)
     {
         if (VRState.VR_RUNNING) {
-            if (!ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf ||
-                !ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms) {
-                vivecraft$vrPlayerArm(poseStack, buffer, combinedLight, swingProgress, side);
-            }
+            vivecraft$vrPlayerArm(poseStack, buffer, combinedLight, swingProgress, side);
             ci.cancel();
         }
     }
@@ -93,7 +90,10 @@ public abstract class ItemInHandRendererVRMixin {
     }
 
     @Unique
-    private void vivecraft$vrRenderArmWithItem(AbstractClientPlayer player, float partialTick, InteractionHand hand, float swingProgress, ItemStack itemStack, PoseStack poseStack, MultiBufferSource buffer, int combinedLight) {
+    private void vivecraft$vrRenderArmWithItem(
+        AbstractClientPlayer player, float partialTick, InteractionHand hand, float swingProgress, ItemStack itemStack,
+        PoseStack poseStack, MultiBufferSource buffer, int combinedLight)
+    {
         ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
 
         boolean mainHand = hand == InteractionHand.MAIN_HAND;
@@ -115,6 +115,13 @@ public abstract class ItemInHandRendererVRMixin {
             (hand == InteractionHand.OFF_HAND && dh.currentPass == RenderPass.SCOPEL ||
                 hand == InteractionHand.MAIN_HAND && dh.currentPass == RenderPass.SCOPER
             ))
+        {
+            renderArm = false;
+        }
+
+        if (RenderPass.isFirstPerson(dh.currentPass) &&
+            ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
+            ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
         {
             renderArm = false;
         }
@@ -218,7 +225,9 @@ public abstract class ItemInHandRendererVRMixin {
     }
 
     @Unique
-    private void vivecraft$vrPlayerArm(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, float swingProgress, HumanoidArm side) {
+    private void vivecraft$vrPlayerArm(
+        PoseStack poseStack, MultiBufferSource buffer, int combinedLight, float swingProgress, HumanoidArm side)
+    {
         boolean mainHand = side != HumanoidArm.LEFT;
         float offsetDirection = mainHand ? 1.0F : -1.0F;
         AbstractClientPlayer player = this.minecraft.player;

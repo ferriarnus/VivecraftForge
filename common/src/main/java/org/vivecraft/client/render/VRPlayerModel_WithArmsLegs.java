@@ -17,6 +17,7 @@ import org.joml.Vector3fc;
 import org.vivecraft.client.render.models.FeetModel;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 
@@ -191,6 +192,11 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
                 this.rightLeg.z + (this.riding ? this.tempV.z : -this.tempV.z));
             this.leftFoot.setRotation(this.leftLeg.xRot, this.leftLeg.yRot, this.leftLeg.zRot);
             this.rightFoot.setRotation(this.rightLeg.xRot, this.rightLeg.yRot, this.rightLeg.zRot);
+        }
+
+        if (this.isMainPlayer && RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass)) {
+            this.leftFoot.xScale = this.leftFoot.zScale = this.rightFoot.xScale = this.rightFoot.zScale =
+                ClientDataHolderVR.getInstance().vrSettings.playerModelLegScale;
         }
 
         this.leftPants.copyFrom(this.leftLeg);

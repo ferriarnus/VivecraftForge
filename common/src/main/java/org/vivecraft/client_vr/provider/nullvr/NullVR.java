@@ -256,8 +256,8 @@ public class NullVR extends MCVR {
                     return true;
                 }
                 if (key == GLFW.GLFW_KEY_KP_ADD) {
-                    mod.keyVRInteract.pressKey(ControllerType.LEFT);
-                    mod.keyVRInteract.pressKey(ControllerType.RIGHT);
+                    MOD.keyVRInteract.pressKey(ControllerType.LEFT);
+                    MOD.keyVRInteract.pressKey(ControllerType.RIGHT);
                     return true;
                 }
 
