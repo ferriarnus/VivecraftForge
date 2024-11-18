@@ -443,16 +443,16 @@ public class OptifineHelper {
             CustomColors_GetUnderwaterColor = CustomColors.getMethod("getUnderwaterColor", BlockAndTintGetter.class, double.class, double.class, double.class);
             CustomColors_GetUnderlavaColor = CustomColors.getMethod("getUnderlavaColor", BlockAndTintGetter.class, double.class, double.class, double.class);
 
-            ShadersRender = Class.forName("net.optifine.Shaders_.ShadersRender");
+            ShadersRender = Class.forName("net.optifine.shaders.ShadersRender");
             ShadersRender_BeginOutline = ShadersRender.getMethod("beginOutline");
             ShadersRender_EndOutline = ShadersRender.getMethod("endOutline");
 
-            Shaders = Class.forName("net.optifine.Shaders_.Shaders");
+            Shaders = Class.forName("net.optifine.shaders.Shaders");
             Shaders_BeginEntities = Shaders.getMethod("beginEntities");
             Shaders_EndEntities = Shaders.getMethod("endEntities");
             Shaders_SetCameraShadow = Shaders.getMethod("setCameraShadow", PoseStack.class, Camera.class, float.class);
 
-            Class<?> ShadersFramebuffer = Class.forName("net.optifine.Shaders_.ShadersFramebuffer");
+            Class<?> ShadersFramebuffer = Class.forName("net.optifine.shaders.ShadersFramebuffer");
             ShadersFramebuffer_BindFramebuffer = ShadersFramebuffer.getMethod("bindFramebuffer");
 
             // private methods
