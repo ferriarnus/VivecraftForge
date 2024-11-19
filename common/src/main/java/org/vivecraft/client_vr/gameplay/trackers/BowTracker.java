@@ -12,13 +12,13 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.network.ClientNetworking;
+import org.vivecraft.client.utils.ScaleHelper;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.extensions.PlayerExtension;
 import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.network.packet.c2s.DrawPayloadC2S;
-import org.vivecraft.mod_compat_vr.pehkui.PehkuiHelper;
 
 public class BowTracker extends Tracker {
     private double currentDraw;
@@ -95,7 +95,6 @@ public class BowTracker extends Tracker {
 
     @Override
     public void reset(LocalPlayer player) {
-        this.canDraw = false;
         this.isDrawing = false;
         this.canDraw = false;
     }
@@ -121,10 +120,8 @@ public class BowTracker extends Tracker {
 
             this.maxDraw = (double) this.mc.player.getBbHeight() * 0.22D;
 
-            if (PehkuiHelper.isLoaded()) {
-                // this is meant to be relative to the base Bb height, not the scaled one
-                this.maxDraw /= PehkuiHelper.getEntityBbScale(player, this.mc.getFrameTime());
-            }
+            // this is meant to be relative to the base Bb height, not the scaled one
+            this.maxDraw /= ScaleHelper.getEntityBbScale(player, this.mc.getFrameTime());
 
             int bowHand = 1;
             int arrowHand = 0;

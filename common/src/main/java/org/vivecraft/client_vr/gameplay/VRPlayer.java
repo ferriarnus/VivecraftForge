@@ -23,6 +23,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.network.ClientNetworking;
+import org.vivecraft.client.utils.ScaleHelper;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.ItemTags;
 import org.vivecraft.client_vr.MethodHolder;
@@ -37,7 +38,6 @@ import org.vivecraft.client_vr.gameplay.trackers.VehicleTracker;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.VRServerPerms;
-import org.vivecraft.mod_compat_vr.pehkui.PehkuiHelper;
 
 import java.util.ArrayList;
 
@@ -189,17 +189,11 @@ public class VRPlayer {
 
             this.worldScale = this.rawWorldScale;
 
-            if (PehkuiHelper.isLoaded()) {
-                // scale world with player size
-                this.worldScale *= PehkuiHelper.getEntityEyeHeightScale(this.mc.player, this.mc.getFrameTime());
-                // limit scale
-                if (this.worldScale > 100F) {
-                    this.worldScale = 100F;
-                } else if (this.worldScale < 0.025F) // minClip + player position indicator offset
-                {
-                    this.worldScale = 0.025F;
-                }
-            }
+            // scale world with player size
+            this.worldScale *= ScaleHelper.getEntityEyeHeightScale(this.mc.player, this.mc.getFrameTime());
+            // limit scale
+            // min is minClip + player position indicator offset
+            this.worldScale = Mth.clamp(this.worldScale, 0.025F, 100F);
 
             // check that nobody tries to bypass the server set worldscale limit it with a runtime worldscale
             if (this.mc.level != null && this.mc.isLocalServer() && (worldScaleOverride.isValueMinOverridden() || worldScaleOverride.isValueMaxOverridden())) {

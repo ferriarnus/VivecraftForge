@@ -16,8 +16,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
+import org.vivecraft.client.utils.ScaleHelper;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
-import org.vivecraft.mod_compat_vr.pehkui.PehkuiHelper;
 import org.vivecraft.mod_compat_vr.sodium.SodiumHelper;
 
 public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerModel<T> {
@@ -185,11 +185,11 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
         Vec3 leftArmPos = this.rotInfo.leftArmPos;
         Vec3 rightArmPos = this.rotInfo.rightArmPos;
-        if (PehkuiHelper.isLoaded()) {
-            // remove pehkui scale from that, since the whole entity is scaled
-            leftArmPos = leftArmPos.scale(1.0F / PehkuiHelper.getEntityEyeHeightScale(player, Minecraft.getInstance().getFrameTime()));
-            rightArmPos = rightArmPos.scale(1.0F / PehkuiHelper.getEntityEyeHeightScale(player, Minecraft.getInstance().getFrameTime()));
-        }
+
+        // remove entity scale from that, since the whole entity is scaled
+        float inverseScale = 1F / ScaleHelper.getEntityEyeHeightScale(player, Minecraft.getInstance().getFrameTime());
+        leftArmPos = leftArmPos.scale(inverseScale);
+        rightArmPos = rightArmPos.scale(inverseScale);
 
         // Left Arm
         leftArmPos = leftArmPos.add(0.0D, handsYOffset, 0.0D);
