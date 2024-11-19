@@ -3,7 +3,6 @@ package org.vivecraft.client_vr.gameplay.trackers;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,13 +20,12 @@ import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.extensions.PlayerExtension;
 import org.vivecraft.client_vr.provider.ControllerType;
-import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.network.packet.c2s.DrawPayloadC2S;
 
 public class BowTracker extends Tracker {
     private static final long MAX_DRAW_MILLIS = 1100L;
-    private static final double NOTCH_DOT_THRESHOLD = 20.0D;
+    private static final double NOTCH_DOT_THRESHOLD = 20F;
 
     // when the arrow was started drawing, to handle charged shots
     public long startDrawTime;
@@ -77,7 +75,7 @@ public class BowTracker extends Tracker {
     }
 
     public static boolean isHoldingBow(LivingEntity entity, InteractionHand hand) {
-        return /*!ClientDataHolderVR.getInstance().vrSettings.seated && */isBow(entity.getItemInHand(hand));
+        return !ClientDataHolderVR.getInstance().vrSettings.seated && isBow(entity.getItemInHand(hand));
     }
 
     public static boolean isHoldingBowEither(LivingEntity entity) {
@@ -112,11 +110,7 @@ public class BowTracker extends Tracker {
 
     @Override
     public void doProcess(LocalPlayer player) {
-        VRData vrData = this.dh.vrPlayer.vrdata_world_render;
-
-        if (vrData == null) {
-            vrData = this.dh.vrPlayer.vrdata_world_pre;
-        }
+        VRData vrData = this.dh.vrPlayer.getVRDataWorld();
 
         if (this.dh.vrSettings.seated) {
             this.aim = vrData.getController(0).getCustomVector(MathUtils.FORWARD);
@@ -284,8 +278,5 @@ public class BowTracker extends Tracker {
                 this.lastHapStep = 0;
             }
         }
-        Vector3f dir = this.aim.mul(2, new Vector3f());
-        Vec3 cPos = RenderHelper.getControllerRenderPos(0).add(new Vec3(dir));
-        player.level().addParticle(new DustParticleOptions(DustParticleOptions.REDSTONE_PARTICLE_COLOR, 0.1F), cPos.x, cPos.y, cPos.z, dir.x, dir.y, dir.z);
     }
 }
