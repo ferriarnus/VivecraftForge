@@ -70,7 +70,7 @@ public class OpenXRStereoRenderer extends VRRenderer {
         super.setupRenderConfiguration(render);
         
         if (!render) {
-            //return;
+            return;
         }
         this.projectionLayerViews = XrCompositionLayerProjectionView.calloc(2);
         try (MemoryStack stack = MemoryStack.stackPush()){
@@ -151,7 +151,7 @@ public class OpenXRStereoRenderer extends VRRenderer {
                         .displayTime(openxr.time)
                         .environmentBlendMode(XR10.XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
                         .layers(layers));
-                this.openxr.logAll(error, "xrEndFrame", "");
+                this.openxr.logError(error, "xrEndFrame", "");
             }
 
             projectionLayerViews.close();
