@@ -99,25 +99,17 @@ public class MCOpenVR extends MCVR {
 
     private final TrackedDevicePose.Buffer hmdTrackedDevicePoses;
 
-    private final int[] controllerDeviceIndex = new int[MCVR.trackableDeviceCount];
-
     private long leftControllerHandle;
     private long leftHapticHandle;
-    private long leftPoseHandle;
 
     private long rightControllerHandle;
     private long rightHapticHandle;
-    private long rightPoseHandle;
 
-    private long externalCameraPoseHandle;
+    // holds the pose handles for the devices other than the headset
+    private final long[] controllerDevicePoseHandle = new long[MCVR.trackableDeviceCount];
 
-    private long waistPoseHandle;
-    private long leftElbowPoseHandle;
-    private long rightElbowPoseHandle;
-    private long leftFootPoseHandle;
-    private long rightFootPoseHandle;
-    private long leftKneePoseHandle;
-    private long rightKneePoseHandle;
+    // holds the last device index for devices other than the headset
+    private final int[] controllerDeviceIndex = new int[MCVR.trackableDeviceCount];
 
     private boolean inputInitialized;
     private final InputOriginInfo originInfo;
@@ -215,6 +207,7 @@ public class MCOpenVR extends MCVR {
         this.hapticScheduler = new OpenVRHapticScheduler();
 
         Arrays.fill(this.controllerDeviceIndex, k_unTrackedDeviceIndexInvalid);
+        Arrays.fill(this.controllerDevicePoseHandle, k_ulInvalidActionHandle);
 
         this.poseMatrices = new Matrix4f[k_unMaxTrackedDeviceCount];
         this.deviceVelocity = new Vector3f[k_unMaxTrackedDeviceCount];
@@ -921,7 +914,7 @@ public class MCOpenVR extends MCVR {
                         this.controllerComponentNames.put(button, component);
                     }
 
-                    long sourceHandle = c == MAIN_CONTROLLER ? this.rightControllerHandle : this.leftControllerHandle;
+                    long sourceHandle = c == RIGHT_CONTROLLER ? this.rightControllerHandle : this.leftControllerHandle;
 
                     if (sourceHandle == k_ulInvalidInputValueHandle) {
                         failed = true;
@@ -940,16 +933,16 @@ public class MCOpenVR extends MCVR {
                         renderModelComponentState.mTrackingToComponentLocal(), new Matrix4f());
                     this.controllerComponentTransforms.get(component)[c] = localTransform;
 
-                    if (c == OFFHAND_CONTROLLER && isRifts && component.equals(k_pch_Controller_Component_HandGrip)) {
+                    if (c == LEFT_CONTROLLER && isRifts && component.equals(k_pch_Controller_Component_HandGrip)) {
                         // I have no idea, Valve, none.
-                        this.controllerComponentTransforms.get(component)[OFFHAND_CONTROLLER] = this.controllerComponentTransforms.get(component)[MAIN_CONTROLLER];
+                        this.controllerComponentTransforms.get(component)[LEFT_CONTROLLER] = this.controllerComponentTransforms.get(component)[RIGHT_CONTROLLER];
                     }
 
-                    if (!failed && c == MAIN_CONTROLLER) {
+                    if (!failed && c == RIGHT_CONTROLLER) {
                         // calculate gun angle
                         try {
-                            Matrix4fc tip = this.getControllerComponentTransform(MAIN_CONTROLLER, k_pch_Controller_Component_Tip);
-                            Matrix4fc hand = this.getControllerComponentTransform(MAIN_CONTROLLER, k_pch_Controller_Component_HandGrip);
+                            Matrix4fc tip = this.getControllerComponentTransform(RIGHT_CONTROLLER, k_pch_Controller_Component_Tip);
+                            Matrix4fc hand = this.getControllerComponentTransform(RIGHT_CONTROLLER, k_pch_Controller_Component_HandGrip);
 
                             Vector3f tipVec = tip.transformDirection(MathUtils.BACK, new Vector3f());
                             Vector3f handVec = hand.transformDirection(MathUtils.BACK, new Vector3f());
@@ -1144,22 +1137,22 @@ public class MCOpenVR extends MCVR {
             }
 
             // controllers
-            this.leftPoseHandle = this.getActionHandle(ACTION_LEFT_HAND);
-            this.rightPoseHandle = this.getActionHandle(ACTION_RIGHT_HAND);
-            this.leftHapticHandle = this.getActionHandle(ACTION_LEFT_HAPTIC);
+            this.controllerDevicePoseHandle[RIGHT_CONTROLLER] = this.getActionHandle(ACTION_RIGHT_HAND);
+            this.controllerDevicePoseHandle[LEFT_CONTROLLER] = this.getActionHandle(ACTION_LEFT_HAND);
             this.rightHapticHandle = this.getActionHandle(ACTION_RIGHT_HAPTIC);
+            this.leftHapticHandle = this.getActionHandle(ACTION_LEFT_HAPTIC);
 
             // camera tracker
-            this.externalCameraPoseHandle = this.getActionHandle(ACTION_EXTERNAL_CAMERA);
+            this.controllerDevicePoseHandle[CAMERA_TRACKER] = this.getActionHandle(ACTION_EXTERNAL_CAMERA);
 
             // fbt tracker
-            this.waistPoseHandle = this.getActionHandle(ACTION_FBT_WAIST);
-            this.leftFootPoseHandle = this.getActionHandle(ACTION_FBT_LEFT_FOOT);
-            this.rightFootPoseHandle = this.getActionHandle(ACTION_FBT_RIGHT_FOOT);
-            this.leftElbowPoseHandle = this.getActionHandle(ACTION_FBT_LEFT_ELBOW);
-            this.rightElbowPoseHandle = this.getActionHandle(ACTION_FBT_RIGHT_ELBOW);
-            this.leftKneePoseHandle = this.getActionHandle(ACTION_FBT_LEFT_KNEE);
-            this.rightKneePoseHandle = this.getActionHandle(ACTION_FBT_RIGHT_KNEE);
+            this.controllerDevicePoseHandle[WAIST_TRACKER] = this.getActionHandle(ACTION_FBT_WAIST);
+            this.controllerDevicePoseHandle[LEFT_FOOT_TRACKER] = this.getActionHandle(ACTION_FBT_LEFT_FOOT);
+            this.controllerDevicePoseHandle[RIGHT_FOOT_TRACKER] = this.getActionHandle(ACTION_FBT_RIGHT_FOOT);
+            this.controllerDevicePoseHandle[LEFT_ELBOW_TRACKER] = this.getActionHandle(ACTION_FBT_LEFT_ELBOW);
+            this.controllerDevicePoseHandle[RIGHT_ELBOW_TRACKER] = this.getActionHandle(ACTION_FBT_RIGHT_ELBOW);
+            this.controllerDevicePoseHandle[LEFT_KNEE_TRACKER] = this.getActionHandle(ACTION_FBT_LEFT_KNEE);
+            this.controllerDevicePoseHandle[RIGHT_KNEE_TRACKER] = this.getActionHandle(ACTION_FBT_RIGHT_KNEE);
 
             for (VRInputActionSet actionSet : VRInputActionSet.values()) {
                 int error = VRInput_GetActionSetHandle(actionSet.name, longRef);
@@ -1357,7 +1350,7 @@ public class MCOpenVR extends MCVR {
     }
 
     /**
-     * updates the pose and tracking state for the given controller/tracker
+     * updates the pose and tracking state for the given controller/tracker by its given actionHandle
      * @param controller controller/tracker to check for new pose
      * @param actionHandle pose handle of the specified controller/tracker
      */
@@ -1426,8 +1419,8 @@ public class MCOpenVR extends MCVR {
             // print device info once
             this.debugInfo = false;
             this.debugOut(k_unTrackedDeviceIndex_Hmd);
-            this.debugOut(this.controllerDeviceIndex[MAIN_CONTROLLER]);
-            this.debugOut(this.controllerDeviceIndex[OFFHAND_CONTROLLER]);
+            this.debugOut(this.controllerDeviceIndex[RIGHT_CONTROLLER]);
+            this.debugOut(this.controllerDeviceIndex[LEFT_CONTROLLER]);
         }
 
         // eye transforms
@@ -1480,24 +1473,20 @@ public class MCOpenVR extends MCVR {
 
             // controller poses
             if (this.dh.vrSettings.reverseHands) {
-                this.updateControllerPose(MAIN_CONTROLLER, this.leftPoseHandle);
-                this.updateControllerPose(OFFHAND_CONTROLLER, this.rightPoseHandle);
+                this.updateControllerPose(RIGHT_CONTROLLER, this.controllerDevicePoseHandle[LEFT_CONTROLLER]);
+                this.updateControllerPose(LEFT_CONTROLLER, this.controllerDevicePoseHandle[RIGHT_CONTROLLER]);
             } else {
-                this.updateControllerPose(MAIN_CONTROLLER, this.rightPoseHandle);
-                this.updateControllerPose(OFFHAND_CONTROLLER, this.leftPoseHandle);
+                this.updateControllerPose(RIGHT_CONTROLLER, this.controllerDevicePoseHandle[RIGHT_CONTROLLER]);
+                this.updateControllerPose(LEFT_CONTROLLER, this.controllerDevicePoseHandle[LEFT_CONTROLLER]);
             }
 
             // camera tracker pose
-            this.updateControllerPose(CAMERA_TRACKER, this.externalCameraPoseHandle);
+            this.updateControllerPose(CAMERA_TRACKER, this.controllerDevicePoseHandle[CAMERA_TRACKER]);
 
             // fbt trackers poses
-            this.updateControllerPose(WAIST_TRACKER, this.waistPoseHandle);
-            this.updateControllerPose(LEFT_FOOT_TRACKER, this.leftFootPoseHandle);
-            this.updateControllerPose(RIGHT_FOOT_TRACKER, this.rightFootPoseHandle);
-            this.updateControllerPose(LEFT_ELBOW_TRACKER, this.leftElbowPoseHandle);
-            this.updateControllerPose(RIGHT_ELBOW_TRACKER, this.rightElbowPoseHandle);
-            this.updateControllerPose(LEFT_KNEE_TRACKER, this.leftKneePoseHandle);
-            this.updateControllerPose(RIGHT_KNEE_TRACKER, this.rightKneePoseHandle);
+            for(int i = 3; i < MCVR.trackableDeviceCount; i++) {
+                this.updateControllerPose(i, this.controllerDevicePoseHandle[i]);
+            }
         }
 
         this.updateAim();
@@ -1550,9 +1539,9 @@ public class MCOpenVR extends MCVR {
             this.readOriginInfo(inputValueHandle);
 
             if (this.originInfo.trackedDeviceIndex() != k_unTrackedDeviceIndexInvalid) {
-                if (this.originInfo.trackedDeviceIndex() == this.controllerDeviceIndex[MAIN_CONTROLLER]) {
+                if (this.originInfo.trackedDeviceIndex() == this.controllerDeviceIndex[RIGHT_CONTROLLER]) {
                     return ControllerType.RIGHT;
-                } else if (this.originInfo.trackedDeviceIndex() == this.controllerDeviceIndex[OFFHAND_CONTROLLER]) {
+                } else if (this.originInfo.trackedDeviceIndex() == this.controllerDeviceIndex[LEFT_CONTROLLER]) {
                     return ControllerType.LEFT;
                 }
             }
@@ -1595,7 +1584,7 @@ public class MCOpenVR extends MCVR {
      * @throws RuntimeException if OpenVR gives an error
      */
     private void readDigitalData(VRInputAction action, ControllerType hand) {
-        int index = hand != null ? hand.ordinal() : MAIN_CONTROLLER;
+        int index = hand != null ? hand.ordinal() : RIGHT_CONTROLLER;
 
         int error = VRInput_GetDigitalActionData(action.handle, this.digital, InputDigitalActionData.SIZEOF,
             hand != null ? this.getControllerHandle(hand) : k_ulInvalidInputValueHandle);
@@ -1617,7 +1606,7 @@ public class MCOpenVR extends MCVR {
      * @throws RuntimeException if OpenVR gives an error
      */
     private void readAnalogData(VRInputAction action, ControllerType hand) {
-        int index = hand != null ? hand.ordinal() : MAIN_CONTROLLER;
+        int index = hand != null ? hand.ordinal() : RIGHT_CONTROLLER;
 
         int error = VRInput_GetAnalogActionData(action.handle, this.analog, InputAnalogActionData.SIZEOF,
             hand != null ? this.getControllerHandle(hand) : k_ulInvalidInputValueHandle);

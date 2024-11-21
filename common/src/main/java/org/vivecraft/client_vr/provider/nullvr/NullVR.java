@@ -47,8 +47,8 @@ public class NullVR extends MCVR {
         OME = this;
         this.hapticScheduler = new NullVRHapticScheduler();
 
-        this.deviceOffsets[MAIN_CONTROLLER] = new Vector3f(0.3F, 1.25F, -0.5F);
-        this.deviceOffsets[OFFHAND_CONTROLLER] = this.deviceOffsets[MAIN_CONTROLLER]
+        this.deviceOffsets[RIGHT_CONTROLLER] = new Vector3f(0.3F, 1.25F, -0.5F);
+        this.deviceOffsets[LEFT_CONTROLLER] = this.deviceOffsets[RIGHT_CONTROLLER]
             .mul(-1, 1, 1, new Vector3f());
 
         // use the camera Tracker for the head
@@ -136,15 +136,15 @@ public class NullVR extends MCVR {
 
             this.controllerPose[MAIN_CONTROLLER] = this.controllerType.tipR.invert(new Matrix4f());
             this.controllerPose[MAIN_CONTROLLER]
-                .rotate(this.deviceRotations[swapHands ? OFFHAND_CONTROLLER : MAIN_CONTROLLER]);
+                .rotate(this.deviceRotations[swapHands ? LEFT_CONTROLLER : RIGHT_CONTROLLER]);
             this.controllerPose[MAIN_CONTROLLER]
-                .setTranslation(this.deviceOffsets[swapHands ? OFFHAND_CONTROLLER : MAIN_CONTROLLER]);
+                .setTranslation(this.deviceOffsets[swapHands ? LEFT_CONTROLLER : RIGHT_CONTROLLER]);
 
             this.controllerPose[OFFHAND_CONTROLLER] = this.controllerType.tipL.invert(new Matrix4f());
             this.controllerPose[OFFHAND_CONTROLLER]
-                .rotate(this.deviceRotations[swapHands ? MAIN_CONTROLLER : OFFHAND_CONTROLLER]);
+                .rotate(this.deviceRotations[swapHands ? RIGHT_CONTROLLER : LEFT_CONTROLLER]);
             this.controllerPose[OFFHAND_CONTROLLER]
-                .setTranslation(this.deviceOffsets[swapHands ? MAIN_CONTROLLER : OFFHAND_CONTROLLER]);
+                .setTranslation(this.deviceOffsets[swapHands ? RIGHT_CONTROLLER : LEFT_CONTROLLER]);
 
             // waist
             this.controllerPose[WAIST_TRACKER].rotation(this.deviceRotations[WAIST_TRACKER]);

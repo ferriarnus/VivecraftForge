@@ -46,6 +46,9 @@ import java.util.stream.Stream;
 public abstract class MCVR {
     public static final int MAIN_CONTROLLER = 0;
     public static final int OFFHAND_CONTROLLER = 1;
+
+    public static final int RIGHT_CONTROLLER = 0;
+    public static final int LEFT_CONTROLLER = 1;
     public static final int CAMERA_TRACKER = 2;
     public static final int WAIST_TRACKER = 3;
     public static final int RIGHT_FOOT_TRACKER = 4;
