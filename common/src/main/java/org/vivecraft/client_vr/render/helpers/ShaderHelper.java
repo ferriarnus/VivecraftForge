@@ -17,8 +17,11 @@ import org.lwjgl.opengl.GL43;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.extensions.WindowExtension;
+import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
+import org.vivecraft.client_vr.render.MirrorNotification;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.render.VRShaders;
+import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.utils.math.Vector3;
 import org.vivecraft.mod_compat_vr.iris.IrisHelper;
 
@@ -226,6 +229,89 @@ public class ShaderHelper {
         VRShaders._Overlay_eye.set(eye == RenderPass.LEFT ? 1 : -1);
 
         ShaderHelper.renderFullscreenQuad(VRShaders.postProcessingShader, source);
+    }
+
+    /**
+     * draws the desktop mirror to the bound buffer
+     */
+    public static void drawMirror() {
+        if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.OFF &&
+            dataHolder.vr.isHMDTracking())
+        {
+            // no mirror, only show when headset is not tracking, to be able to see the menu with the headset off
+            MirrorNotification.notify("Mirror is OFF", true, 1000);
+        } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY) {
+            if (VRShaders.mixedRealityShader != null) {
+                ShaderHelper.doMixedRealityMirror();
+            } else {
+                MirrorNotification.notify("Mixed Reality Shader compile failed, see log for info", true,
+                    10000);
+            }
+        } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.DUAL &&
+            (!dataHolder.vrSettings.displayMirrorUseScreenshotCamera ||
+                !dataHolder.cameraTracker.isVisible()
+            ))
+        {
+            // show both eyes side by side
+            RenderTarget leftEye = dataHolder.vrRenderer.framebufferEye0;
+            RenderTarget rightEye = dataHolder.vrRenderer.framebufferEye1;
+
+            int screenWidth = ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenWidth() / 2;
+            int screenHeight = ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenHeight();
+
+            if (leftEye != null) {
+                ShaderHelper.blitToScreen(leftEye, 0, screenWidth, screenHeight, 0, 0.0F, 0.0F, false);
+            }
+
+            if (rightEye != null) {
+                ShaderHelper.blitToScreen(rightEye, screenWidth, screenWidth, screenHeight, 0, 0.0F, 0.0F, false);
+            }
+        } else {
+            // general single buffer case
+            float xCrop = 0.0F;
+            float yCrop = 0.0F;
+            boolean keepAspect = false;
+            RenderTarget source = dataHolder.vrRenderer.framebufferEye0;
+
+            if (dataHolder.vrSettings.displayMirrorUseScreenshotCamera &&
+                dataHolder.cameraTracker.isVisible())
+            {
+                source = dataHolder.vrRenderer.cameraFramebuffer;
+                keepAspect = true;
+            } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.FIRST_PERSON) {
+                source = dataHolder.vrRenderer.framebufferUndistorted;
+            } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON) {
+                source = dataHolder.vrRenderer.framebufferMR;
+            } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.GUI) {
+                source = GuiHandler.guiFramebuffer;
+            } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.SINGLE ||
+                dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.OFF)
+            {
+                if (!dataHolder.vrSettings.displayMirrorLeftEye) {
+                    source = dataHolder.vrRenderer.framebufferEye1;
+                }
+            } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.CROPPED) {
+                if (!dataHolder.vrSettings.displayMirrorLeftEye) {
+                    source = dataHolder.vrRenderer.framebufferEye1;
+                }
+
+                xCrop = dataHolder.vrSettings.mirrorCrop;
+                yCrop = dataHolder.vrSettings.mirrorCrop;
+                keepAspect = true;
+            }
+            // Debug
+            // source = DataHolder.getInstance().vrRenderer.telescopeFramebufferR;
+            //
+            if (source != null) {
+                ShaderHelper.blitToScreen(source,
+                    0, ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenWidth(),
+                    ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenHeight(), 0,
+                    xCrop, yCrop, keepAspect);
+            }
+        }
+
+        // draw mirror text
+        MirrorNotification.render();
     }
 
     public static void doMixedRealityMirror() {
