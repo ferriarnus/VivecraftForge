@@ -45,7 +45,7 @@ dependencies {
     compileOnly('com.electronwill.night-config:toml:3.6.6')
 
     //LaunchPopup
-    implementation 'com.github.fayer3:LaunchPopup:master-SNAPSHOT'
+    implementation 'fayer3:LaunchPopup:1.1.1:LaunchPopup-1.1.1'
 }
 // extract the LaunchPopup classes
 jar {
