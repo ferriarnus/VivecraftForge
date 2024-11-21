@@ -804,7 +804,7 @@ public class MCOpenXR extends MCVR {
 
             //Create APP info
             XrApplicationInfo applicationInfo = XrApplicationInfo.calloc(stack);
-            applicationInfo.apiVersion(XR10.XR_MAKE_VERSION(1, 0 , 14));
+            applicationInfo.apiVersion(XR10.XR_MAKE_VERSION(1, 0, 40));
             applicationInfo.applicationName(stack.UTF8("Vivecraft"));
             applicationInfo.applicationVersion(1);
 
