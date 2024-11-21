@@ -61,7 +61,6 @@ dependencies {
     forgeRuntimeLibrary("org.lwjgl:lwjgl-openvr:3.3.2:natives-windows")
 
     forgeRuntimeLibrary("org.lwjgl:lwjgl-openxr:3.3.2")
-    forgeRuntimeLibrary("blank:lwjgl:openxr")
     forgeRuntimeLibrary("org.lwjgl:lwjgl-openxr:3.3.2:natives-linux")
     forgeRuntimeLibrary("org.lwjgl:lwjgl-openxr:3.3.2:natives-windows")
 
@@ -72,7 +71,6 @@ dependencies {
     bundle("org.lwjgl:lwjgl-openvr:3.3.2:natives-windows") { transitive = false }
 
     bundle("org.lwjgl:lwjgl-openxr:3.3.2") { transitive = false }
-    bundle("blank:lwjgl:openxr") { transitive = false }
     bundle("org.lwjgl:lwjgl-openxr:3.3.2:natives-linux") { transitive = false }
     bundle("org.lwjgl:lwjgl-openxr:3.3.2:natives-windows") { transitive = false }
 }
