@@ -41,10 +41,7 @@ public class OpenXRStereoRenderer extends VRRenderer {
 
             //Now we know the amount, create the image buffer
             int imageCount = intBuffer.get(0);
-            XrSwapchainImageOpenGLKHR.Buffer swapchainImageBuffer = XrSwapchainImageOpenGLKHR.calloc(imageCount, stack);
-            for (XrSwapchainImageOpenGLKHR image : swapchainImageBuffer) {
-                image.type(KHROpenGLEnable.XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR);
-            }
+            XrSwapchainImageOpenGLKHR.Buffer swapchainImageBuffer = this.openxr.device.createImageBuffers(imageCount, stack);
 
             error = XR10.xrEnumerateSwapchainImages(openxr.swapchain, intBuffer, XrSwapchainImageBaseHeader.create(swapchainImageBuffer.address(), swapchainImageBuffer.capacity()));
             this.openxr.logError(error, "xrEnumerateSwapchainImages", "get images");
@@ -116,6 +113,7 @@ public class OpenXRStereoRenderer extends VRRenderer {
 
     @Override
     public void endFrame() throws RenderConfigException {
+
         GL31.glBindFramebuffer(GL31.GL_READ_FRAMEBUFFER, getLeftEyeTarget().frameBufferId);
         GL31.glBindFramebuffer(GL31.GL_DRAW_FRAMEBUFFER, leftFramebuffers[swapIndex].frameBufferId);
         GL31.glBlitFramebuffer(0,0, getLeftEyeTarget().viewWidth, getLeftEyeTarget().viewHeight, 0,0, leftFramebuffers[swapIndex].viewWidth, leftFramebuffers[swapIndex].viewHeight, GL31.GL_STENCIL_BUFFER_BIT | GL31.GL_COLOR_BUFFER_BIT, GL31.GL_NEAREST);
@@ -124,35 +122,34 @@ public class OpenXRStereoRenderer extends VRRenderer {
         GL31.glBindFramebuffer(GL31.GL_DRAW_FRAMEBUFFER, rightFramebuffers[swapIndex].frameBufferId);
         GL31.glBlitFramebuffer(0,0, getRightEyeTarget().viewWidth, getRightEyeTarget().viewHeight, 0,0, rightFramebuffers[swapIndex].viewWidth, rightFramebuffers[swapIndex].viewHeight, GL31.GL_STENCIL_BUFFER_BIT | GL31.GL_COLOR_BUFFER_BIT, GL31.GL_NEAREST);
 
+
         try (MemoryStack stack = MemoryStack.stackPush()){
-            if (true) {
-                PointerBuffer layers = stack.callocPointer(1);
-                int error;
+            PointerBuffer layers = stack.callocPointer(1);
+            int error;
 
-                error = XR10.xrReleaseSwapchainImage(
-                    openxr.swapchain,
-                    XrSwapchainImageReleaseInfo.calloc(stack)
-                        .type(XR10.XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO));
-                this.openxr.logError(error, "xrReleaseSwapchainImage", "");
+            error = XR10.xrReleaseSwapchainImage(
+                openxr.swapchain,
+                XrSwapchainImageReleaseInfo.calloc(stack)
+                    .type(XR10.XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO));
+            this.openxr.logError(error, "xrReleaseSwapchainImage", "");
 
-                XrCompositionLayerProjection compositionLayerProjection = XrCompositionLayerProjection.calloc(stack)
-                    .type(XR10.XR_TYPE_COMPOSITION_LAYER_PROJECTION)
-                    .space(openxr.xrAppSpace)
-                    .views(projectionLayerViews);
+            XrCompositionLayerProjection compositionLayerProjection = XrCompositionLayerProjection.calloc(stack)
+                .type(XR10.XR_TYPE_COMPOSITION_LAYER_PROJECTION)
+                .space(openxr.xrAppSpace)
+                .views(projectionLayerViews);
 
-                layers.put(compositionLayerProjection);
+            layers.put(compositionLayerProjection);
 
-                layers.flip();
+            layers.flip();
 
-                error = XR10.xrEndFrame(
-                    openxr.session,
-                    XrFrameEndInfo.calloc(stack)
-                        .type(XR10.XR_TYPE_FRAME_END_INFO)
-                        .displayTime(openxr.time)
-                        .environmentBlendMode(XR10.XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
-                        .layers(layers));
-                this.openxr.logError(error, "xrEndFrame", "");
-            }
+            error = XR10.xrEndFrame(
+                openxr.session,
+                XrFrameEndInfo.calloc(stack)
+                    .type(XR10.XR_TYPE_FRAME_END_INFO)
+                    .displayTime(openxr.time)
+                    .environmentBlendMode(XR10.XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
+                    .layers(layers));
+            this.openxr.logError(error, "xrEndFrame", "");
 
             projectionLayerViews.close();
         }

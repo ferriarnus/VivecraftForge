@@ -30,6 +30,7 @@ import org.vivecraft.client_vr.provider.control.TrackpadSwipeSampler;
 import org.vivecraft.client_vr.provider.control.VRInputAction;
 import org.vivecraft.client_vr.provider.control.VRInputActionSet;
 import org.vivecraft.client_vr.provider.control.VivecraftMovementInput;
+import org.vivecraft.client_vr.provider.openxr.DeviceCompat;
 import org.vivecraft.client_vr.render.RenderConfigException;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRHotkeys;
@@ -112,11 +113,13 @@ public abstract class MCVR {
     protected Map<String, VRInputAction> inputActionsByKeyBinding = new HashMap<>();
     protected final Map<String, TrackpadSwipeSampler> trackpadSwipeSamplers = new HashMap<>();
     protected boolean inputInitialized;
+    public final DeviceCompat device;
 
     public MCVR(Minecraft mc, ClientDataHolderVR dh, VivecraftVRMod vrMod) {
         this.mc = mc;
         this.dh = dh;
         mod = vrMod;
+        this.device = DeviceCompat.detectDevice();
         me = this;
 
         for (int i = 0; i < 3; ++i) {

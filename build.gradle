@@ -21,6 +21,12 @@ subprojects {
         silentMojangMappingsLicense()
     }
 
+    repositories {
+        flatDir {
+            dirs('libs')
+        }
+    }
+
     dependencies {
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
         // The following line declares the mojmap mappings, you may use other mappings as well
@@ -36,6 +42,8 @@ subprojects {
         implementation("org.lwjgl:lwjgl-openxr:3.3.2:natives-linux")
         //implementation("org.lwjgl:lwjgl-openxr:3.3.2:natives-macos")
         implementation("org.lwjgl:lwjgl-openxr:3.3.2:natives-windows")
+        implementation("blank:lwjgl:openxr")
+
     }
 
     tasks.withType(JavaCompile) {
@@ -124,7 +132,6 @@ allprojects {
         maven { url = "https://storage.googleapis.com/devan-maven/" }
         maven { url = "https://maven.shedaniel.me/" }
         maven { url = "https://aperlambda.github.io/maven" }
-        maven { url = "https://maven.kotlindiscord.com/repository/terraformers/" }
         maven { url = "https://mvn.devos.one/releases/" }
         maven { url = "https://mvn.devos.one/snapshots/" }
         maven { url = "https://maven.terraformersmc.com/" }

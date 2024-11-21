@@ -1,6 +1,5 @@
 package org.vivecraft.client_vr.provider.openxr;
 
-import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
@@ -15,10 +14,6 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL31;
 import org.lwjgl.openxr.*;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.Platform;
-import org.lwjgl.system.Struct;
-import org.lwjgl.system.linux.X11;
-import org.lwjgl.system.windows.User32;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.utils.Utils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -44,7 +39,6 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.*;
 
-import static org.lwjgl.opengl.GLX13.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
@@ -770,6 +764,7 @@ public class MCOpenXR extends MCVR {
 
     private void initializeOpenXRInstance() {
         try (MemoryStack stack = MemoryStack.stackPush()) {
+            device.initOpenXRLoader(stack);
 
             //Check extensions
             IntBuffer numExtensions = stack.callocInt(1);
@@ -785,14 +780,15 @@ public class MCOpenXR extends MCVR {
             logError(error, "xrEnumerateInstanceExtensionProperties",  "get extensions");
 
             //get needed extensions
-            boolean missingOpenGL = true;
+            String graphicsExtension = device.getGraphicsExtension();
+            boolean missingGraphics = true;
             PointerBuffer extensions = stack.callocPointer(3);
             while (properties.hasRemaining()) {
                 XrExtensionProperties prop = properties.get();
                 String extensionName = prop.extensionNameString();
-                if (extensionName.equals(KHROpenGLEnable.XR_KHR_OPENGL_ENABLE_EXTENSION_NAME)) {
-                    missingOpenGL = false;
-                    extensions.put(memAddress(stackUTF8(KHROpenGLEnable.XR_KHR_OPENGL_ENABLE_EXTENSION_NAME)));
+                if (extensionName.equals(graphicsExtension)) {
+                    missingGraphics = false;
+                    extensions.put(memAddress(stackUTF8(graphicsExtension)));
                 }
                 if (extensionName.equals(EXTHPMixedRealityController.XR_EXT_HP_MIXED_REALITY_CONTROLLER_EXTENSION_NAME)) {
                     extensions.put(memAddress(stackUTF8(EXTHPMixedRealityController.XR_EXT_HP_MIXED_REALITY_CONTROLLER_EXTENSION_NAME)));
@@ -802,20 +798,20 @@ public class MCOpenXR extends MCVR {
                 }
             }
 
-            if (missingOpenGL) {
-                throw new RuntimeException("OpenXR runtime does not support OpenGL, try using SteamVR instead");
+            if (missingGraphics) {
+                throw new RuntimeException("OpenXR runtime is missing a supported graphics extension.");
             }
 
             //Create APP info
             XrApplicationInfo applicationInfo = XrApplicationInfo.calloc(stack);
-            applicationInfo.apiVersion(XR10.XR_CURRENT_API_VERSION);
+            applicationInfo.apiVersion(XR10.XR_MAKE_VERSION(1, 0 , 14));
             applicationInfo.applicationName(stack.UTF8("Vivecraft"));
             applicationInfo.applicationVersion(1);
 
             //Create instance info
             XrInstanceCreateInfo createInfo = XrInstanceCreateInfo.calloc(stack);
             createInfo.type(XR10.XR_TYPE_INSTANCE_CREATE_INFO);
-            createInfo.next(NULL);
+            createInfo.next(device.getPlatformInfo(stack));
             createInfo.createFlags(0);
             createInfo.applicationInfo(applicationInfo);
             createInfo.enabledApiLayerNames(null);
@@ -864,13 +860,29 @@ public class MCOpenXR extends MCVR {
                 throw new RuntimeException("No compatible headset detected");
             }
 
-            //Bind graphics
-            Struct graphics = this.getGraphicsAPI(stack);
+            XrSystemProperties systemProperties = XrSystemProperties.calloc(stack).type(XR10.XR_TYPE_SYSTEM_PROPERTIES);
+            error = XR10.xrGetSystemProperties(instance, systemID, systemProperties);
+            MCOpenXR.get().logError(error, "xrGetSystemProperties",  "");
+            XrSystemTrackingProperties trackingProperties = systemProperties.trackingProperties();
+            XrSystemGraphicsProperties graphicsProperties = systemProperties.graphicsProperties();
+
+            MCOpenXR.get().systemName = memUTF8(memAddress(systemProperties.systemName()));
+            int vendor = systemProperties.vendorId();
+            boolean orientationTracking = trackingProperties.orientationTracking();
+            boolean positionTracking = trackingProperties.positionTracking();
+            int maxWidth = graphicsProperties.maxSwapchainImageWidth();
+            int maxHeight = graphicsProperties.maxSwapchainImageHeight();
+            int maxLayerCount = graphicsProperties.maxLayerCount();
+
+            VRSettings.logger.info("Found device with id:  {}", systemID);
+            VRSettings.logger.info("Headset Name: {}, Vendor: {}", MCOpenXR.get().systemName, vendor);
+            VRSettings.logger.info("Headset Orientation Tracking: {}, Position Tracking: {}", orientationTracking, positionTracking);
+            VRSettings.logger.info("Headset Max Width: {}, Max Height: {}, Max Layer Count: {}", maxWidth, maxHeight, maxLayerCount);
 
             //Create session
             XrSessionCreateInfo info = XrSessionCreateInfo.calloc(stack);
             info.type(XR10.XR_TYPE_SESSION_CREATE_INFO);
-            info.next(graphics.address());
+            info.next(device.checkGraphics(stack, instance, systemID).address());
             info.createFlags(0);
             info.systemId(systemID);
 
@@ -999,66 +1011,6 @@ public class MCOpenXR extends MCVR {
             swapchain = new XrSwapchain(handlePointer.get(0), session);
             this.width = swapchainCreateInfo.width();
             this.height = swapchainCreateInfo.height();
-        }
-    }
-
-    private Struct getGraphicsAPI(MemoryStack stack) {
-        XrGraphicsRequirementsOpenGLKHR graphicsRequirements = XrGraphicsRequirementsOpenGLKHR.calloc(stack).type(KHROpenGLEnable.XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR);
-        KHROpenGLEnable.xrGetOpenGLGraphicsRequirementsKHR(instance, systemID, graphicsRequirements);
-
-        XrSystemProperties systemProperties = XrSystemProperties.calloc(stack).type(XR10.XR_TYPE_SYSTEM_PROPERTIES);
-        int error = XR10.xrGetSystemProperties(instance, systemID, systemProperties);
-        logError(error, "xrGetSystemProperties",  "");
-        XrSystemTrackingProperties trackingProperties = systemProperties.trackingProperties();
-        XrSystemGraphicsProperties graphicsProperties = systemProperties.graphicsProperties();
-
-        this.systemName = memUTF8(memAddress(systemProperties.systemName()));
-        int vendor = systemProperties.vendorId();
-        boolean orientationTracking = trackingProperties.orientationTracking();
-        boolean positionTracking = trackingProperties.positionTracking();
-        int maxWidth = graphicsProperties.maxSwapchainImageWidth();
-        int maxHeight = graphicsProperties.maxSwapchainImageHeight();
-        int maxLayerCount = graphicsProperties.maxLayerCount();
-
-        VRSettings.logger.info("Found device with id:  {}", systemID);
-        VRSettings.logger.info("Headset Name: {}, Vendor: {}", systemName, vendor);
-        VRSettings.logger.info("Headset Orientation Tracking: {}, Position Tracking: {}", orientationTracking, positionTracking);
-        VRSettings.logger.info("Headset Max Width: {}, Max Height: {}, Max Layer Count: {}", maxWidth, maxHeight, maxLayerCount);
-
-        //Bind the OpenGL context to the OpenXR instance and create the session
-        Window window = mc.getWindow();
-        long windowHandle = window.getWindow();
-        if (Platform.get() == Platform.WINDOWS) {
-            return XrGraphicsBindingOpenGLWin32KHR.calloc(stack).set(
-                KHROpenGLEnable.XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR,
-                NULL,
-                User32.GetDC(GLFWNativeWin32.glfwGetWin32Window(windowHandle)),
-                GLFWNativeWGL.glfwGetWGLContext(windowHandle)
-            );
-        } else if (Platform.get() == Platform.LINUX) {
-            long xDisplay = GLFWNativeX11.glfwGetX11Display();
-
-            long glXContext = GLFWNativeGLX.glfwGetGLXContext(windowHandle);
-            long glXWindowHandle = GLFWNativeGLX.glfwGetGLXWindow(windowHandle);
-
-            int fbXID = glXQueryDrawable(xDisplay, glXWindowHandle, GLX_FBCONFIG_ID);
-            PointerBuffer fbConfigBuf = glXChooseFBConfig(xDisplay, X11.XDefaultScreen(xDisplay), stackInts(GLX_FBCONFIG_ID, fbXID, 0));
-            if(fbConfigBuf == null) {
-                throw new IllegalStateException("Your framebuffer config was null, make a github issue");
-            }
-            long fbConfig = fbConfigBuf.get();
-
-            return XrGraphicsBindingOpenGLXlibKHR.calloc(stack).set(
-                KHROpenGLEnable.XR_TYPE_GRAPHICS_BINDING_OPENGL_XLIB_KHR,
-                NULL,
-                xDisplay,
-                (int) Objects.requireNonNull(glXGetVisualFromFBConfig(xDisplay, fbConfig)).visualid(),
-                fbConfig,
-                glXWindowHandle,
-                glXContext
-            );
-        } else {
-            throw new IllegalStateException("Macos not supported");
         }
     }
 
@@ -1483,18 +1435,6 @@ public class MCOpenXR extends MCVR {
      */
     protected void logError(int xrResult, String caller, String... args) {
         if (xrResult < 0) {
-            VRSettings.logger.error("{} for {} errored: {}", caller, String.join(" ", args), getResultName(xrResult));
-        }
-    }
-
-    /**
-     * logs all results except XR_SUCCESS
-     * @param xrResult result to check
-     * @param caller where the xrResult came from
-     * @param args arguments may be helpful in locating the error
-     */
-    protected void logAll(int xrResult, String caller, String... args) {
-        if (xrResult != XR10.XR_SUCCESS) {
             VRSettings.logger.error("{} for {} errored: {}", caller, String.join(" ", args), getResultName(xrResult));
         }
     }
