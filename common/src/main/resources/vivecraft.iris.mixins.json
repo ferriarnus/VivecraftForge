@@ -8,7 +8,7 @@
     "IrisBlockRenderingSettingsMixin",
     "IrisDHCompatVRMixin",
     "IrisHandRendererVRMixin",
-    "IrisLodRenderEventsVRMixin",
+    "IrisLodRenderProgramVRMixin",
     "IrisProgramUniformsMixin",
     "IrisRenderSystemVRMixin",
     "IrisShadowMatricesMixin",

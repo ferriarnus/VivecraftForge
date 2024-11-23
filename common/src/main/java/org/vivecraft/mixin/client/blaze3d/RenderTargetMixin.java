@@ -14,6 +14,11 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.vivecraft.client.extensions.RenderTargetExtension;
+import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.settings.VRSettings;
+import org.vivecraft.client_xr.render_pass.RenderPassType;
+
+import java.util.Arrays;
 
 @Mixin(RenderTarget.class)
 public abstract class RenderTargetMixin implements RenderTargetExtension {
@@ -24,6 +29,9 @@ public abstract class RenderTargetMixin implements RenderTargetExtension {
     private boolean vivecraft$linearFilter;
     @Unique
     private boolean vivecraft$useStencil = false;
+
+    @Unique
+    private boolean vivecraft$loggedSizeError = false;
 
     @Shadow
     public int frameBufferId;
@@ -108,6 +116,29 @@ public abstract class RenderTargetMixin implements RenderTargetExtension {
     public int vivecraft$modifyGlFramebufferTexture2DAttachment(int attachment) {
         return vivecraft$useStencil ? GL30.GL_DEPTH_STENCIL_ATTACHMENT : attachment;
     }
+
+    @ModifyArg(method = "clear", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/pipeline/RenderTarget;bindWrite(Z)V"))
+    private boolean vivecraft$noViewportChangeOnClear(boolean changeViewport) {
+        // this viewport change doesn't seem to be needed in general,
+        // and removing it makes mods not break rendering when they have miss sized RenderTargets
+
+        // we don't care about resizes or buffer creations, those should happen in the Vanilla or GUI pass
+        if (RenderPassType.isWorldOnly()) {
+            if (!this.vivecraft$loggedSizeError && (this.width != Minecraft.getInstance().getMainRenderTarget().width || this.height != Minecraft.getInstance().getMainRenderTarget().height)) {
+                // log a limited StackTrace to find the cause, we don't need to spam the log with full StackTraces
+                VRSettings.logger.error("Vivecraft: Mismatched RenderTarget size detected, viewport size change was blocked. MainTarget size: {}x{}, RenderTarget size: {}x{}. RenderPass: {}, Stacktrace: {}",
+                    Minecraft.getInstance().getMainRenderTarget().width,
+                    Minecraft.getInstance().getMainRenderTarget().height,
+                    this.width, this.height, ClientDataHolderVR.getInstance().currentPass,
+                    String.join("\n", Arrays.stream(Thread.currentThread().getStackTrace(), 2, 12).map(Object::toString).toArray(String[]::new)));
+                this.vivecraft$loggedSizeError = true;
+            }
+            return false;
+        } else {
+            return changeViewport;
+        }
+    }
+
 
     public void vivecraft$blitToScreen(ShaderInstance instance, int left, int width, int height, int top, boolean disableBlend, float xCropFactor, float yCropFactor, boolean keepAspect) {
         RenderSystem.assertOnGameThreadOrInit();

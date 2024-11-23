@@ -859,7 +859,9 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
             } else {
                 this.vivecraft$notifyMirror("Shader compile failed, see log", true, 10000);
             }
-        } else if (ClientDataHolderVR.getInstance().vrSettings.displayMirrorMode == VRSettings.MirrorMode.DUAL) {
+        } else if (ClientDataHolderVR.getInstance().vrSettings.displayMirrorMode == VRSettings.MirrorMode.DUAL &&
+            (!ClientDataHolderVR.getInstance().vrSettings.displayMirrorUseScreenshotCamera ||
+                !ClientDataHolderVR.getInstance().cameraTracker.isVisible())) {
             RenderTarget rendertarget = ClientDataHolderVR.getInstance().vrRenderer.getLeftEyeTarget();
             RenderTarget rendertarget1 = ClientDataHolderVR.getInstance().vrRenderer.getRightEyeTarget();
 
@@ -880,7 +882,10 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
             boolean ar = false;
             RenderTarget source = ClientDataHolderVR.getInstance().vrRenderer.getLeftEyeTarget();
 
-            if (ClientDataHolderVR.getInstance().vrSettings.displayMirrorMode == VRSettings.MirrorMode.FIRST_PERSON) {
+            if (ClientDataHolderVR.getInstance().vrSettings.displayMirrorUseScreenshotCamera && ClientDataHolderVR.getInstance().cameraTracker.isVisible()) {
+                source = ClientDataHolderVR.getInstance().vrRenderer.cameraFramebuffer;
+                ar = true;
+            } else if (ClientDataHolderVR.getInstance().vrSettings.displayMirrorMode == VRSettings.MirrorMode.FIRST_PERSON) {
                 source = ClientDataHolderVR.getInstance().vrRenderer.framebufferUndistorted;
             } else if (ClientDataHolderVR.getInstance().vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON) {
                 source = ClientDataHolderVR.getInstance().vrRenderer.framebufferMR;
@@ -955,7 +960,10 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
         VRShaders.depthMaskShader.setSampler("thirdPersonDepth", RenderSystem.getShaderTexture(1));
 
         if (ClientDataHolderVR.getInstance().vrSettings.mixedRealityUnityLike) {
-            if (ClientDataHolderVR.getInstance().vrSettings.mixedRealityUndistorted) {
+            if (ClientDataHolderVR.getInstance().vrSettings.displayMirrorUseScreenshotCamera && ClientDataHolderVR.getInstance().cameraTracker.isVisible()) {
+                RenderSystem.setShaderTexture(2,
+                    ClientDataHolderVR.getInstance().vrRenderer.cameraFramebuffer.getColorTextureId());
+            } else if (ClientDataHolderVR.getInstance().vrSettings.mixedRealityUndistorted) {
                 RenderSystem.setShaderTexture(2,
                     ClientDataHolderVR.getInstance().vrRenderer.framebufferUndistorted.getColorTextureId());
             } else {

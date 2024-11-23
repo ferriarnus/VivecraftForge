@@ -1,6 +1,8 @@
 package org.vivecraft.mod_compat_vr.iris;
 
 import net.irisshaders.iris.api.v0.IrisApi;
+import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 import org.vivecraft.client.Xplat;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_xr.render_pass.RenderPassManager;
@@ -28,6 +30,11 @@ public class IrisHelper {
     private static Method DHCompatInternal_getInstance;
     private static Method DHCompatInternal_getShadowFBWrapper;
     private static Method DHCompatInternal_getSolidFBWrapper;
+
+    private static Class<?> IDhApiGenericObjectShaderProgram;
+    private static Method DHCompatInternal_getGenericShader;
+
+    private static Method CapturedRenderingState_getGbufferProjection;
 
     public static void setShadersActive(boolean bl) {
         IrisApi.getInstance().getConfig().setShadersEnabledAndApply(bl);
@@ -80,12 +87,31 @@ public class IrisHelper {
                         // now disable the overrides
                         OverrideInjector_unbind.invoke(dhOverrideInjector, IDhApiFramebuffer, DHCompatInternal_getShadowFBWrapper.invoke(dhCompatInstance));
                         OverrideInjector_unbind.invoke(dhOverrideInjector, IDhApiFramebuffer, DHCompatInternal_getSolidFBWrapper.invoke(dhCompatInstance));
+                        if (DHCompatInternal_getGenericShader != null) {
+                            OverrideInjector_unbind.invoke(dhOverrideInjector, IDhApiGenericObjectShaderProgram, DHCompatInternal_getGenericShader.invoke(dhCompatInstance));
+                        }
                     }
                 }
             } catch (IllegalAccessException | InvocationTargetException e) {
                 VRSettings.logger.error("Vivecraft: Iris DH reset failed: {}", e.getMessage());
             }
         }
+    }
+
+    /**
+     * needed, because some Iris versions return a Matrix4f and others a Matrix4fc, which causes a runtime exception
+     * @param source CapturedRenderingState INSTANCE to call this on
+     * @return Matrix4fc current projection matrix
+     */
+    public static Matrix4fc getGbufferProjection(Object source) {
+        if (init() && dhPresent) {
+            try {
+                return (Matrix4fc) CapturedRenderingState_getGbufferProjection.invoke(source);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                VRSettings.logger.error("Vivecraft: couldn't get iris gbuffer projection matrix: {}", e.getMessage());
+            }
+        }
+        return new Matrix4f();
     }
 
     private static boolean init() {
@@ -127,8 +153,18 @@ public class IrisHelper {
                     Class<?> DHCompatInternal = Class.forName("net.irisshaders.iris.compat.dh.DHCompatInternal");
                     DHCompatInternal_getShadowFBWrapper = DHCompatInternal.getMethod("getShadowFBWrapper");
                     DHCompatInternal_getSolidFBWrapper = DHCompatInternal.getMethod("getSolidFBWrapper");
+                    try {
+                        IDhApiGenericObjectShaderProgram = Class.forName("com.seibel.distanthorizons.api.interfaces.override.rendering.IDhApiGenericObjectShaderProgram");
+                        DHCompatInternal_getGenericShader = DHCompatInternal.getMethod("getGenericShader");
+                    } catch (ClassNotFoundException | NoSuchMethodException ignored) {
+                        // only there with DH 2.2+
+                    }
+
+                    Class<?> CapturedRenderingState = Class.forName("net.irisshaders.iris.uniforms.CapturedRenderingState");
+                    CapturedRenderingState_getGbufferProjection = CapturedRenderingState.getMethod("getGbufferProjection");
                     dhPresent = true;
                 } catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException | IllegalAccessException e) {
+                    VRSettings.logger.error("Vivecraft: DH present but compat init failed:", e);
                     dhPresent = false;
                 }
             }

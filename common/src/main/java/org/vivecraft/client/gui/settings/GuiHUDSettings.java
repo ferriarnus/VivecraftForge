@@ -58,7 +58,7 @@ public class GuiHUDSettings extends GuiVROptionsBase {
             }
             if ((button.getId() == VRSettings.VrOptions.DOUBLE_GUI_RESOLUTION.ordinal()
                 || button.getId() == VRSettings.VrOptions.GUI_SCALE.ordinal())
-                && VRState.vrEnabled) {
+                && VRState.vrInitialized) {
                 this.dataholder.vrRenderer.resizeFrameBuffers("GUI Setting Changed");
                 this.reinit = true;
             }

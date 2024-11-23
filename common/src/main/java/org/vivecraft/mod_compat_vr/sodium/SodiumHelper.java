@@ -18,8 +18,11 @@ public class SodiumHelper {
 
     private static boolean hasModelCuboidQuads;
     private static boolean hasModelCuboidFloats;
+    private static boolean hasCubeModelCuboid;
     private static Field ModelCuboid_Sodium$cuboids;
     private static Field ModelCuboid_Quads;
+
+    private static Field Cube_Sodium$cuboid;
 
     // quad uvs
     private static Field ModelCuboid_u0;
@@ -86,21 +89,22 @@ public class SodiumHelper {
                 }
             } else if (hasModelCuboidFloats) {
                 try {
-                    Object sourceQuad = ((Object[]) ModelCuboid_Sodium$cuboids.get(source))[0];
+                    Object sourceCuboid = hasCubeModelCuboid ? Cube_Sodium$cuboid.get(source.cubes.get(0)) : ((Object[]) ModelCuboid_Sodium$cuboids.get(source))[0];
                     float[][] UVs = new float[][]{{
-                        (float) ModelCuboid_u0.get(sourceQuad),
-                        (float) ModelCuboid_u1.get(sourceQuad),
-                        (float) ModelCuboid_u2.get(sourceQuad),
-                        (float) ModelCuboid_u3.get(sourceQuad),
-                        (float) ModelCuboid_u4.get(sourceQuad),
-                        (float) ModelCuboid_u5.get(sourceQuad)
+                        (float) ModelCuboid_u0.get(sourceCuboid),
+                        (float) ModelCuboid_u1.get(sourceCuboid),
+                        (float) ModelCuboid_u2.get(sourceCuboid),
+                        (float) ModelCuboid_u3.get(sourceCuboid),
+                        (float) ModelCuboid_u4.get(sourceCuboid),
+                        (float) ModelCuboid_u5.get(sourceCuboid)
                     }, {
-                        (float) ModelCuboid_v0.get(sourceQuad),
-                        (float) ModelCuboid_v1.get(sourceQuad),
-                        (float) ModelCuboid_v2.get(sourceQuad)
+                        (float) ModelCuboid_v0.get(sourceCuboid),
+                        (float) ModelCuboid_v1.get(sourceCuboid),
+                        (float) ModelCuboid_v2.get(sourceCuboid)
                     }};
 
-                    ((ModelCuboidExtension) ((Object[]) ModelCuboid_Sodium$cuboids.get(dest))[0]).vivecraft$addOverrides(
+                    Object destCuboid = hasCubeModelCuboid ? Cube_Sodium$cuboid.get(dest.cubes.get(0)) : ((Object[]) ModelCuboid_Sodium$cuboids.get(dest))[0];
+                    ((ModelCuboidExtension) destCuboid).vivecraft$addOverrides(
                         mapDirection(destPoly),
                         mapDirection(sourcePoly),
                         UVs
@@ -144,8 +148,15 @@ public class SodiumHelper {
                     "net.caffeinemc.mods.sodium.client.render.immediate.model.ModelCuboid"
                 );
 
-                ModelCuboid_Sodium$cuboids = ModelPart.class.getDeclaredField("sodium$cuboids");
-                ModelCuboid_Sodium$cuboids.setAccessible(true);
+                try {
+                    ModelCuboid_Sodium$cuboids = ModelPart.class.getDeclaredField("sodium$cuboids");
+                    ModelCuboid_Sodium$cuboids.setAccessible(true);
+                } catch (NoSuchFieldException ignored) {
+                    Cube_Sodium$cuboid = ModelPart.Cube.class.getDeclaredField("sodium$cuboid");
+                    Cube_Sodium$cuboid.setAccessible(true);
+                    hasCubeModelCuboid = true;
+
+                }
                 try {
                     Class<?> cuboidQuad = getClassWithAlternative(
                         "me.jellysquid.mods.sodium.client.render.immediate.model.ModelCuboid$Quad",

@@ -55,6 +55,7 @@ public class VivecraftVRMod {
     public final KeyMapping keyQuickTorch = new KeyMapping("vivecraft.key.quickTorch", -1, "key.categories.gameplay");
     public final KeyMapping keyRadialMenu = new KeyMapping("vivecraft.key.radialMenu", -1, "key.categories.ui");
     public final KeyMapping keyRotateAxis = new KeyMapping("vivecraft.key.rotateAxis", -1, "key.categories.movement");
+    public final KeyMapping keyFlickStick = new KeyMapping("vivecraft.key.flickStick", -1, "key.categories.movement");
     public final KeyMapping keyRotateFree = new KeyMapping("vivecraft.key.rotateFree", -1, "key.categories.movement");
     public final KeyMapping keyRotateLeft = new KeyMapping("vivecraft.key.rotateLeft", -1, "key.categories.movement");
     public final KeyMapping keyRotateRight = new KeyMapping("vivecraft.key.rotateRight", -1, "key.categories.movement");
@@ -121,6 +122,7 @@ public class VivecraftVRMod {
             this.hiddenKeyBindingSet.add(this.keyTrackpadTouch);
 
             this.hiddenKeyBindingSet.add(this.keyRotateAxis);
+            this.hiddenKeyBindingSet.add(this.keyFlickStick);
             this.hiddenKeyBindingSet.add(this.keyRotateFree);
             this.hiddenKeyBindingSet.add(this.keyFreeMoveRotate);
             this.hiddenKeyBindingSet.add(this.keyFreeMoveStrafe);

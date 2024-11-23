@@ -96,6 +96,7 @@
     "world.entity.projectile.AbstractHurtingProjectileMixin",
     "world.entity.projectile.FishingHookMixin",
     "world.entity.projectile.ProjectileMixin",
+    "world.entity.projectile.ProjectileUtilMixin",
     "world.entity.projectile.ThrowableProjectileMixin",
     "world.entity.projectile.ThrownTridentMixin",
     "world.item.CrossbowItemMixin",

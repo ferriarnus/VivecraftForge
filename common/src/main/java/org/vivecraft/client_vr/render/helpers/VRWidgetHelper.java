@@ -40,7 +40,9 @@ public class VRWidgetHelper {
         ClientDataHolderVR dataholder = ClientDataHolderVR.getInstance();
 
         if (dataholder.vrSettings.mixedRealityRenderCameraModel) {
-            if ((dataholder.currentPass == RenderPass.LEFT || dataholder.currentPass == RenderPass.RIGHT) && (dataholder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY || dataholder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON)) {
+            if ((dataholder.currentPass == RenderPass.LEFT || dataholder.currentPass == RenderPass.RIGHT) &&
+                (dataholder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY || dataholder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON) &&
+                (!ClientDataHolderVR.getInstance().vrSettings.displayMirrorUseScreenshotCamera || !ClientDataHolderVR.getInstance().cameraTracker.isVisible())) {
                 float f = 0.35F;
 
                 if (dataholder.interactTracker.isInCamera() && !VRHotkeys.isMovingThirdPersonCam()) {
