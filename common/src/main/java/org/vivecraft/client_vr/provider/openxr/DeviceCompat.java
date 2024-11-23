@@ -13,6 +13,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Struct;
 import org.lwjgl.system.linux.X11;
 import org.lwjgl.system.windows.User32;
+import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.util.VLoader;
 
 import java.util.Objects;
@@ -39,7 +40,9 @@ public interface DeviceCompat {
         }
 
         @Override
-        public void initOpenXRLoader(MemoryStack stack) {}
+        public void initOpenXRLoader(MemoryStack stack) {
+            VRSettings.logger.info("Platform: {}", System.getProperty("os.version"));
+        }
 
         @Override
         public String getGraphicsExtension() {
@@ -111,6 +114,7 @@ public interface DeviceCompat {
 
         @Override
         public void initOpenXRLoader(MemoryStack stack) {
+            VRSettings.logger.info("Platform: {}", System.getProperty("os.version"));
             VLoader.setupAndroid();
             XrLoaderInitInfoAndroidKHR initInfo = XrLoaderInitInfoAndroidKHR.calloc(stack).set(
                 KHRLoaderInitAndroid.XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR,
