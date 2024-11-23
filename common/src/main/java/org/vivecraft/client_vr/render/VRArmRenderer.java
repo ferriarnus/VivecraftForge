@@ -62,7 +62,7 @@ public class VRArmRenderer extends PlayerRenderer {
         rendererArmwear.copyFrom(rendererArm);
 
         float alpha = SwingTracker.getItemFade((LocalPlayer) player, ItemStack.EMPTY);
-        ResourceLocation playerSkin = player.getSkin().texture();
+        ResourceLocation playerSkin = this.getTextureLocation(player);
 
         // render hand
         rendererArm.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(playerSkin)), combinedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, alpha);
