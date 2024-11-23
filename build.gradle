@@ -158,22 +158,5 @@ allprojects {
 
             }
         }
-
-        exclusiveContent {
-            forRepository {
-                ivy {
-                    name = "Discord"
-                    url = "https://cdn.discordapp.com/attachments/"
-                    patternLayout {
-                        artifact '/[organisation]/[module]/[revision].[ext]'
-                    }
-                    metadataSources { artifact() }
-                }
-            }
-            filter {
-                // discords are always just numbers
-                includeGroupByRegex "^\\d*\$"
-            }
-        }
     }
 }
