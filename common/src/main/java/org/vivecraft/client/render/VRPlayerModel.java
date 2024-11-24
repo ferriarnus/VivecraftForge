@@ -39,6 +39,9 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
     protected float layAmount;
     protected HumanoidArm attackArm = null;
     protected boolean isMainPlayer;
+    protected float bodyScale;
+    protected float armScale;
+    protected float legScale;
 
     private final Matrix3f bodyRot = new Matrix3f();
 
@@ -98,6 +101,16 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
 
         boolean swimming = (this.laying && player.isInWater()) || player.isFallFlying() ;
         boolean noLowerBodyAnimation = swimming || this.rotInfo.fbtMode == FBTMode.ARMS_ONLY;
+
+        this.bodyScale = 1F;
+        this.armScale = 1F;
+        this.legScale = 1F;
+
+        if (this.isMainPlayer && RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass)) {
+            this.bodyScale = ClientDataHolderVR.getInstance().vrSettings.playerModelBodyScale;
+            this.armScale = ClientDataHolderVR.getInstance().vrSettings.playerModelArmsScale;
+            this.legScale = ClientDataHolderVR.getInstance().vrSettings.playerModelLegScale;
+        }
 
         if (swimming) {
             // in water also rotate around the view vector
@@ -165,13 +178,15 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             ModelUtils.pointModelAtLocal(player, this.body, this.rotInfo.waistPos, this.rotInfo.waistQuat, this.rotInfo,
                 this.bodyYaw, true, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
 
+            // scale the offset with the body and arm scale, to keep them attached
+            float sideOffset = 4F * this.bodyScale + this.armScale;
             // offset arms
-            this.tempM.transform(5F, 2F, 0F, this.tempV2);
+            this.tempM.transform(sideOffset, 2F, 0F, this.tempV2);
             this.leftArm.x = this.body.x + this.tempV2.x;
             this.leftArm.y = this.body.y + this.tempV2.y;
             this.leftArm.z = this.body.z - this.tempV2.z;
 
-            this.tempM.transform(-5F, 2F, 0F, this.tempV2);
+            this.tempM.transform(-sideOffset, 2F, 0F, this.tempV2);
             this.rightArm.x = this.body.x + this.tempV2.x;
             this.rightArm.y = this.body.y + this.tempV2.y;
             this.rightArm.z = this.body.z - this.tempV2.z;
@@ -383,19 +398,9 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             this.bodyRot.rotationZYX(this.body.zRot, -this.body.yRot, -this.body.xRot);
         }
 
-        if (this.isMainPlayer && RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass)) {
-            this.leftArm.xScale = this.leftArm.zScale = this.rightArm.xScale = this.rightArm.zScale =
-                ClientDataHolderVR.getInstance().vrSettings.playerModelArmsScale;
-            this.body.xScale = this.body.zScale =
-                ClientDataHolderVR.getInstance().vrSettings.playerModelBodyScale;
-            this.leftLeg.xScale = this.leftLeg.zScale = this.rightLeg.xScale = this.rightLeg.zScale =
-                ClientDataHolderVR.getInstance().vrSettings.playerModelLegScale;
-
-        } else {
-            this.leftArm.xScale = this.leftArm.zScale = this.rightArm.xScale = this.rightArm.zScale = 1.0F;
-            this.body.xScale = this.body.zScale = 1.0F;
-            this.leftLeg.xScale = this.leftLeg.zScale = this.rightLeg.xScale = this.rightLeg.zScale = 1.0F;
-        }
+        this.leftArm.xScale = this.leftArm.zScale = this.rightArm.xScale = this.rightArm.zScale = this.armScale;
+        this.body.xScale = this.body.zScale = this.bodyScale;
+        this.leftLeg.xScale = this.leftLeg.zScale = this.rightLeg.xScale = this.rightLeg.zScale = this.legScale;
 
         this.vrHMD.visible = true;
 

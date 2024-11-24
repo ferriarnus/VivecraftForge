@@ -12,6 +12,7 @@ import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 import org.vivecraft.mod_compat_vr.sodium.SodiumHelper;
 
+import javax.annotation.Nullable;
 import java.lang.Math;
 
 public class ModelUtils {
@@ -244,9 +245,9 @@ public class ModelUtils {
     /**
      * rotates the ModelPart {@code part} to point at the given model space point, while facing forward
      * @param part ModelPart to rotate
-     * @param targetX x coordinate of the target point the {@code part} should face, ine model space
-     * @param targetY y coordinate of the target point the {@code part} should face, ine model space
-     * @param targetZ z coordinate of the target point the {@code part} should face, ine model space
+     * @param targetX x coordinate of the target point the {@code part} should face, in model space
+     * @param targetY y coordinate of the target point the {@code part} should face, in model space
+     * @param targetZ z coordinate of the target point the {@code part} should face, in model space
      * @param tempVDir Vector3f object to work with, contains the euler angles after the call
      * @param tempVUp second Vector3f object to work with, contains the up vector after the call
      * @param tempM Matrix3f object to work with, contains the rotation after the call
@@ -263,6 +264,26 @@ public class ModelUtils {
 
         // rotate model
         pointAtModel(tempVDir, tempVUp, tempM);
+    }
+
+    /**
+     * rotates the ModelPart {@code part} to point at the given model space point, while facing forward
+     * @param part ModelPart to rotate
+     * @param targetX x coordinate of the target point the {@code part} should face, in model space
+     * @param targetY y coordinate of the target point the {@code part} should face, in model space
+     * @param targetZ z coordinate of the target point the {@code part} should face, in model space
+     * @param up up vector the ModelPart should face
+     * @param tempVDir Vector3f object to work with, contains the euler angles after the call
+     * @param tempM Matrix3f object to work with, contains the rotation after the call
+     */
+    public static void pointModelAtModelWithUp(
+        ModelPart part, float targetX, float targetY, float targetZ, Vector3fc up, Vector3f tempVDir, Matrix3f tempM)
+    {
+        // calculate direction
+        tempVDir.set(targetX - part.x, targetY - part.y, targetZ - part.z);
+
+        // rotate model
+        pointAtModel(tempVDir, up, tempM);
     }
 
     /**
@@ -319,6 +340,46 @@ public class ModelUtils {
         // ModelPart x and y axes are flipped
         // this can be nan when it is perfectly aligned with pointing left. 0 isn't right here, but beter than nan
         part.setRotation(-tempV.x, Float.isNaN(tempV.y) ? 0F : -tempV.y, tempV.z);
+    }
+
+    /**
+     * estimates the direction the limb joint should be in
+     * @param upper upper body part
+     * @param lower lower body part
+     * @param lowerRot rotation of lower body part
+     * @param bodyYaw players Y rotation
+     * @param jointDown if the joint should go up or down
+     * @param jointPos available joint position, can be {@code null}
+     * @param player player the {@code jointPos} is from
+     * @param rotInfo player VR info
+     * @param useWorldScale when set will cancel out the worldScale, instead of entity scale
+     * @param tempV Vector3f object to work with, contains the joint direction after the call
+     * @param tempV2 Vector3f object to work with
+     */
+    public static void estimateJointDir(
+        ModelPart upper, ModelPart lower, Quaternionfc lowerRot, float bodyYaw, boolean jointDown,
+        @Nullable Vector3fc jointPos, LivingEntity player, VRPlayersClient.RotInfo rotInfo, boolean useWorldScale,
+        Vector3f tempV, Vector3f tempV2)
+    {
+        if (jointPos != null) {
+            // use mid arm point to joint direction
+            tempV.set(upper.x + lower.x, upper.y + lower.y, upper.z + lower.z)
+                .mul(0.5F);
+            ModelUtils.worldToModel(player, jointPos, rotInfo, bodyYaw, useWorldScale, tempV2);
+            tempV2.sub(tempV, tempV);
+        } else {
+            // point the elbow away from the hand direction
+            // hand direction, up forward/down back
+            lowerRot.transform(0F, jointDown ? -1F : 1F, jointDown ? 1F : -1F, tempV);
+            ModelUtils.worldToModelDirection(tempV, bodyYaw, tempV);
+        }
+        // arm dir
+        tempV2.set(lower.x - upper.x, lower.y - upper.y, lower.z - upper.z);
+
+        // calculate the vector perpendicular to the arm dir
+        float dot = tempV2.dot(tempV) / tempV2.dot(tempV2);
+        tempV2.mul(dot);
+        tempV.sub(tempV2).normalize();
     }
 
     /**

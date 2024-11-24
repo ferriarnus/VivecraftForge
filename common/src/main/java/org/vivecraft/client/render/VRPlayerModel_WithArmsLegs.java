@@ -17,7 +17,6 @@ import org.joml.Vector3fc;
 import org.vivecraft.client.render.models.FeetModel;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
-import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 
@@ -31,7 +30,7 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
     public final ModelPart leftFootPants;
     public final ModelPart rightFootPants;
 
-    private final Vector3f tempV3 = new Vector3f();
+    private final Vector3f footDir = new Vector3f();
     private final Vector3f footOffset = new Vector3f();
 
     private final Vector3f footPos = new Vector3f();
@@ -149,11 +148,11 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
 
             this.footPos.add(this.footOffset);
             if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-                positionConnectedLimb(player, this.leftLeg, this.leftFoot, this.footPos, this.footQuat, kneePos, false,
+                positionConnectedLimb(player, this.leftLeg, this.leftFoot, this.footPos, this.footQuat, 0F, kneePos, false,
                     null);
             } else {
-                this.footQuat.transform(MathUtils.BACK, this.tempV3);
-                positionSplitLimb(player, this.leftLeg, this.leftFoot, this.footPos, this.tempV3, this.footQuat,
+                this.footQuat.transform(MathUtils.BACK, this.footDir);
+                positionSplitLimb(player, this.leftLeg, this.leftFoot, this.footPos, this.footDir, this.footQuat,
                     -Mth.HALF_PI, 0F, kneePos, false, null);
             }
 
@@ -175,11 +174,11 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
 
             this.footPos.add(-this.footOffset.x, this.footOffset.y, -this.footOffset.z);
             if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-                positionConnectedLimb(player, this.rightLeg, this.rightFoot, this.footPos, this.footQuat, kneePos,
+                positionConnectedLimb(player, this.rightLeg, this.rightFoot, this.footPos, this.footQuat, 0F, kneePos,
                     false, null);
             } else {
-                this.footQuat.transform(MathUtils.BACK, this.tempV3);
-                positionSplitLimb(player, this.rightLeg, this.rightFoot, this.footPos, this.tempV3, this.footQuat,
+                this.footQuat.transform(MathUtils.BACK, this.footDir);
+                positionSplitLimb(player, this.rightLeg, this.rightFoot, this.footPos, this.footDir, this.footQuat,
                     -Mth.HALF_PI, 0F, kneePos, false, null);
             }
         }
@@ -206,10 +205,7 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
             this.rightFoot.setRotation(this.rightLeg.xRot, this.rightLeg.yRot, this.rightLeg.zRot);
         }
 
-        if (this.isMainPlayer && RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass)) {
-            this.leftFoot.xScale = this.leftFoot.zScale = this.rightFoot.xScale = this.rightFoot.zScale =
-                ClientDataHolderVR.getInstance().vrSettings.playerModelLegScale;
-        }
+        this.leftFoot.xScale = this.leftFoot.zScale = this.rightFoot.xScale = this.rightFoot.zScale = this.legScale;
 
         if (player.isAutoSpinAttack()) {
             spinOffset(player, this.leftLeg, this.rightLeg, this.leftFoot, this.rightFoot);
