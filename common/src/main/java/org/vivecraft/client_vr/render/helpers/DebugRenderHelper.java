@@ -19,6 +19,7 @@ import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
+import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.RenderPass;
@@ -169,7 +170,7 @@ public class DebugRenderHelper {
     }
 
     private static void renderTackerPositions(PoseStack poseStack, boolean showNames) {
-        VRData data = DATA_HOLDER.vrPlayer.vrdata_room_pre;
+        VRData data = DATA_HOLDER.vrPlayer.getVRDataWorld();
         Vec3 camPos = RenderHelper.getSmoothCameraPosition(DATA_HOLDER.currentPass, data);
         Quaternionf orientation = data.getEye(DATA_HOLDER.currentPass).getMatrix()
             .getNormalizedRotation(new Quaternionf())
@@ -191,7 +192,8 @@ public class DebugRenderHelper {
         // show all trackers
         for (Pair<Integer, Matrix4fc> tracker : MCVR.get().getTrackers()) {
             Vector3f pos = tracker.getRight().getTranslation(new Vector3f());
-            pos.sub((float) camPos.x, (float) camPos.y, (float) camPos.z);
+            Vec3 trackerPos = VRPlayer.roomToWorldPos(pos, data).subtract(camPos);
+            pos.set((float) trackerPos.x, (float) trackerPos.y, (float) trackerPos.z);
 
             if (showNames) {
                 if (tracker.getLeft() >= 0) {
