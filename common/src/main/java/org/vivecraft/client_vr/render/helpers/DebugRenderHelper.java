@@ -3,19 +3,24 @@ package org.vivecraft.client_vr.render.helpers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Quaternionfc;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
+import org.apache.commons.lang3.tuple.Pair;
+import org.joml.*;
 import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
+import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
@@ -31,6 +36,7 @@ public class DebugRenderHelper {
     private static final Vector3fc RED = new Vector3f(1F,0F,0F);
     private static final Vector3fc GREEN = new Vector3f(0F,1F,0F);
     private static final Vector3fc BLUE = new Vector3f(0F,0F,1F);
+    private static final Vector3fc DARK_GRAY = new Vector3f(0.25F);
 
     /**
      * renders debug stuff
@@ -39,10 +45,19 @@ public class DebugRenderHelper {
      */
     public static void renderDebug(PoseStack poseStack, float partialTick) {
         if (DATA_HOLDER.vrSettings.renderDeviceAxes) {
-            renderDeviceAxes(poseStack, DATA_HOLDER.vrPlayer.vrdata_world_render);
+            renderDeviceAxes(poseStack, DATA_HOLDER.vrPlayer.getVRDataWorld());
         }
+
         if (DATA_HOLDER.vrSettings.renderVrPlayerAxes) {
             renderPlayerAxes(poseStack, partialTick);
+        }
+
+        if (DATA_HOLDER.vrSettings.renderTrackerPositions || MC.screen instanceof FBTCalibrationScreen) {
+            boolean showNames = true;
+            if (MC.screen instanceof FBTCalibrationScreen fbtScreen) {
+                showNames = fbtScreen.isCalibrated();
+            }
+            renderTackerPositions(poseStack, showNames);
         }
     }
 
@@ -136,12 +151,12 @@ public class DebugRenderHelper {
             list.add(MC.player != null && MC.player.isShiftKeyDown() ? data.h1 :data.c1);
         }
 
-        if (DATA_HOLDER.vr.hasFBT()) {
+        if (data.fbtMode != FBTMode.ARMS_ONLY) {
             list.add(data.waist);
             list.add(data.foot_left);
             list.add(data.foot_right);
         }
-        if (DATA_HOLDER.vr.hasExtendedFBT()) {
+        if (data.fbtMode == FBTMode.WITH_JOINTS) {
             list.add(data.elbow_left);
             list.add(data.knee_left);
             list.add(data.elbow_right);
@@ -151,6 +166,45 @@ public class DebugRenderHelper {
         list.forEach(p -> addAxes(poseStack, bufferbuilder, data, p));
 
         BufferUploader.drawWithShader(bufferbuilder.end());
+    }
+
+    private static void renderTackerPositions(PoseStack poseStack, boolean showNames) {
+        VRData data = DATA_HOLDER.vrPlayer.vrdata_room_pre;
+        Vec3 camPos = RenderHelper.getSmoothCameraPosition(DATA_HOLDER.currentPass, data);
+        Quaternionf orientation = data.getEye(DATA_HOLDER.currentPass).getMatrix()
+            .getNormalizedRotation(new Quaternionf())
+            .rotateY(Mth.PI);
+
+        Component[] labels = new Component[]{
+            Component.translatable("vivecraft.toasts.point_controller.right"),
+            Component.translatable("vivecraft.toasts.point_controller.left"),
+            Component.translatable("vivecraft.messages.tracker.camera"),
+            Component.translatable("vivecraft.messages.tracker.waist"),
+            Component.translatable("vivecraft.messages.tracker.rightFoot"),
+            Component.translatable("vivecraft.messages.tracker.leftFoot"),
+            Component.translatable("vivecraft.messages.tracker.rightElbow"),
+            Component.translatable("vivecraft.messages.tracker.leftElbow"),
+            Component.translatable("vivecraft.messages.tracker.rightKnee"),
+            Component.translatable("vivecraft.messages.tracker.leftKnee")
+        };
+
+        // show all trackers
+        for (Pair<Integer, Matrix4fc> tracker : MCVR.get().getTrackers()) {
+            Vector3f pos = tracker.getRight().getTranslation(new Vector3f());
+            pos.sub((float) camPos.x, (float) camPos.y, (float) camPos.z);
+
+            if (showNames) {
+                if (tracker.getLeft() >= 0) {
+                    addNamedCube(poseStack, pos, orientation, labels[tracker.getLeft()], 0.05F, DARK_GRAY);
+                } else {
+                    addNamedCube(poseStack, pos, orientation,
+                        Component.translatable("vivecraft.messages.tracker.unknown"), 0.05F, DARK_GRAY);
+                }
+            } else {
+                addCube(poseStack, pos, 0.05F, DARK_GRAY);
+            }
+        }
+        MC.renderBuffers().bufferSource().endLastBatch();
     }
 
     /**
@@ -184,9 +238,12 @@ public class DebugRenderHelper {
     {
         Vector3f position = pose.getPosition()
             .subtract(RenderHelper.getSmoothCameraPosition(DATA_HOLDER.currentPass, data)).toVector3f();
-        Vector3f forward = pose.getDirection().mul(0.25F);
-        Vector3f up = pose.getCustomVector(MathUtils.UP).mul(0.25F);
-        Vector3f right = pose.getCustomVector(MathUtils.RIGHT).mul(0.25F);
+
+        float scale = 0.25F * DATA_HOLDER.vrPlayer.worldScale;
+
+        Vector3f forward = pose.getDirection().mul(scale);
+        Vector3f up = pose.getCustomVector(MathUtils.UP).mul(scale);
+        Vector3f right = pose.getCustomVector(MathUtils.RIGHT).mul(scale);
 
         addLine(poseStack, bufferBuilder, position, forward, BLUE);
         addLine(poseStack, bufferBuilder, position, up, GREEN);
@@ -222,9 +279,11 @@ public class DebugRenderHelper {
     {
         Vector3f position = playerPos.add(devicePos, new Vector3f());
 
-        Vector3f forward = dir.mul(0.25F, new Vector3f());
-        Vector3f up = rot.transform(MathUtils.UP, new Vector3f()).mul(0.25F);
-        Vector3f right = rot.transform(MathUtils.RIGHT, new Vector3f()).mul(0.25F);
+        float scale = 0.25F * DATA_HOLDER.vrPlayer.worldScale;
+
+        Vector3f forward = dir.mul(scale, new Vector3f());
+        Vector3f up = rot.transform(MathUtils.UP, new Vector3f()).mul(scale);
+        Vector3f right = rot.transform(MathUtils.RIGHT, new Vector3f()).mul(scale);
 
         addLine(poseStack, bufferBuilder, position, forward, BLUE);
         addLine(poseStack, bufferBuilder, position, up, GREEN);
@@ -254,6 +313,40 @@ public class DebugRenderHelper {
             .color(color.x(), color.y(), color.z(), 0.0F).endVertex();
     }
 
+    /**
+     * Renders a cube with text lable above it
+     * @param poseStack PoseStack to use for positioning
+     * @param cubePos position to render the cube at, camera relative
+     * @param rot rotation facing the camera, to align the text
+     * @param label label of the cube
+     * @param size cube size
+     * @param color cube color
+     */
+    private static void addNamedCube(
+        PoseStack poseStack, Vector3fc cubePos, Quaternionf rot, Component label, float size, Vector3fc color)
+    {
+        addCube(poseStack, cubePos, size, color);
+
+        if (label != null) {
+            poseStack.pushPose();
+            poseStack.translate(cubePos.x(), cubePos.y() + 0.05F, cubePos.z());
+            poseStack.mulPose(rot);
+            poseStack.scale(-0.005F, -0.005F, 0.005F);
+
+            MC.font.drawInBatch(label, MC.font.width(label) * -0.5F, -MC.font.lineHeight, -1, false,
+                poseStack.last().pose(), MC.renderBuffers().bufferSource(), Font.DisplayMode.NORMAL, 0,
+                LightTexture.FULL_BRIGHT);
+            poseStack.popPose();
+        }
+    }
+
+    /**
+     * Renders a cube
+     * @param poseStack PoseStack to use for positioning
+     * @param position position to render the cube at, camera relative
+     * @param size cube size
+     * @param color cube color
+     */
     private static void addCube(PoseStack poseStack, Vector3fc position, float size, Vector3fc color) {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.setShaderTexture(0, new ResourceLocation("vivecraft:textures/white.png"));
@@ -261,7 +354,7 @@ public class DebugRenderHelper {
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
-        Vec3i iColor = new Vec3i((int) color.x() * 255, (int) color.y() * 255, (int) color.z() * 255);
+        Vec3i iColor = new Vec3i((int) (color.x() * 255), (int) (color.y() * 255), (int) (color.z() * 255));
         Vec3 start = new Vec3(position.x(), position.y(), position.z()).add(MathUtils.FORWARD_D.scale(size * 0.5F));
         Vec3 end =  new Vec3(position.x(), position.y(), position.z()).add(MathUtils.BACK_D.scale(size * 0.5F));
         RenderHelper.renderBox(bufferbuilder, start, end, size, size, iColor, (byte) 255, poseStack);

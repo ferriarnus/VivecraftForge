@@ -223,6 +223,8 @@ public class VRSettings {
     public boolean fbtCalibrated = false;
     @SettingField
     public boolean fbtExtendedCalibrated = false;
+    @SettingField
+    public boolean unlabeledTrackersUsed = false;
     @SettingField(config = "FBTOFFSETS")
     public Vector3f[] fbtOffsets = getFbtOffsetDefault();
     @SettingField(config = "FBTROTATIONS")
@@ -389,12 +391,16 @@ public class VRSettings {
     public MenuWorld menuWorldSelection = MenuWorld.BOTH;
     @SettingField(VrOptions.MENU_WORLD_FALLBACK)
     public boolean menuWorldFallbackPanorama = true;
+
+    // debug render settings
     @SettingField(VrOptions.RENDER_DEBUG_HEAD_HITBOX)
     public boolean renderHeadHitbox = false;
     @SettingField(VrOptions.RENDER_DEBUG_DEVICE_AXES)
     public boolean renderDeviceAxes = false;
     @SettingField(VrOptions.RENDER_DEBUG_PLAYER_AXES)
     public boolean renderVrPlayerAxes = false;
+    @SettingField(VrOptions.RENDER_DEBUG_TRACKERS)
+    public boolean renderTrackerPositions = false;
 
     //
 
@@ -578,6 +584,13 @@ public class VRSettings {
 
         // Load settings from the file
         this.loadOptions();
+
+        // reset fbt if general trackers were used last time
+        if (this.unlabeledTrackersUsed) {
+            this.unlabeledTrackersUsed = false;
+            this.fbtCalibrated = false;
+            this.fbtExtendedCalibrated = false;
+        }
 
         // load external camera config
         VRHotkeys.loadExternalCameraConfig(this);
@@ -1235,6 +1248,7 @@ public class VRSettings {
         RENDER_DEBUG_HEAD_HITBOX(false, true), // renders entities head hit boxes
         RENDER_DEBUG_DEVICE_AXES(false, true), // renders axes for the local devices
         RENDER_DEBUG_PLAYER_AXES(false, true), // renders axes for all client vr players
+        RENDER_DEBUG_TRACKERS(false, true), // renders a cube at the tracker position
         VR_PLUGIN(false, true), // vr plugin to use
         VR_ENABLED(false, true) { // vr or nonvr
 

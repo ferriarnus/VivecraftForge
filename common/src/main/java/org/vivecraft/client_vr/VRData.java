@@ -49,7 +49,7 @@ public class VRData {
     public VRDevicePose elbow_left;
     public VRDevicePose elbow_right;
 
-    public FBTMode fbtMode;
+    public FBTMode fbtMode = FBTMode.ARMS_ONLY;
 
     // room origin, all VRDevicePose are relative to that
     public Vec3 origin;
@@ -148,7 +148,8 @@ public class VRData {
         }
 
         // fbt
-        if (mcVR.hasFBT()) {
+        if (mcVR.hasFBT() && dataHolder.vrSettings.fbtCalibrated) {
+            this.fbtMode = FBTMode.ARMS_LEGS;
             this.waist = new VRDevicePose(this,
                 mcVR.getAimRotation(MCVR.WAIST_TRACKER),
                 mcVR.getAimSource(MCVR.WAIST_TRACKER).add(scaleOffset, new Vector3f()),
@@ -162,7 +163,8 @@ public class VRData {
                 mcVR.getAimSource(MCVR.RIGHT_FOOT_TRACKER).add(scaleOffset, new Vector3f()),
                 mcVR.getAimVector(MCVR.RIGHT_FOOT_TRACKER));
         }
-        if (mcVR.hasExtendedFBT()) {
+        if (mcVR.hasExtendedFBT() && dataHolder.vrSettings.fbtExtendedCalibrated) {
+            this.fbtMode = FBTMode.WITH_JOINTS;
             this.knee_left = new VRDevicePose(this,
                 mcVR.getAimRotation(MCVR.LEFT_KNEE_TRACKER),
                 mcVR.getAimSource(MCVR.LEFT_KNEE_TRACKER).add(scaleOffset, new Vector3f()),
@@ -249,9 +251,7 @@ public class VRData {
         if (ClientDataHolderVR.getInstance().vrSettings.seated) {
             // in seated use the head direction
             return this.hmd.getYawRad();
-        } else if (ClientDataHolderVR.getInstance().vr.hasFBT() &&
-            ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated)
-        {
+        } else if (this.fbtMode != FBTMode.ARMS_ONLY) {
             // use average of head and waist
             Vector3f dir = this.waist.getDirection().lerp(this.hmd.getDirection(), 0.5F);
             return (float) Math.atan2(-dir.x, dir.z);

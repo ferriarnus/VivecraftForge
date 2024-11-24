@@ -12,6 +12,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.tuple.Pair;
 import org.joml.*;
 import org.lwjgl.glfw.GLFW;
 import org.vivecraft.client.VivecraftVRMod;
@@ -122,6 +123,16 @@ public abstract class MCVR {
     protected int quickTorchPreviousSlot;
     protected Map<String, VRInputAction> inputActions = new HashMap<>();
     protected Map<String, VRInputAction> inputActionsByKeyBinding = new HashMap<>();
+
+    protected static final Vector3fc[] fbtReferencePositions = new Vector3fc[] {
+        new Vector3f(0F, 0.875F, 0F), // waist
+        new Vector3f(0.125F, 0F, 0F), // right foot
+        new Vector3f(-0.125F, 0F, 0F), // left foot
+        new Vector3f(0.625F, 1.375F, 0F), // right elbow
+        new Vector3f(-0.625F, 1.375F, 0F), // left elbow
+        new Vector3f(0.125F, 0.375F, 0F), // right knee
+        new Vector3f(-0.125F, 0.375F, 0F) // left knee
+    };
 
     /**
      * creates the MCVR instance
@@ -752,7 +763,6 @@ public abstract class MCVR {
                         this.controllerRotation[i].transformDirection(this.dh.vrSettings.fbtOffsets[i - 3],
                             new Vector3f()));
                 }
-
             }
             this.feetHistory[0].add(new Vector3f(this.getAimSource(RIGHT_FOOT_TRACKER)));
             this.feetHistory[1].add(new Vector3f(this.getAimSource(LEFT_FOOT_TRACKER)));
@@ -1188,33 +1198,22 @@ public abstract class MCVR {
     /**
      * calculates the fbt trackers rotation and position offsets from the current state, to where they should be
      */
-    public void calibrateFBT() {
+    public void calibrateFBT(float headsetYaw) {
         Vector3f tempV = new Vector3f();
         float scale = (AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT) * 0.9375F;
 
-        float yaw = Mth.PI - this.dh.vrPlayer.vrdata_room_pre.hmd.getYawRad();
         Vector3f posAvg = this.hmdPivotHistory.averagePosition(0.5D);
 
         for (int t = 3; t < (hasExtendedFBT() ? trackableDeviceCount : 6); t++) {
-            Matrix4f rotationOffset = this.controllerPose[t].rotateLocalY(-yaw, new Matrix4f());
+            Matrix4f rotationOffset = this.controllerPose[t].rotateLocalY(headsetYaw, new Matrix4f());
             rotationOffset.getUnnormalizedRotation(this.dh.vrSettings.fbtRotations[t - 3]).conjugate();
         }
 
-        Vector3f[] offsets = new Vector3f[] {
-            new Vector3f(0F, 0.875F * scale, 0F),
-            new Vector3f(0.125F * scale, 0F, 0F),
-            new Vector3f(-0.125F * scale, 0F, 0F),
-            new Vector3f(0.625F * scale, 1.375F * scale, 0F),
-            new Vector3f(-0.625F * scale, 1.375F * scale, 0F),
-            new Vector3f(0.125F * scale, 0.375F * scale, 0F),
-            new Vector3f(-0.125F * scale, 0.375F * scale, 0F)
-        };
-
         for (int t = 3; t < (hasExtendedFBT() ? trackableDeviceCount : 6); t++) {
-            Vector3f offset = offsets[t - 3].sub(
+            Vector3f offset = fbtReferencePositions[t - 3].mul(scale, new Vector3f()).sub(
                 this.controllerPose[t].getTranslation(tempV)
                 .sub(posAvg.x, 0F, posAvg.z) // center around headset
-                .rotateY(-yaw)); // remove body rotation
+                .rotateY(headsetYaw)); // remove body rotation
             this.dh.vrSettings.fbtOffsets[t - 3].set(offset);
         }
 
@@ -1224,6 +1223,19 @@ public abstract class MCVR {
         if (hasExtendedFBT()) {
             this.dh.vrSettings.fbtExtendedCalibrated = true;
         }
+    }
+
+    /**
+     * @return List of trackers, with device type and poseMatrix
+     */
+    public List<Pair<Integer, Matrix4fc>> getTrackers() {
+        List<Pair<Integer, Matrix4fc>> poses = new ArrayList<>();
+        if (hasFBT()) {
+            for(int i = 3; i < (hasExtendedFBT() ? trackableDeviceCount : 6); i++) {
+                poses.add(Pair.of(i, this.controllerPose[i]));
+            }
+        }
+        return poses;
     }
 
     /**

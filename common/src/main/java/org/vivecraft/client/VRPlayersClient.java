@@ -320,7 +320,7 @@ public class VRPlayersClient {
 
         rotInfo.seated = ClientDataHolderVR.getInstance().vrSettings.seated;
         rotInfo.reverse = ClientDataHolderVR.getInstance().vrSettings.reverseHands;
-        rotInfo.fbtMode = FBTMode.ARMS_ONLY;
+        rotInfo.fbtMode = data.fbtMode;
 
         rotInfo.heightScale = AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT;
         rotInfo.worldScale = ClientDataHolderVR.getInstance().vrPlayer.worldScale;
@@ -351,9 +351,7 @@ public class VRPlayersClient {
             RenderHelper.getControllerRenderPos(MCVR.MAIN_CONTROLLER), pos);
         rotInfo.headPos = MathUtils.subtractToVector3f(data.hmd.getPosition(), pos);
 
-        if (ClientDataHolderVR.getInstance().vr.hasFBT() && ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated) {
-            rotInfo.fbtMode = FBTMode.ARMS_LEGS;
-
+        if (data.fbtMode != FBTMode.ARMS_ONLY) {
             rotInfo.waistQuat = data.getDevice(MCVR.WAIST_TRACKER).getMatrix()
                 .getNormalizedRotation(new Quaternionf());
             rotInfo.rightFootQuat = data.getDevice(MCVR.RIGHT_FOOT_TRACKER).getMatrix()
@@ -369,10 +367,7 @@ public class VRPlayersClient {
             rotInfo.leftFootPos = MathUtils.subtractToVector3f(
                 data.getDevice(MCVR.LEFT_FOOT_TRACKER).getPosition(), pos);
 
-            if (ClientDataHolderVR.getInstance().vr.hasExtendedFBT() &&
-                ClientDataHolderVR.getInstance().vrSettings.fbtExtendedCalibrated)
-            {
-                rotInfo.fbtMode = FBTMode.WITH_JOINTS;
+            if (data.fbtMode == FBTMode.WITH_JOINTS) {
                 rotInfo.leftKneeQuat = data.getDevice(MCVR.LEFT_KNEE_TRACKER).getMatrix()
                     .getNormalizedRotation(new Quaternionf());
                 rotInfo.rightKneeQuat = data.getDevice(MCVR.RIGHT_KNEE_TRACKER).getMatrix()

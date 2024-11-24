@@ -48,6 +48,7 @@ import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.render.XRCamera;
+import org.vivecraft.client_vr.render.helpers.DebugRenderHelper;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.render.helpers.VRArmHelper;
 import org.vivecraft.client_vr.render.helpers.VREffectsHelper;
@@ -351,6 +352,7 @@ public abstract class GameRendererVRMixin
             PoseStack poseStack = new PoseStack();
             RenderHelper.applyVRModelView(vivecraft$DATA_HOLDER.currentPass, poseStack);
             VREffectsHelper.renderGuiLayer(partialTick, true, poseStack);
+            DebugRenderHelper.renderDebug(poseStack, partialTick);
 
             if (KeyboardHandler.SHOWING) {
                 if (vivecraft$DATA_HOLDER.vrSettings.physicalKeyboard) {

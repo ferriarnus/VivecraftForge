@@ -45,7 +45,8 @@ public class GuiPlayerModelSettings extends GuiVROptionsBase {
     public void init() {
         this.vrTitle = "vivecraft.options.screen.playermodel";
         super.init(modelOptions, true);
-        if (VRState.VR_INITIALIZED && this.dataHolder.vr.hasFBT()) {
+        if (VRState.VR_INITIALIZED && !this.vrSettings.seated && (this.dataHolder.vr.hasFBT() ||
+            ClientDataHolderVR.getInstance().vr.getTrackers().size() >= 3)) {
             super.init(this.fbtCalibration, false);
         } else {
             super.init(this.heightCalibration, false);

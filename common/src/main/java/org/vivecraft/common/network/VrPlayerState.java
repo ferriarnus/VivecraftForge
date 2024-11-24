@@ -63,18 +63,14 @@ public record VrPlayerState(boolean seated, Pose hmd, boolean reverseHands, Pose
     }
 
     public static VrPlayerState create(VRPlayer vrPlayer) {
-        FBTMode fbtMode = FBTMode.ARMS_ONLY;
-        boolean hasFbt =
-            ClientDataHolderVR.getInstance().vr.hasFBT() && ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated;
-        boolean hasExtendedFbt = hasFbt && ClientDataHolderVR.getInstance().vr.hasExtendedFBT() &&
-            ClientDataHolderVR.getInstance().vrSettings.fbtExtendedCalibrated;
-        if (ClientNetworking.USED_NETWORK_VERSION >= 1) {
-            if (hasExtendedFbt) {
-                fbtMode = FBTMode.WITH_JOINTS;
-            } else if (hasFbt) {
-                fbtMode = FBTMode.ARMS_LEGS;
-            }
+        FBTMode fbtMode = vrPlayer.vrdata_world_post.fbtMode;
+        if (ClientNetworking.USED_NETWORK_VERSION < 1) {
+            // don't send fbt data to legacy servers
+            fbtMode = FBTMode.ARMS_ONLY;
         }
+
+        boolean hasFbt = fbtMode != FBTMode.ARMS_ONLY;
+        boolean hasExtendedFbt = fbtMode == FBTMode.WITH_JOINTS;
 
         return new VrPlayerState(
             ClientDataHolderVR.getInstance().vrSettings.seated,

@@ -96,7 +96,9 @@ public abstract class PauseScreenVRMixin extends Screen {
             }).width(98).build());
 
         if (!ClientDataHolderVR.getInstance().vrSettings.seated) {
-            if (ClientDataHolderVR.getInstance().vr.hasFBT()) {
+            if (ClientDataHolderVR.getInstance().vr.hasFBT() ||
+                ClientDataHolderVR.getInstance().vr.getTrackers().size() >= 3)
+            {
                 rowHelper.addChild(new Button.Builder(
                     Component.translatable("vivecraft.options.screen.fbtcalibration.button"),
                         (p) -> this.minecraft.setScreen(new FBTCalibrationScreen(this)))
