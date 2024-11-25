@@ -221,25 +221,28 @@ public class ModelUtils {
      * @param bodyYaw players Y rotation
      * @param applyScale if the woldScale/entity scale should be applied
      * @param useWorldScale when set will apply the worldScale, instead of entity scale
-     * @param tempVDir Vector3f object to work with, contains the euler angles after the call
-     * @param tempVUp second Vector3f object to work with, contains the euler angles after the call
+     * @param tempVDir Vector3f object to work with, contains the direction after the call, in model space
+     * @param tempVUp second Vector3f object to work with, contains the up direction after the call
      * @param tempM Matrix3f object to work with, contains the rotation after the call
      */
     public static void pointModelAtLocal(
         LivingEntity player, ModelPart part, Vector3fc target, Quaternionfc targetRot, VRPlayersClient.RotInfo rotInfo,
         float bodyYaw, boolean applyScale, boolean useWorldScale, Vector3f tempVDir, Vector3f tempVUp, Matrix3f tempM)
     {
-        // convert model to world space
-        modelToWorld(player, part.x, part.y, part.z, rotInfo, bodyYaw, applyScale, useWorldScale, tempVDir);
+        // convert target to model
+        worldToModel(player, target, rotInfo, bodyYaw, useWorldScale, tempVDir);
+
         // calculate direction
-        target.sub(tempVDir, tempVDir);
+        tempVDir.sub(part.x, part.y, part.z, tempVDir);
 
         // get the up vector the ModelPart should face
         targetRot.transform(MathUtils.RIGHT, tempVUp);
+        worldToModelDirection(tempVUp, bodyYaw, tempVUp);
+
         tempVDir.cross(tempVUp, tempVUp);
 
         // rotate model
-        pointAt(bodyYaw, tempVDir, tempVUp, tempM);
+        pointAtModel(tempVDir, tempVUp, tempM);
     }
 
     /**
@@ -248,11 +251,11 @@ public class ModelUtils {
      * @param targetX x coordinate of the target point the {@code part} should face, in model space
      * @param targetY y coordinate of the target point the {@code part} should face, in model space
      * @param targetZ z coordinate of the target point the {@code part} should face, in model space
-     * @param tempVDir Vector3f object to work with, contains the euler angles after the call
+     * @param tempVDir Vector3f object to work with, contains the direction vector after the call
      * @param tempVUp second Vector3f object to work with, contains the up vector after the call
      * @param tempM Matrix3f object to work with, contains the rotation after the call
      */
-    public static void pointModelAtModel(
+    public static void pointModelAtModelForward(
         ModelPart part, float targetX, float targetY, float targetZ, Vector3f tempVDir,
         Vector3f tempVUp, Matrix3f tempM)
     {
@@ -273,7 +276,7 @@ public class ModelUtils {
      * @param targetY y coordinate of the target point the {@code part} should face, in model space
      * @param targetZ z coordinate of the target point the {@code part} should face, in model space
      * @param up up vector the ModelPart should face
-     * @param tempVDir Vector3f object to work with, contains the euler angles after the call
+     * @param tempVDir Vector3f object to work with, contains the direction vector after the call
      * @param tempM Matrix3f object to work with, contains the rotation after the call
      */
     public static void pointModelAtModelWithUp(
@@ -287,14 +290,14 @@ public class ModelUtils {
     }
 
     /**
-     * rotates the given Matrix3f to point in the {@code tempDir} world direction
+     * rotates the given Matrix3f to point in the {@code dir} world direction
      * @param bodyYaw players Y rotation
-     * @param upDir   target direction the {@code part} should respect
-     * @param tempDir direction Vector to work with, contains the euler angles after the call
+     * @param dir     direction Vector the matrix should look at
+     * @param upDir   up direction for the look matrix
      * @param tempM   Matrix3f object to work with, contains the rotation after the call
      */
-    public static void pointAt(float bodyYaw, Vector3f tempDir, Vector3fc upDir, Matrix3f tempM) {
-        tempM.setLookAlong(tempDir, upDir).transpose();
+    public static void pointAt(float bodyYaw, Vector3fc dir, Vector3fc upDir, Matrix3f tempM) {
+        tempM.setLookAlong(dir, upDir).transpose();
         // undo body yaw
         tempM.rotateLocalY(bodyYaw + Mth.PI);
         // ModelParts are rotated 90°
@@ -302,14 +305,14 @@ public class ModelUtils {
     }
 
     /**
-     * rotates the given Matrix3f to point in the {@code tempDir} model direction
-     * @param upDir target direction the {@code part} should respect
-     * @param tempDir direction Vector to work with, contains the euler angles after the call
+     * rotates the given Matrix3f to point in the {@code dir} model direction
+     * @param dir direction Vector the matrix should look at
+     * @param upDir up direction for the look matrix
      * @param tempM Matrix3f object to work with, contains the rotation after the call
      */
-    public static void pointAtModel(Vector3f tempDir, Vector3fc upDir, Matrix3f tempM) {
+    public static void pointAtModel(Vector3fc dir, Vector3fc upDir, Matrix3f tempM) {
         tempM.setLookAlong(
-            -tempDir.x(), -tempDir.y(), tempDir.z(),
+            -dir.x(), -dir.y(), dir.z(),
             -upDir.x(), -upDir.y(), upDir.z()).transpose();
         // ModelParts are rotated 90°
         tempM.rotateX(Mth.HALF_PI);

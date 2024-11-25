@@ -112,6 +112,9 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             this.legScale = ClientDataHolderVR.getInstance().vrSettings.playerModelLegScale;
         }
 
+        // scale the offset with the body and arm scale, to keep them attached
+        float sideOffset = 4F * this.bodyScale + this.armScale;
+
         if (swimming) {
             // in water also rotate around the view vector
             this.xRot = this.layAmount * (-Mth.HALF_PI - Mth.DEG_TO_RAD * player.getViewXRot(partialTick));
@@ -154,7 +157,7 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         // rotate body
         if (this.riding) {
             // when riding, rotate body to sitting position
-            ModelUtils.pointModelAtModel(this.body, 0F, 14F, 2F + heightOffset, this.tempV, this.tempV2, this.tempM);
+            ModelUtils.pointModelAtModelForward(this.body, 0F, 14F, 2F + heightOffset, this.tempV, this.tempV2, this.tempM);
             this.tempM.rotateLocalX(-this.xRot);
             ModelUtils.setRotation(this.body, this.tempM, this.tempV);
         } else if (noLowerBodyAnimation) {
@@ -178,8 +181,6 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             ModelUtils.pointModelAtLocal(player, this.body, this.rotInfo.waistPos, this.rotInfo.waistQuat, this.rotInfo,
                 this.bodyYaw, true, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
 
-            // scale the offset with the body and arm scale, to keep them attached
-            float sideOffset = 4F * this.bodyScale + this.armScale;
             // offset arms
             this.tempM.transform(sideOffset, 2F, 0F, this.tempV2);
             this.leftArm.x = this.body.x + this.tempV2.x;
@@ -200,8 +201,8 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
 
         if (this.riding || noLowerBodyAnimation) {
             // offset arms with body rotation
-            this.leftArm.x = this.body.x + 5F;
-            this.rightArm.x = this.body.x - 5F;
+            this.leftArm.x = this.body.x + sideOffset;
+            this.rightArm.x = this.body.x - sideOffset;
             this.leftArm.y = 2F * cosBodyRot + this.body.y;
             this.leftArm.z = this.body.z;
 
@@ -287,16 +288,17 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
                     actualRightArm = this.leftArm;
                 }
 
-                if (!this.slim) {
-                    // offset so that the middle of arm points at the controller
-                    this.rightArm.x -= 0.5F;
-                    this.leftArm.x += 0.5F;
-                }
+                // rotation offset, since the rotation point isn't in the center.
+                // this rotates the arm 0.5 or 1 pixels at full arm distance, so that the hand matches up with the center
+                float offset = (this.slim ? Mth.PI * 0.016F : Mth.PI * 0.032F) * this.armScale;
 
                 // right arm
                 ModelUtils.pointModelAtLocal(player, actualRightArm, this.rotInfo.rightArmPos,
                     this.rotInfo.rightArmQuat, this.rotInfo, this.bodyYaw, true, this.isMainPlayer, this.tempV,
                     this.tempV2, this.tempM);
+
+                this.tempM.rotateZ(-offset * Math.min(10F / this.tempV.length(), 1F));
+
                 if (ClientDataHolderVR.getInstance().vrSettings.playerArmAnim && this.attackArm == HumanoidArm.RIGHT) {
                     ModelUtils.swingAnimation(HumanoidArm.RIGHT, this.attackTime, this.isMainPlayer, this.tempM,
                         this.tempV);
@@ -311,11 +313,7 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
                 ModelUtils.pointModelAtLocal(player, actualLeftArm, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat,
                     this.rotInfo, this.bodyYaw, true, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
 
-                if (!this.slim) {
-                    // undo previous offset, before calculating the gui position
-                    this.rightArm.x += 0.5F;
-                    this.leftArm.x -= 0.5F;
-                }
+                this.tempM.rotateZ(offset * Math.min(10F / this.tempV.length(), 1F));
 
                 if (ClientDataHolderVR.getInstance().vrSettings.playerArmAnim && this.attackArm == HumanoidArm.LEFT) {
                     ModelUtils.swingAnimation(HumanoidArm.LEFT, this.attackTime, this.isMainPlayer, this.tempM,
@@ -338,8 +336,9 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
                     GuiHandler.GUI_ROTATION_PLAYER_MODEL.transformDirection(MathUtils.BACK, this.tempV)
                         .mul(0.584F * this.rotInfo.worldScale);
 
-                    ModelUtils.modelToWorld(player, actualLeftArm.x, actualLeftArm.y, actualLeftArm.z, this.rotInfo,
-                        this.bodyYaw, true, this.isMainPlayer, this.tempV2);
+                    ModelUtils.modelToWorld(player, actualLeftArm.x, actualLeftArm.y,
+                        actualLeftArm.z, this.rotInfo, this.bodyYaw, true, this.isMainPlayer,
+                        this.tempV2);
                     this.tempV2.add(this.tempV);
 
                     GuiHandler.GUI_POS_PLAYER_MODEL = player.getPosition(ClientUtils.getCurrentPartialTick())

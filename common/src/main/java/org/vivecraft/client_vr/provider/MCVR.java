@@ -752,8 +752,8 @@ public abstract class MCVR {
 
         if (this.hasFBT()) {
             int trackers = this.hasExtendedFBT() ? trackableDeviceCount : 6;
-            boolean calibrated = this.dh.vrSettings.fbtCalibrated &&
-                (!this.hasExtendedFBT() || this.dh.vrSettings.fbtExtendedCalibrated);
+            boolean calibrated = this.dh.vrSettings.fbtCalibrated ||
+                (this.hasExtendedFBT() && this.dh.vrSettings.fbtExtendedCalibrated);
             for (int i = 3; i < trackers; i++) {
                 this.controllerRotation[i].set3x3(this.controllerPose[i]);
                 this.controllerPose[i].getTranslation(this.aimSource[i]);
