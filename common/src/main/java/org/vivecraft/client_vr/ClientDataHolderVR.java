@@ -2,6 +2,7 @@ package org.vivecraft.client_vr;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.world.entity.HumanoidArm;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.gameplay.trackers.*;
 import org.vivecraft.client_vr.menuworlds.MenuWorldRenderer;
@@ -57,8 +58,9 @@ public class ClientDataHolderVR {
     public RenderPass currentPass;
     public boolean isFirstPass;
 
-    public boolean leftMenuHand;
-    public boolean rightMenuHand;
+    // if the main/offhand should be rendered as menu hands
+    public boolean menuHandOff;
+    public boolean menuHandMain;
 
     public int tickCounter;
 
@@ -74,5 +76,18 @@ public class ClientDataHolderVR {
             INSTANCE = new ClientDataHolderVR();
         }
         return INSTANCE;
+    }
+
+    /**
+     * checks if the given arm side is currently a menu hand
+     * @param arm LEFT/RIGHT arm to check
+     * @return if the arm is a menu hnd
+     */
+    public boolean isMenuHand(HumanoidArm arm) {
+        if (arm == HumanoidArm.LEFT) {
+            return this.vrSettings.reverseHands ? this.menuHandMain : this.menuHandOff;
+        } else {
+            return this.vrSettings.reverseHands ? this.menuHandOff : this.menuHandMain;
+        }
     }
 }

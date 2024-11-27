@@ -38,6 +38,7 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
     protected float xRot;
     protected float layAmount;
     protected HumanoidArm attackArm = null;
+    protected HumanoidArm mainArm = HumanoidArm.RIGHT;
     protected boolean isMainPlayer;
     protected float bodyScale;
     protected float armScale;
@@ -79,15 +80,21 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
 
         this.rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
 
-        if (this.attackTime > 0F) {
-            this.attackArm = player.swingingArm == InteractionHand.MAIN_HAND ?
-                player.getMainArm() : player.getMainArm().getOpposite();
-        } else {
-            this.attackArm = null;
-        }
-
         if (this.rotInfo == null) {
             return; //how
+        }
+
+        this.mainArm = this.rotInfo.reverse ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
+
+        if (this.attackTime > 0F) {
+            // we ignore the vanilla main arm setting
+            this.attackArm = player.swingingArm == InteractionHand.MAIN_HAND ?
+                HumanoidArm.RIGHT : HumanoidArm.LEFT;
+            if (this.rotInfo.reverse) {
+                this.attackArm = this.attackArm.getOpposite();
+            }
+        } else {
+            this.attackArm = null;
         }
 
         if (this.isMainPlayer) {
@@ -263,8 +270,7 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         if (!this.riding && this.layAmount < 1.0F && this.rotInfo.fbtMode == FBTMode.ARMS_ONLY) {
             // move legs back with bend
             float newLegY = 12F;
-            float newLegZ = 2F;
-            newLegZ = this.body.z + 10F * Mth.sin(this.body.xRot);
+            float newLegZ = this.body.z + 10F * Mth.sin(this.body.xRot);
             if (this instanceof VRPlayerModel_WithArmsLegs) {
                 newLegY += 10F * Mth.sin(this.body.xRot);
             }
@@ -281,46 +287,41 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             if (this.getClass() == VRPlayerModel.class &&
                 this.rotInfo.leftArmPos.distanceSquared(this.rotInfo.rightArmPos) > 0.0F)
             {
-                ModelPart actualLeftArm = this.leftArm;
-                ModelPart actualRightArm = this.rightArm;
-                if (this.rotInfo.reverse) {
-                    actualLeftArm = this.rightArm;
-                    actualRightArm = this.leftArm;
-                }
+                ModelPart offHand = this.rotInfo.reverse ? this.rightArm : this.leftArm;
+                ModelPart mainHand = this.rotInfo.reverse ? this.leftArm : this.rightArm;
 
                 // rotation offset, since the rotation point isn't in the center.
                 // this rotates the arm 0.5 or 1 pixels at full arm distance, so that the hand matches up with the center
                 float offset = (this.slim ? Mth.PI * 0.016F : Mth.PI * 0.032F) * this.armScale;
 
-                // right arm
-                ModelUtils.pointModelAtLocal(player, actualRightArm, this.rotInfo.rightArmPos,
-                    this.rotInfo.rightArmQuat, this.rotInfo, this.bodyYaw, true, this.isMainPlayer, this.tempV,
-                    this.tempV2, this.tempM);
+                // main hand
+                ModelUtils.pointModelAtLocal(player, mainHand, this.rotInfo.rightArmPos, this.rotInfo.rightArmQuat,
+                    this.rotInfo, this.bodyYaw, true, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
 
                 this.tempM.rotateZ(-offset * Math.min(10F / this.tempV.length(), 1F));
 
-                if (ClientDataHolderVR.getInstance().vrSettings.playerArmAnim && this.attackArm == HumanoidArm.RIGHT) {
-                    ModelUtils.swingAnimation(HumanoidArm.RIGHT, this.attackTime, this.isMainPlayer, this.tempM,
+                if (ClientDataHolderVR.getInstance().vrSettings.playerArmAnim && this.attackArm == this.mainArm) {
+                    ModelUtils.swingAnimation(this.attackArm, this.attackTime, this.isMainPlayer, this.tempM,
                         this.tempV);
-                    actualRightArm.x -= this.tempV.x;
-                    actualRightArm.y -= this.tempV.y;
-                    actualRightArm.z += this.tempV.z;
+                    mainHand.x -= this.tempV.x;
+                    mainHand.y -= this.tempV.y;
+                    mainHand.z += this.tempV.z;
                 }
                 this.tempM.rotateLocalX(-this.xRot);
-                ModelUtils.setRotation(actualRightArm, this.tempM, this.tempV);
+                ModelUtils.setRotation(mainHand, this.tempM, this.tempV);
 
-                // left arm
-                ModelUtils.pointModelAtLocal(player, actualLeftArm, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat,
+                // offhand
+                ModelUtils.pointModelAtLocal(player, offHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat,
                     this.rotInfo, this.bodyYaw, true, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
 
                 this.tempM.rotateZ(offset * Math.min(10F / this.tempV.length(), 1F));
 
-                if (ClientDataHolderVR.getInstance().vrSettings.playerArmAnim && this.attackArm == HumanoidArm.LEFT) {
-                    ModelUtils.swingAnimation(HumanoidArm.LEFT, this.attackTime, this.isMainPlayer, this.tempM,
+                if (ClientDataHolderVR.getInstance().vrSettings.playerArmAnim && this.attackArm != this.mainArm) {
+                    ModelUtils.swingAnimation(this.attackArm, this.attackTime, this.isMainPlayer, this.tempM,
                         this.tempV);
-                    actualLeftArm.x -= this.tempV.x;
-                    actualLeftArm.y -= this.tempV.y;
-                    actualLeftArm.z += this.tempV.z;
+                    offHand.x -= this.tempV.x;
+                    offHand.y -= this.tempV.y;
+                    offHand.z += this.tempV.z;
                 }
 
                 if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
@@ -336,16 +337,15 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
                     GuiHandler.GUI_ROTATION_PLAYER_MODEL.transformDirection(MathUtils.BACK, this.tempV)
                         .mul(0.584F * this.rotInfo.worldScale);
 
-                    ModelUtils.modelToWorld(player, actualLeftArm.x, actualLeftArm.y,
-                        actualLeftArm.z, this.rotInfo, this.bodyYaw, true, this.isMainPlayer,
-                        this.tempV2);
+                    ModelUtils.modelToWorld(player, offHand.x, offHand.y, offHand.z, this.rotInfo, this.bodyYaw, true,
+                        this.isMainPlayer, this.tempV2);
                     this.tempV2.add(this.tempV);
 
                     GuiHandler.GUI_POS_PLAYER_MODEL = player.getPosition(ClientUtils.getCurrentPartialTick())
                         .add(this.tempV2.x, this.tempV2.y, this.tempV2.z);
                 }
                 this.tempM.rotateLocalX(-this.xRot);
-                ModelUtils.setRotation(actualLeftArm, this.tempM, this.tempV);
+                ModelUtils.setRotation(offHand, this.tempM, this.tempV);
             }
 
             // legs only when not sitting
@@ -405,12 +405,12 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
 
         // spin attack moves the model one block up
         if (player.isAutoSpinAttack()) {
-            spinOffset(player, this.head, this.body);
+            spinOffset(this.head, this.body);
             if (!(this instanceof VRPlayerModel_WithArms)) {
-                spinOffset(player, this.leftArm, this.rightArm);
+                spinOffset(this.leftArm, this.rightArm);
             }
             if (!(this instanceof VRPlayerModel_WithArmsLegs)) {
-                spinOffset(player, this.leftLeg, this.rightLeg);
+                spinOffset(this.leftLeg, this.rightLeg);
             }
         }
 
@@ -431,6 +431,23 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         return this.bodyRot;
     }
 
+    public void hideHand(LivingEntity player, InteractionHand hand) {
+        VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
+        if (rotInfo != null && rotInfo.reverse) {
+            if (hand == InteractionHand.MAIN_HAND) {
+                this.hideLeftHand();
+            } else {
+                this.hideRightHand();
+            }
+        } else {
+            if (hand == InteractionHand.MAIN_HAND) {
+                this.hideRightHand();
+            } else {
+                this.hideLeftHand();
+            }
+        }
+    }
+
     public void hideLeftHand() {
         this.leftArm.visible = false;
         this.leftSleeve.visible = false;
@@ -441,32 +458,20 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         this.rightSleeve.visible = false;
     }
 
-    protected void spinOffset(LivingEntity entity, ModelPart... parts) {
-        float offset = this.xRot / Mth.PI;
+    protected void spinOffset(ModelPart... parts) {
         for (ModelPart part : parts) {
             part.y += 24F;
         }
     }
 
     @Override
-    protected ModelPart getArm(HumanoidArm side) {
-        if (this.rotInfo != null && this.rotInfo.reverse) {
-            return side == HumanoidArm.RIGHT ? this.leftArm : this.rightArm;
-        } else {
-            return side == HumanoidArm.LEFT ? this.leftArm : this.rightArm;
-        }
-    }
-
-    @Override
     public void translateToHand(HumanoidArm side, PoseStack poseStack) {
-        super.translateToHand(side, poseStack);
+        // can't call super, because, the vanilla slim offset doesn't work with rotations
+        this.getArm(side).translateAndRotate(poseStack);
 
-        float offset = 0.0F;
-        if (this.rotInfo != null && this.rotInfo.reverse) {
-            offset = side == HumanoidArm.RIGHT ? 0.1F : -0.1F;
+        if (this.slim) {
+            poseStack.translate(0.5F / 16F * (side == HumanoidArm.RIGHT ? 1F : -1F), 0.0F, 0.0F);
         }
-
-        poseStack.translate(offset, 0.0F, 0.0F);
         if (side == this.attackArm) {
             poseStack.translate(0.0F, 0.5F, 0.0F);
             poseStack.mulPose(Axis.XP.rotation((float) Math.sin(this.attackTime * Mth.PI)));

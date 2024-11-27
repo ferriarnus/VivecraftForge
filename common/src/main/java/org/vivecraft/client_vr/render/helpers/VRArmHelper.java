@@ -50,26 +50,28 @@ public class VRArmHelper {
     /**
      * renders the VR hands
      * @param partialTick current partial tick
-     * @param renderRight if the right hand should be rendered
-     * @param renderLeft if the left hand should be rendered
-     * @param menuHandRight if the right hand should render as the menu hand
-     * @param menuHandLeft if the left hand should render as the menu hand
+     * @param renderMain if the main hand should be rendered
+     * @param renderOff if the offhand should be rendered
+     * @param menuHandMain if the right hand should render as the menu hand
+     * @param menuHandOff if the left hand should render as the menu hand
      * @param poseStack PoseStack to use for positioning
      */
-    public static void renderVRHands(float partialTick, boolean renderRight, boolean renderLeft, boolean menuHandRight,
-        boolean menuHandLeft, PoseStack poseStack) {
+    public static void renderVRHands(
+        float partialTick, boolean renderMain, boolean renderOff, boolean menuHandMain, boolean menuHandOff,
+        PoseStack poseStack)
+    {
         MC.getProfiler().push("hands");
 
         // backup projection matrix, not doing that breaks sodium water on 1.19.3
         RenderSystem.backupProjectionMatrix();
 
-        if (renderRight) {
+        if (renderMain) {
             // set main hand active, for the attack cooldown transparency
             ClientDataHolderVR.IS_MAIN_HAND = true;
 
             ((GameRendererExtension) MC.gameRenderer).vivecraft$resetProjectionMatrix(partialTick);
 
-            if (menuHandRight) {
+            if (menuHandMain) {
                 renderMainMenuHand(0, false, poseStack);
             } else {
                 PoseStack newPoseStack = new PoseStack();
@@ -81,9 +83,9 @@ public class VRArmHelper {
             ClientDataHolderVR.IS_MAIN_HAND = false;
         }
 
-        if (renderLeft) {
+        if (renderOff) {
             ((GameRendererExtension) MC.gameRenderer).vivecraft$resetProjectionMatrix(partialTick);
-            if (menuHandLeft) {
+            if (menuHandOff) {
                 renderMainMenuHand(1, false, poseStack);
             } else {
                 PoseStack newPoseStack = new PoseStack();

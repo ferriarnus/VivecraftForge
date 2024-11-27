@@ -540,11 +540,13 @@ public class VREffectsHelper {
      * this includes hands, vr shadow, gui, camera widgets and other stuff
      * @param partialTick current partial tick
      * @param levelRenderer LevelRenderer that holds the framebuffers for rendering
-     * @param menuHandRight if the right hand should be a menu hand
-     * @param menuHandLeft if the left hand should be a menu hand
+     * @param menuHandMain if the main hand should be a menu hand
+     * @param menuHandOff if the offhand should be a menu hand
      * @param poseStack PoseStack to use for positioning
      */
-    public static void renderVRFabulous(float partialTick, LevelRenderer levelRenderer, boolean menuHandRight, boolean menuHandLeft, PoseStack poseStack) {
+    public static void renderVRFabulous(
+        float partialTick, LevelRenderer levelRenderer, boolean menuHandMain, boolean menuHandOff, PoseStack poseStack)
+    {
         if (DATA_HOLDER.currentPass == RenderPass.SCOPEL || DATA_HOLDER.currentPass == RenderPass.SCOPER) {
             // skip for spyglass
             return;
@@ -583,7 +585,7 @@ public class VREffectsHelper {
         VRWidgetHelper.renderVRHandheldCameraWidget();
 
         boolean renderHands = VRArmHelper.shouldRenderHands();
-        VRArmHelper.renderVRHands(partialTick, renderHands && menuHandRight, renderHands && menuHandLeft, true, true, poseStack);
+        VRArmHelper.renderVRHands(partialTick, renderHands && menuHandMain, renderHands && menuHandOff, true, true, poseStack);
 
         // switch to VR hands buffer
         RenderTarget hands = ((LevelRendererExtension) levelRenderer).vivecraft$getAlphaSortVRHandsFramebuffer();
@@ -591,7 +593,7 @@ public class VREffectsHelper {
         hands.copyDepthFrom(MC.getMainRenderTarget());
         hands.bindWrite(true);
 
-        VRArmHelper.renderVRHands(partialTick, renderHands && !menuHandRight, renderHands && !menuHandLeft, false, false, poseStack);
+        VRArmHelper.renderVRHands(partialTick, renderHands && !menuHandMain, renderHands && !menuHandOff, false, false, poseStack);
 
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(1, 1, 1, 1);
@@ -605,12 +607,13 @@ public class VREffectsHelper {
      * this includes hands, vr shadow, gui, camera widgets and other stuff
      * @param partialTick current partial tick
      * @param secondPass if it's the second pass. first pass renders opaque stuff, second translucent stuff
-     * @param menuHandRight if the right hand should be a menu hand
-     * @param menuHandLeft if the left hand should be a menu hand
+     * @param menuHandMain if the main hand should be a menu hand
+     * @param menuHandOff if the offhand should be a menu hand
      * @param poseStack PoseStack to use for positioning
      */
-    public static void renderVrFast(float partialTick, boolean secondPass, boolean menuHandRight, boolean menuHandLeft,
-        PoseStack poseStack) {
+    public static void renderVrFast(
+        float partialTick, boolean secondPass, boolean menuHandMain, boolean menuHandOff, PoseStack poseStack)
+    {
         if (DATA_HOLDER.currentPass == RenderPass.SCOPEL || DATA_HOLDER.currentPass == RenderPass.SCOPER) {
             // skip for spyglass
             return;
@@ -632,7 +635,7 @@ public class VREffectsHelper {
         if (secondPass == renderHandsSecond) {
             // should render hands in second pass if menus are open, else in the first pass
             // only render the hands only once
-            VRArmHelper.renderVRHands(partialTick, VRArmHelper.shouldRenderHands(), VRArmHelper.shouldRenderHands(), menuHandRight, menuHandLeft, poseStack);
+            VRArmHelper.renderVRHands(partialTick, VRArmHelper.shouldRenderHands(), VRArmHelper.shouldRenderHands(), menuHandMain, menuHandOff, poseStack);
         }
 
         renderVRSelfEffects(partialTick);

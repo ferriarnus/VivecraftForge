@@ -32,8 +32,10 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
 
     private final Vector3f footDir = new Vector3f();
     private final Vector3f footOffset = new Vector3f();
+    private final Vector3f kneeOffset = new Vector3f();
 
     private final Vector3f footPos = new Vector3f();
+    private final Vector3f kneePosTemp = new Vector3f();
     private final Quaternionf footQuat = new Quaternionf();
 
     public VRPlayerModel_WithArmsLegs(ModelPart root, boolean isSlim) {
@@ -118,14 +120,20 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
         if (!noLegs) {
             if (ClientDataHolderVR.getInstance().vrSettings.playerWalkAnim) {
                 // vanilla walking animation on top
-                float limbRotation = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
+                //limbSwingAmount = 1;
+                float limbRotation = Mth.cos(limbSwing * 0.6662F) * limbSwingAmount;
                 this.footOffset.set(0, -0.5F, 0)
                     .rotateX(limbRotation)
                     .sub(0, -0.5F, 0)
                     .mul(1F, 0.75F, 1F)
                     .rotateY(-this.bodyYaw);
+                this.kneeOffset
+                    .set(0, -0.5F, 0)
+                    .rotateX(Math.abs(limbRotation))
+                    .sub(0, -0.5F, 0);
             } else {
                 this.footOffset.zero();
+                this.kneeOffset.zero();
             }
 
             // left leg
@@ -139,11 +147,16 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
                     // player is offset 1 block during the spin
                     this.footPos.y -= 1F;
                 }
-                kneePos = null;
             } else {
                 this.footPos.set(this.rotInfo.leftFootPos);
                 this.footQuat.set(this.rotInfo.leftFootQuat);
-                kneePos = this.rotInfo.leftKneePos;
+            }
+            if (this.rotInfo.fbtMode == FBTMode.WITH_JOINTS) {
+                this.kneePosTemp.set(this.rotInfo.leftKneePos);
+                this.kneePosTemp.add(this.kneeOffset);
+                kneePos = this.kneePosTemp;
+            } else {
+                kneePos = null;
             }
 
             this.footPos.add(this.footOffset);
@@ -165,11 +178,17 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
                     // player is offset 1 block during the spin
                     this.footPos.y -= 1F;
                 }
-                kneePos = null;
             } else {
                 this.footPos.set(this.rotInfo.rightFootPos);
                 this.footQuat.set(this.rotInfo.rightFootQuat);
-                kneePos = this.rotInfo.rightKneePos;
+            }
+
+            if (this.rotInfo.fbtMode == FBTMode.WITH_JOINTS) {
+                this.kneePosTemp.set(this.rotInfo.rightKneePos);
+                this.kneePosTemp.add(this.kneeOffset);
+                kneePos = this.kneePosTemp;
+            } else {
+                kneePos = null;
             }
 
             this.footPos.add(-this.footOffset.x, this.footOffset.y, -this.footOffset.z);
@@ -208,7 +227,7 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
         this.leftFoot.xScale = this.leftFoot.zScale = this.rightFoot.xScale = this.rightFoot.zScale = this.legScale;
 
         if (player.isAutoSpinAttack()) {
-            spinOffset(player, this.leftLeg, this.rightLeg, this.leftFoot, this.rightFoot);
+            spinOffset(this.leftLeg, this.rightLeg, this.leftFoot, this.rightFoot);
         }
 
         this.leftPants.copyFrom(this.leftLeg);

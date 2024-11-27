@@ -556,9 +556,7 @@ public class GuiHandler {
 
                         boolean slim = MC.player.getSkin().model().id().equals("slim");
 
-                        float xOffset = MC.player.getMainArm().getOpposite() ==
-                            (DH.vrSettings.reverseHands ? HumanoidArm.LEFT : HumanoidArm.RIGHT) ? -0.176F : -0.136F;
-
+                        float xOffset = -0.136F;
 
                         float yOffset = slim ? 0.085F : 0.055F;
                         float yScaleOffset = slim ? 0.0825F : 0.1125F;

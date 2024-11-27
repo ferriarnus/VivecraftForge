@@ -228,9 +228,10 @@ public abstract class ItemInHandRendererVRMixin {
     private void vivecraft$vrPlayerArm(
         PoseStack poseStack, MultiBufferSource buffer, int combinedLight, float swingProgress, HumanoidArm side)
     {
-        boolean mainHand = side != HumanoidArm.LEFT;
-        float offsetDirection = mainHand ? 1.0F : -1.0F;
         AbstractClientPlayer player = this.minecraft.player;
+        boolean rightHand = side == HumanoidArm.RIGHT;
+        boolean mainHand = side == player.getMainArm();
+        float offsetDirection = rightHand ? 1.0F : -1.0F;
 
         RenderSystem.setShaderTexture(0, player.getSkin().texture());
         VRArmRenderer vrArmRenderer = ((EntityRenderDispatcherVRExtension) this.entityRenderDispatcher).vivecraft$getArmSkinMap()
@@ -263,7 +264,7 @@ public abstract class ItemInHandRendererVRMixin {
         poseStack.translate((slim ? -0.34375F : -0.375F) * offsetDirection, 0.0F, slim ? 0.78125F : 0.75F);
         poseStack.mulPose(Axis.XP.rotationDegrees(-90));
         poseStack.mulPose(Axis.YP.rotationDegrees(180));
-        if (mainHand) {
+        if (rightHand) {
             vrArmRenderer.renderRightHand(poseStack, buffer, combinedLight, player);
         } else {
             vrArmRenderer.renderLeftHand(poseStack, buffer, combinedLight, player);

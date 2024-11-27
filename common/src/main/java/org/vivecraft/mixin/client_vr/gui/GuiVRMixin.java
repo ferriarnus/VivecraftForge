@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -99,6 +100,16 @@ public abstract class GuiVRMixin implements GuiExtension {
     private void vivecraft$noHotbarOnScreens(CallbackInfo ci) {
         if (VRState.VR_RUNNING && this.minecraft.screen != null) {
             ci.cancel();
+        }
+    }
+
+    @WrapOperation(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/HumanoidArm;getOpposite()Lnet/minecraft/world/entity/HumanoidArm;"))
+    private HumanoidArm vivecraft$offhandSlotSide(HumanoidArm instance, Operation<HumanoidArm> original) {
+        if (!VRState.VR_RUNNING) {
+            return original.call(instance);
+        } else {
+            // show the offhand slot on the right when using reverse hands
+            return ClientDataHolderVR.getInstance().vrSettings.reverseHands ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
         }
     }
 

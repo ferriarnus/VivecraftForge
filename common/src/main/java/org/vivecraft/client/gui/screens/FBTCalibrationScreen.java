@@ -299,12 +299,14 @@ public class FBTCalibrationScreen extends Screen {
         float height = hmdPosAvg.y / AutoCalibration.DEFAULT_HEIGHT;
         float scale = height * 0.9375F * dataHolder.vrPlayer.getVRDataWorld().worldScale;
 
-        this.rightHand = dataHolder.vrPlayer.vrdata_room_post.getController(0).getPositionF()
+        int main = dataHolder.vrSettings.reverseHands ? 1 : 0;
+
+        this.rightHand = dataHolder.vrPlayer.vrdata_room_post.getController(main).getPositionF()
             .sub(hmdPosAvg.x , 1.375F * scale, hmdPosAvg.z)
             .rotateY(this.yaw)
             .add(scale * 0.375F, 0F, 0F)
             .normalize();
-        this.leftHand = dataHolder.vrPlayer.vrdata_room_post.getController(1).getPositionF()
+        this.leftHand = dataHolder.vrPlayer.vrdata_room_post.getController(1 - main).getPositionF()
             .sub(hmdPosAvg.x , 1.375F * scale, hmdPosAvg.z)
             .rotateY(this.yaw)
             .add(-scale * 0.375F, 0F, 0F)

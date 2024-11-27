@@ -828,6 +828,9 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
         // send new VR state to the server
         ClientNetworking.sendServerPacket(new VRActivePayloadC2S(vrActive));
 
+        // send options, since we override the main hand setting
+        this.options.broadcastOptions();
+
         // reload sound manager, to toggle HRTF between VR and NONVR one
         if (!getSoundManager().getAvailableSounds().isEmpty()) {
             getSoundManager().reload();

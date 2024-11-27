@@ -301,9 +301,9 @@ public class VRPlayer {
             }
         }
 
-        this.dh.leftMenuHand = MethodHolder.isInMenuRoom() || this.mc.screen != null || KeyboardHandler.SHOWING;
-        this.dh.rightMenuHand =
-            this.dh.leftMenuHand || (this.dh.interactTracker.hotbar >= 0 && this.dh.vrSettings.vrTouchHotbar);
+        this.dh.menuHandOff = MethodHolder.isInMenuRoom() || this.mc.screen != null || KeyboardHandler.SHOWING;
+        this.dh.menuHandMain =
+            this.dh.menuHandOff || (this.dh.interactTracker.hotbar >= 0 && this.dh.vrSettings.vrTouchHotbar);
     }
 
     public void postRender(float partialTick) {

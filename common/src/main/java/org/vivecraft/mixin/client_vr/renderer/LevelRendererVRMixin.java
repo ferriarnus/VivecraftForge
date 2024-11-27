@@ -263,17 +263,17 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
 
         if (this.transparencyChain != null) {
             VREffectsHelper.renderVRFabulous(partialTick, (LevelRenderer) (Object) this,
-                ClientDataHolderVR.getInstance().rightMenuHand, ClientDataHolderVR.getInstance().leftMenuHand,
+                ClientDataHolderVR.getInstance().menuHandMain, ClientDataHolderVR.getInstance().menuHandOff,
                 poseStack);
         } else {
-            VREffectsHelper.renderVrFast(partialTick, false, ClientDataHolderVR.getInstance().rightMenuHand,
-                ClientDataHolderVR.getInstance().leftMenuHand, poseStack);
+            VREffectsHelper.renderVrFast(partialTick, false, ClientDataHolderVR.getInstance().menuHandMain,
+                ClientDataHolderVR.getInstance().menuHandOff, poseStack);
             if (ShadersHelper.isShaderActive() && ClientDataHolderVR.getInstance().vrSettings.shaderGUIRender ==
                 VRSettings.ShaderGUIRender.BEFORE_TRANSLUCENT_SOLID)
             {
                 // shaders active, and render gui before translucents
-                VREffectsHelper.renderVrFast(partialTick, true, ClientDataHolderVR.getInstance().rightMenuHand,
-                    ClientDataHolderVR.getInstance().leftMenuHand, poseStack);
+                VREffectsHelper.renderVrFast(partialTick, true, ClientDataHolderVR.getInstance().menuHandMain,
+                    ClientDataHolderVR.getInstance().menuHandOff, poseStack);
                 guiRendered.set(true);
             }
         }
@@ -291,8 +291,8 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
         ))
         {
             // no shaders, or shaders, and gui after translucents
-            VREffectsHelper.renderVrFast(partialTick, true, ClientDataHolderVR.getInstance().rightMenuHand,
-                ClientDataHolderVR.getInstance().leftMenuHand, poseStack);
+            VREffectsHelper.renderVrFast(partialTick, true, ClientDataHolderVR.getInstance().menuHandMain,
+                ClientDataHolderVR.getInstance().menuHandOff, poseStack);
             guiRendered.set(true);
         }
     }
@@ -307,8 +307,8 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
         if (RenderPassType.isVanilla()) return;
 
         if (!guiRendered.get() && this.transparencyChain == null) {
-            VREffectsHelper.renderVrFast(partialTick, true, ClientDataHolderVR.getInstance().rightMenuHand,
-                ClientDataHolderVR.getInstance().leftMenuHand, poseStack);
+            VREffectsHelper.renderVrFast(partialTick, true, ClientDataHolderVR.getInstance().menuHandMain,
+                ClientDataHolderVR.getInstance().menuHandOff, poseStack);
         }
     }
 

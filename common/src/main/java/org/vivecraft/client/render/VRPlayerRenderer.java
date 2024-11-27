@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client.render.armor.VRArmorModel_WithArms;
@@ -180,11 +181,11 @@ public class VRPlayerRenderer extends PlayerRenderer {
             if (!ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms) {
                 hideHands();
             } else if (this.getModel() instanceof VRPlayerModel<?> vrModel) {
-                if (ClientDataHolderVR.getInstance().leftMenuHand) {
-                    vrModel.hideLeftHand();
+                if (ClientDataHolderVR.getInstance().menuHandOff) {
+                    vrModel.hideHand(player, InteractionHand.OFF_HAND);
                 }
-                if (ClientDataHolderVR.getInstance().rightMenuHand) {
-                    vrModel.hideRightHand();
+                if (ClientDataHolderVR.getInstance().menuHandMain) {
+                    vrModel.hideHand(player, InteractionHand.MAIN_HAND);
                 }
             }
         }

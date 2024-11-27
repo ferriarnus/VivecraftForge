@@ -130,8 +130,8 @@ public abstract class MCVR {
         new Vector3f(-0.125F, 0F, 0F), // left foot
         new Vector3f(0.625F, 1.375F, 0F), // right elbow
         new Vector3f(-0.625F, 1.375F, 0F), // left elbow
-        new Vector3f(0.125F, 0.375F, 0F), // right knee
-        new Vector3f(-0.125F, 0.375F, 0F) // left knee
+        new Vector3f(0.125F, 0.375F, -0.05F), // right knee
+        new Vector3f(-0.125F, 0.375F, -0.05F) // left knee
     };
 
     /**
@@ -506,21 +506,17 @@ public abstract class MCVR {
         }
         float pos = ilen / barSize * 9;
 
-        if (this.dh.vrSettings.reverseHands) {
-            pos = 9 - pos;
-        }
-
         // actual slot that is selected
         int box = (int) Math.floor(pos);
 
         if (box > 8) {
-            if (this.mc.player.getMainArm().getOpposite() == HumanoidArm.RIGHT && pos >= 9.5 && pos <= 10.5) {
+            if (this.dh.vrSettings.reverseHands && pos >= 9.5 && pos <= 10.5) {
                 box = 9;
             } else {
                 return;
             }
         } else if (box < 0) {
-            if (this.mc.player.getMainArm().getOpposite() == HumanoidArm.LEFT && pos <= -0.5 && pos >= -1.5) {
+            if (!this.dh.vrSettings.reverseHands && pos <= -0.5 && pos >= -1.5) {
                 box = 9;
             } else {
                 return;

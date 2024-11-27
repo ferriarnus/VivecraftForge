@@ -227,6 +227,15 @@ public class VRPlayersClient {
         return this.donors.containsKey(uuid);
     }
 
+    /**
+     * checks if the given player is in VR and using reversed hands, without lerping the RotInfo
+     * @param uuid UUID of the player
+     * @return if the player is in VR and using reversed hands
+     */
+    public boolean isVRAndLeftHanded(UUID uuid) {
+        return this.vivePlayers.containsKey(uuid) && this.vivePlayers.get(uuid).reverse;
+    }
+
     public RotInfo getRotationsForPlayer(UUID uuid) {
         if (this.debug) {
             uuid = this.mc.player.getUUID();

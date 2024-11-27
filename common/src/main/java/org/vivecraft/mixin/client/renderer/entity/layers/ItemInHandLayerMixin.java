@@ -13,12 +13,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client.network.ClientNetworking;
+import org.vivecraft.client.render.VRPlayerModel;
 import org.vivecraft.client.render.VRPlayerModel_WithArms;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
@@ -32,14 +34,23 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
         super(renderer);
     }
 
+    @ModifyVariable(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V", at = @At("STORE"), ordinal = 0)
+    private boolean vivecraft$isRightMainHand(boolean isRightMainHand, @Local(argsOnly = true) LivingEntity entity) {
+        if (this.getParentModel() instanceof VRPlayerModel) {
+            // we ignore the vanilla main arm setting, and use our own
+            return !VRPlayersClient.getInstance().isVRAndLeftHanded(entity.getUUID());
+        } else {
+            return isRightMainHand;
+        }
+    }
+
     @Inject(method = "renderArmWithItem", at = @At("HEAD"), cancellable = true)
     private void vivecraft$noItemsInFirstPerson(CallbackInfo ci, @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true) HumanoidArm arm) {
         if (entity == Minecraft.getInstance().player && VRState.VR_RUNNING &&
             RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass) &&
             // don't cancel climbing claws, unless menu hand
             (!ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms ||
-                (arm == HumanoidArm.RIGHT && ClientDataHolderVR.getInstance().rightMenuHand) ||
-                (arm == HumanoidArm.LEFT && ClientDataHolderVR.getInstance().leftMenuHand) ||
+                ClientDataHolderVR.getInstance().isMenuHand(arm) ||
                 !(ClientDataHolderVR.getInstance().climbTracker.isActive(Minecraft.getInstance().player) &&
                     ClimbTracker.hasClimbeyClimbEquipped(Minecraft.getInstance().player)
                 )
@@ -53,16 +64,22 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
     private ItemStack vivecraft$climbClawsOverride(
         ItemStack itemStack, @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true) HumanoidArm arm)
     {
-        if (ClientNetworking.SERVER_ALLOWS_CLIMBEY && entity instanceof Player && !ClimbTracker.isClaws(itemStack)) {
-            ItemStack otherStack = arm == entity.getMainArm() ? entity.getOffhandItem() : entity.getMainHandItem();
-            if (ClimbTracker.isClaws(otherStack)) {
-                if (entity instanceof LocalPlayer player && VRState.VR_RUNNING &&
-                    ClientDataHolderVR.getInstance().climbTracker.isActive(player) &&
-                    ClimbTracker.hasClimbeyClimbEquipped(player))
-                {
-                    return otherStack;
-                } else if (entity instanceof RemotePlayer player && VRPlayersClient.getInstance().isVRPlayer(player) && !VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID()).seated) {
-                    return otherStack;
+        if (ClientNetworking.SERVER_ALLOWS_CLIMBEY && entity instanceof Player && !ClimbTracker.isClaws(itemStack) &&
+            getParentModel() instanceof VRPlayerModel)
+        {
+            VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(entity.getUUID());
+            if (rotInfo != null) {
+                boolean mainHand = arm == (rotInfo.reverse ? HumanoidArm.LEFT : HumanoidArm.RIGHT);
+                ItemStack otherStack = mainHand ? entity.getOffhandItem() : entity.getMainHandItem();
+                if (ClimbTracker.isClaws(otherStack)) {
+                    if (entity instanceof LocalPlayer player && VRState.VR_RUNNING &&
+                        ClientDataHolderVR.getInstance().climbTracker.isActive(player) &&
+                        ClimbTracker.hasClimbeyClimbEquipped(player))
+                    {
+                        return otherStack;
+                    } else if (entity instanceof RemotePlayer && !rotInfo.seated) {
+                        return otherStack;
+                    }
                 }
             }
         }
