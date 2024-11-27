@@ -162,25 +162,25 @@ public class VRData {
                 mcVR.getAimRotation(MCVR.RIGHT_FOOT_TRACKER),
                 mcVR.getAimSource(MCVR.RIGHT_FOOT_TRACKER).add(scaleOffset, new Vector3f()),
                 mcVR.getAimVector(MCVR.RIGHT_FOOT_TRACKER));
-        }
-        if (mcVR.hasExtendedFBT() && dataHolder.vrSettings.fbtExtendedCalibrated) {
-            this.fbtMode = FBTMode.WITH_JOINTS;
-            this.knee_left = new VRDevicePose(this,
-                mcVR.getAimRotation(MCVR.LEFT_KNEE_TRACKER),
-                mcVR.getAimSource(MCVR.LEFT_KNEE_TRACKER).add(scaleOffset, new Vector3f()),
-                mcVR.getAimVector(MCVR.LEFT_KNEE_TRACKER));
-            this.knee_right = new VRDevicePose(this,
-                mcVR.getAimRotation(MCVR.RIGHT_KNEE_TRACKER),
-                mcVR.getAimSource(MCVR.RIGHT_KNEE_TRACKER).add(scaleOffset, new Vector3f()),
-                mcVR.getAimVector(MCVR.RIGHT_KNEE_TRACKER));
-            this.elbow_left = new VRDevicePose(this,
-                mcVR.getAimRotation(MCVR.LEFT_ELBOW_TRACKER),
-                mcVR.getAimSource(MCVR.LEFT_ELBOW_TRACKER).add(scaleOffset, new Vector3f()),
-                mcVR.getAimVector(MCVR.LEFT_ELBOW_TRACKER));
-            this.elbow_right = new VRDevicePose(this,
-                mcVR.getAimRotation(MCVR.RIGHT_ELBOW_TRACKER),
-                mcVR.getAimSource(MCVR.RIGHT_ELBOW_TRACKER).add(scaleOffset, new Vector3f()),
-                mcVR.getAimVector(MCVR.RIGHT_ELBOW_TRACKER));
+            if (mcVR.hasExtendedFBT() && dataHolder.vrSettings.fbtExtendedCalibrated) {
+                this.fbtMode = FBTMode.WITH_JOINTS;
+                this.knee_left = new VRDevicePose(this,
+                    mcVR.getAimRotation(MCVR.LEFT_KNEE_TRACKER),
+                    mcVR.getAimSource(MCVR.LEFT_KNEE_TRACKER).add(scaleOffset, new Vector3f()),
+                    mcVR.getAimVector(MCVR.LEFT_KNEE_TRACKER));
+                this.knee_right = new VRDevicePose(this,
+                    mcVR.getAimRotation(MCVR.RIGHT_KNEE_TRACKER),
+                    mcVR.getAimSource(MCVR.RIGHT_KNEE_TRACKER).add(scaleOffset, new Vector3f()),
+                    mcVR.getAimVector(MCVR.RIGHT_KNEE_TRACKER));
+                this.elbow_left = new VRDevicePose(this,
+                    mcVR.getAimRotation(MCVR.LEFT_ELBOW_TRACKER),
+                    mcVR.getAimSource(MCVR.LEFT_ELBOW_TRACKER).add(scaleOffset, new Vector3f()),
+                    mcVR.getAimVector(MCVR.LEFT_ELBOW_TRACKER));
+                this.elbow_right = new VRDevicePose(this,
+                    mcVR.getAimRotation(MCVR.RIGHT_ELBOW_TRACKER),
+                    mcVR.getAimSource(MCVR.RIGHT_ELBOW_TRACKER).add(scaleOffset, new Vector3f()),
+                    mcVR.getAimVector(MCVR.RIGHT_ELBOW_TRACKER));
+            }
         }
     }
 

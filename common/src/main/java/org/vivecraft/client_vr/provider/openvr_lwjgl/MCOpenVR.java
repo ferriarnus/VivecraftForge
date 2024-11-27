@@ -1655,7 +1655,7 @@ public class MCOpenVR extends MCVR {
 
     @Override
     public boolean hasExtendedFBT() {
-        return this.deviceIndex[LEFT_ELBOW_TRACKER] != k_unTrackedDeviceIndexInvalid &&
+        return hasFBT() && this.deviceIndex[LEFT_ELBOW_TRACKER] != k_unTrackedDeviceIndexInvalid &&
             this.deviceIndex[RIGHT_ELBOW_TRACKER] != k_unTrackedDeviceIndexInvalid &&
             this.deviceIndex[LEFT_KNEE_TRACKER] != k_unTrackedDeviceIndexInvalid &&
             this.deviceIndex[RIGHT_KNEE_TRACKER] != k_unTrackedDeviceIndexInvalid;
