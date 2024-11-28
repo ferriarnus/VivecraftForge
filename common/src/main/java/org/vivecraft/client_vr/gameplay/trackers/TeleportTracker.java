@@ -326,7 +326,7 @@ public class TeleportTracker extends Tracker {
 
                 if (!ok) {
                     //u fail
-                    this.movementTeleportDestination = new Vec3(0.0D, 0.0D, 0.0D);
+                    this.movementTeleportDestination = Vec3.ZERO;
                     this.movementTeleportDistance = 0.0D;
                 }
 

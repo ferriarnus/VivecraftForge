@@ -25,7 +25,7 @@ public class ServerVivePlayer {
     // if the player has VR active
     private boolean isVR = false;
     // offset set during aimFix to keep the original data positions
-    public Vec3 offset = new Vec3(0.0D, 0.0D, 0.0D);
+    public Vec3 offset = Vec3.ZERO;
     // player this data belongs to
     public ServerPlayer player;
     // network protocol this player is communicating with

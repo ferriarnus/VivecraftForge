@@ -18,7 +18,7 @@ import org.vivecraft.client_vr.settings.VRSettings;
 
 public class VehicleTracker extends Tracker {
     private float PreMount_World_Rotation;
-    public Vec3 Premount_Pos_Room = new Vec3(0.0D, 0.0D, 0.0D);
+    public Vec3 Premount_Pos_Room = Vec3.ZERO;
     public float vehicleInitialRotation = 0.0F;
     public int rotationCooldown = 0;
     private double rotationTarget = 0.0D;

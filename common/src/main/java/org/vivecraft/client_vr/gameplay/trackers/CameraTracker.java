@@ -18,7 +18,7 @@ public class CameraTracker extends Tracker {
     public static final ModelResourceLocation CAMERA_DISPLAY_MODEL = new ModelResourceLocation("vivecraft", "camera_display", "");
 
     private boolean visible = false;
-    private Vec3 position = new Vec3(0.0D, 0.0D, 0.0D);
+    private Vec3 position = Vec3.ZERO;
     private Quaternionf rotation = new Quaternionf();
 
     private int startController;

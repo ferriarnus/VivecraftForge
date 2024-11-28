@@ -127,10 +127,8 @@ public class VRArmHelper {
         Vec3i color = new Vec3i(64, 64, 64);
         byte alpha = (byte) 255;
 
-        Vec3 dir = new Vec3(0.0D, 0.0D, -1.0D);
-
-        Vec3 start = new Vec3(0.0D, 0.0D, 0.0D);
-        Vec3 end = new Vec3(start.x - dir.x * 0.18D, start.y - dir.y * 0.18D, start.z - dir.z * 0.18D);
+        Vec3 start = Vec3.ZERO;
+        Vec3 end = new Vec3(0D, 0D, 0.18D);
 
         if (MC.level != null) {
             // make the hands darker in dim places

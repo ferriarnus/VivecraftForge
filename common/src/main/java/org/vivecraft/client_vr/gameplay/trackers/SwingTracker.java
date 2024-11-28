@@ -34,14 +34,14 @@ import org.vivecraft.mod_compat_vr.epicfight.EpicFightHelper;
 import java.util.List;
 
 public class SwingTracker extends Tracker {
-    private final Vec3[] lastWeaponEndAir = new Vec3[]{new Vec3(0.0D, 0.0D, 0.0D), new Vec3(0.0D, 0.0D, 0.0D)};
+    private final Vec3[] lastWeaponEndAir = new Vec3[]{Vec3.ZERO, Vec3.ZERO};
     private final boolean[] lastWeaponSolid = new boolean[2];
     public final Vec3[] miningPoint = new Vec3[2];
     public final Vec3[] attackingPoint = new Vec3[2];
     public final Vector3fHistory[] tipHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     public boolean[] canAct = new boolean[2];
     public int disableSwing = 3;
-    private double speedThresh = 3.0D;
+    private float speedThresh = 3.0F;
 
     public SwingTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -101,10 +101,10 @@ public class SwingTracker extends Tracker {
 
     @Override
     public void doProcess(LocalPlayer player) {
-        this.speedThresh = 3.0D;
+        this.speedThresh = 3.0F;
 
         if (player.isCreative()) {
-            this.speedThresh *= 1.5D;
+            this.speedThresh *= 1.5F;
         }
 
         this.mc.getProfiler().push("updateSwingAttack");
@@ -169,7 +169,7 @@ public class SwingTracker extends Tracker {
                 // at a 0.3m offset on index controllers a speed of 3m/s is an intended smack, 7 m/s is about as high as your arm can go.
                 float speed = this.tipHistory[c].averageSpeed(0.33D);
                 boolean inAnEntity = false;
-                this.canAct[c] = (double) speed > this.speedThresh && !this.lastWeaponSolid[c];
+                this.canAct[c] = speed > this.speedThresh && !this.lastWeaponSolid[c];
 
                 // Check EntityCollisions first
                 boolean entityAct = this.canAct[c];
@@ -286,7 +286,7 @@ public class SwingTracker extends Tracker {
                         // roomscale mining
                         else {
                             // faster swings do more damage
-                            totalHits = (int) ((double) totalHits + Math.min((double) speed - this.speedThresh, 4.0D));
+                            totalHits = (int) (totalHits + Math.min(speed - this.speedThresh, 4.0F));
                             //this.mc.physicalGuiManager.preClickAction();
 
                             // this will either destroy the block if in creative or set it as the current block.
