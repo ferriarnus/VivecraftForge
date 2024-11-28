@@ -1,7 +1,6 @@
 package org.vivecraft.client.network;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -33,6 +32,9 @@ public class ClientNetworking {
 
     public static boolean DISPLAYED_CHAT_MESSAGE = false;
     public static boolean DISPLAYED_CHAT_WARNING = false;
+
+    public static boolean SERVER_HAS_VIVECRAFT = false;
+
     public static boolean SERVER_WANTS_DATA = false;
     public static boolean SERVER_SUPPORTS_DIRECT_TELEPORT = false;
     public static boolean SERVER_ALLOWS_CLIMBEY = false;
@@ -52,9 +54,10 @@ public class ClientNetworking {
     public static void resetServerSettings() {
         WORLDSCALE_LAST = 0.0F;
         HEIGHT_LAST = 0.0F;
-        SERVER_ALLOWS_CLIMBEY = false;
+        SERVER_HAS_VIVECRAFT = false;
         SERVER_WANTS_DATA = false;
         SERVER_SUPPORTS_DIRECT_TELEPORT = false;
+        SERVER_ALLOWS_CLIMBEY = false;
         SERVER_ALLOWS_CRAWLING = false;
         SERVER_ALLOWS_VR_SWITCHING = false;
         USED_NETWORK_VERSION = -1;
@@ -81,15 +84,14 @@ public class ClientNetworking {
     }
 
     public static void sendVRPlayerPositions(VRPlayer vrPlayer) {
-        var connection = Minecraft.getInstance().getConnection();
-        if (!SERVER_WANTS_DATA || connection == null) {
+        if (!SERVER_WANTS_DATA || Minecraft.getInstance().getConnection() == null) {
             return;
         }
 
         float worldScale = ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_post.worldScale;
 
         if (worldScale != WORLDSCALE_LAST) {
-            connection.send(createServerPacket(new WorldScalePayloadC2S(worldScale)));
+            sendServerPacket(new WorldScalePayloadC2S(worldScale));
 
             WORLDSCALE_LAST = worldScale;
         }
@@ -97,7 +99,7 @@ public class ClientNetworking {
         float userHeight = AutoCalibration.getPlayerHeight();
 
         if (userHeight != HEIGHT_LAST) {
-            connection.send(createServerPacket(new HeightPayloadC2S(userHeight / AutoCalibration.DEFAULT_HEIGHT)));
+            sendServerPacket(new HeightPayloadC2S(userHeight / AutoCalibration.DEFAULT_HEIGHT));
 
             HEIGHT_LAST = userHeight;
         }
@@ -105,33 +107,41 @@ public class ClientNetworking {
         var vrPlayerState = VrPlayerState.create(vrPlayer);
 
         if (USED_NETWORK_VERSION >= 0) {
-            connection.send(createServerPacket(new VRPlayerStatePayloadC2S(vrPlayerState)));
+            sendServerPacket(new VRPlayerStatePayloadC2S(vrPlayerState));
         } else {
-            sendLegacyPackets(connection, vrPlayerState);
+            sendLegacyPackets(vrPlayerState);
         }
         VRPlayersClient.getInstance()
             .update(Minecraft.getInstance().player.getGameProfile().getId(), vrPlayerState, worldScale,
                 userHeight / AutoCalibration.DEFAULT_HEIGHT, true);
     }
 
+    /**
+     * Sends the given {@code payload} to the server, but only if the server sent that it has vivecraft
+     * @param payload Payload to send
+     */
+    public static void sendServerPacket(VivecraftPayloadC2S payload) {
+        if (Minecraft.getInstance().getConnection() != null && SERVER_HAS_VIVECRAFT) {
+            Minecraft.getInstance().getConnection().send(createServerPacket(payload));
+        }
+    }
+
     public static Packet<?> createServerPacket(VivecraftPayloadC2S payload) {
         return Xplat.getC2SPacket(payload);
     }
 
-    public static void sendLegacyPackets(ClientPacketListener connection, VrPlayerState vrPlayerState) {
+    public static void sendLegacyPackets(VrPlayerState vrPlayerState) {
         // main controller packet
-        connection.send(createServerPacket(
-            new LegacyController0DataPayloadC2S(ClientDataHolderVR.getInstance().vrSettings.reverseHands,
-                vrPlayerState.controller0())));
+        sendServerPacket(new LegacyController0DataPayloadC2S(ClientDataHolderVR.getInstance().vrSettings.reverseHands,
+            vrPlayerState.controller0()));
 
         // offhand controller packet
-        connection.send(createServerPacket(
-            new LegacyController1DataPayloadC2S(ClientDataHolderVR.getInstance().vrSettings.reverseHands,
-                vrPlayerState.controller1())));
+        sendServerPacket(new LegacyController1DataPayloadC2S(ClientDataHolderVR.getInstance().vrSettings.reverseHands,
+            vrPlayerState.controller1()));
 
         // hmd packet
-        connection.send(createServerPacket(
-            new LegacyHeadDataPayloadC2S(ClientDataHolderVR.getInstance().vrSettings.seated, vrPlayerState.hmd())));
+        sendServerPacket(
+            new LegacyHeadDataPayloadC2S(ClientDataHolderVR.getInstance().vrSettings.seated, vrPlayerState.hmd()));
     }
 
     // ServerSetting override checks
@@ -162,9 +172,7 @@ public class ClientNetworking {
 
     public static void sendActiveHand(byte c) {
         if (SERVER_WANTS_DATA) {
-            if (Minecraft.getInstance().getConnection() != null) {
-                Minecraft.getInstance().getConnection().send(createServerPacket(new ActiveHandPayloadC2S(c)));
-            }
+            sendServerPacket(new ActiveHandPayloadC2S(c));
         }
     }
 
@@ -199,6 +207,7 @@ public class ClientNetworking {
         Minecraft mc = Minecraft.getInstance();
         switch (s2cPayload.payloadId()) {
             case VERSION -> {
+                SERVER_HAS_VIVECRAFT = true;
                 VRServerPerms.INSTANCE.setTeleportSupported(true);
                 if (VRState.VR_INITIALIZED) {
                     dataholder.vrPlayer.teleportWarning = false;

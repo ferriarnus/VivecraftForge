@@ -212,8 +212,7 @@ public class BowTracker extends Tracker {
                 // fire!
                 this.dh.vr.triggerHapticPulse(arrowHand, 500);
                 this.dh.vr.triggerHapticPulse(bowHand, 3000);
-                this.mc.getConnection()
-                    .send(ClientNetworking.createServerPacket(new DrawPayloadC2S(this.getDrawPercent())));
+                ClientNetworking.sendServerPacket(new DrawPayloadC2S(this.getDrawPercent()));
 
                 // TODO: for REVERSE_BOW
                 // ClientNetworking.sendActiveHand((byte) arrowHand);
@@ -221,8 +220,7 @@ public class BowTracker extends Tracker {
                 this.mc.gameMode.releaseUsingItem(player);
 
                 // reset to 0, in case user switches modes.
-                this.mc.getConnection()
-                    .send(ClientNetworking.createServerPacket(new DrawPayloadC2S(0.0F)));
+                ClientNetworking.sendServerPacket(new DrawPayloadC2S(0.0F));
                 this.isDrawing = false;
             }
 

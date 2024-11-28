@@ -113,8 +113,8 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
     private boolean vivecraft$directTeleport(boolean updateRotation) {
         if (this.vivecraft$teleported) {
             updateRotation = true;
-            this.connection.send(ClientNetworking.createServerPacket(
-                new TeleportPayloadC2S((float) this.getX(), (float) this.getY(), (float) this.getZ())));
+            ClientNetworking.sendServerPacket(
+                new TeleportPayloadC2S((float) this.getX(), (float) this.getY(), (float) this.getZ()));
         }
         return updateRotation;
     }

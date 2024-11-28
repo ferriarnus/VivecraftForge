@@ -58,10 +58,7 @@ public class CrawlTracker extends Tracker {
             }
 
             if (ClientNetworking.SERVER_ALLOWS_CRAWLING) {
-                if (this.mc.getConnection() != null) {
-                    this.mc.getConnection()
-                        .send(ClientNetworking.createServerPacket(new CrawlPayloadC2S(this.crawling)));
-                }
+                ClientNetworking.sendServerPacket(new CrawlPayloadC2S(this.crawling));
             }
 
             this.wasCrawling = this.crawling;

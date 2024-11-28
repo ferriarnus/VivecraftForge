@@ -6,7 +6,6 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -587,18 +586,8 @@ public class ClimbTracker extends Tracker {
                 this.dh.vr.triggerHapticPulse(1, 100);
             }
 
-            if (this.mc.isLocalServer()) {
-                // handle server falling.
-                for (ServerPlayer serverplayer : this.mc.getSingleplayerServer().getPlayerList().getPlayers()) {
-                    if (serverplayer.getId() == this.mc.player.getId()) {
-                        serverplayer.fallDistance = 0.0F;
-                    }
-                }
-            } else {
-                if (this.mc.getConnection() != null) {
-                    this.mc.getConnection().send(ClientNetworking.createServerPacket(new ClimbingPayloadC2S()));
-                }
-            }
+            // reset fall distance and above ground ticks
+            ClientNetworking.sendServerPacket(new ClimbingPayloadC2S());
         } else {
             // jump!
             this.wantJump = false;
