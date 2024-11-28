@@ -11,10 +11,11 @@ import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
 
 public class EatingTracker extends Tracker {
+    private static final float MOUTH_TO_EYE_DISTANCE = 0.0F;
+    private static final float THRESHOLD = 0.25F;
+    private static final long EAT_TIME = 2100L;
+
     public boolean[] eating = new boolean[2];
-    private static final float mouthToEyeDistance = 0.0F;
-    private static final float threshold = 0.25F;
-    private static final long eatTime = 2100L;
     private long eatStart;
 
     public EatingTracker(Minecraft mc, ClientDataHolderVR dh) {
@@ -62,14 +63,14 @@ public class EatingTracker extends Tracker {
     public void doProcess(LocalPlayer player) {
         VRPlayer vrplayer = this.dh.vrPlayer;
         Vec3 hmdPos = vrplayer.vrdata_room_pre.hmd.getPosition();
-        Vec3 mouthPos = vrplayer.vrdata_room_pre.getController(0).getCustomVector(new Vec3(0.0D, -mouthToEyeDistance, 0.0D)).add(hmdPos);
+        Vec3 mouthPos = vrplayer.vrdata_room_pre.getController(0).getCustomVector(new Vec3(0.0D, -MOUTH_TO_EYE_DISTANCE, 0.0D)).add(hmdPos);
 
         for (int c = 0; c < 2; c++) {
 
             Vec3 controllerPos = this.dh.vr.controllerHistory[c].averagePosition(0.333D).add(vrplayer.vrdata_room_pre.getController(c).getCustomVector(new Vec3(0.0D, 0.0D, -0.1D)));
             controllerPos = controllerPos.add(this.dh.vrPlayer.vrdata_room_pre.getController(c).getDirection().scale(0.1D));
 
-            if (mouthPos.distanceTo(controllerPos) < threshold) {
+            if (mouthPos.distanceTo(controllerPos) < THRESHOLD) {
                 ItemStack itemstack = c == 0 ? player.getMainHandItem() : player.getOffhandItem();
                 if (itemstack == ItemStack.EMPTY) {
                     continue;
@@ -107,7 +108,7 @@ public class EatingTracker extends Tracker {
                     }
                 }
 
-                if (Util.getMillis() - this.eatStart > eatTime) {
+                if (Util.getMillis() - this.eatStart > EAT_TIME) {
                     this.eating[c] = false;
                 }
             } else {

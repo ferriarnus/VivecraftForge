@@ -21,16 +21,17 @@ import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.network.packet.c2s.DrawPayloadC2S;
 
 public class BowTracker extends Tracker {
-    private double currentDraw;
-    public boolean isDrawing;
-    private boolean pressed;
-    private boolean canDraw;
+    private static final long MAX_DRAW_MILLIS = 1100L;
+    private static final double NOTCH_DOT_THRESHOLD = 20.0D;
 
     // when the arrow was started drawing, to handle charged shots
     public long startDrawTime;
+    public boolean isDrawing;
+
+    private boolean pressed;
+    private boolean canDraw;
+    private double currentDraw;
     private double maxDraw;
-    private static final long maxDrawMillis = 1100L;
-    private static final double notchDotThreshold = 20.0D;
     private Vec3 aim;
 
     // when the arrow was nocked,
@@ -55,7 +56,7 @@ public class BowTracker extends Tracker {
     }
 
     public boolean isCharged() {
-        return Util.getMillis() - this.startDrawTime >= maxDrawMillis;
+        return Util.getMillis() - this.startDrawTime >= MAX_DRAW_MILLIS;
     }
 
     public static boolean isBow(ItemStack itemStack) {
@@ -180,7 +181,7 @@ public class BowTracker extends Tracker {
 
             if (ammo != ItemStack.EMPTY &&
                 notchDist <= notchDistThreshold &&
-                controllersDot <= notchDotThreshold) {
+                controllersDot <= NOTCH_DOT_THRESHOLD) {
                 // can draw
                 if (!this.canDraw) {
                     this.startDrawTime = Util.getMillis();

@@ -21,22 +21,21 @@ import java.util.List;
  * MCVR implementation that does not interact with any runtime.
  */
 public class NullVR extends MCVR {
-    protected static NullVR ome;
+    private static final float IPD = 0.1F;
 
-    private static final float ipd = 0.1F;
+    protected static NullVR OME;
 
     private boolean vrActive = true;
 
     public NullVR(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh, VivecraftVRMod.INSTANCE);
-        ome = this;
+        OME = this;
         this.hapticScheduler = new NullVRHapticScheduler();
     }
 
     public static NullVR get() {
-        return ome;
+        return OME;
     }
-
 
     @Override
     public void destroy() {
@@ -59,7 +58,7 @@ public class NullVR extends MCVR {
             this.mc = Minecraft.getInstance();
 
             // only supports seated mode
-            VRSettings.logger.info("Vivecraft: NullDriver. Forcing seated mode.");
+            VRSettings.LOGGER.info("Vivecraft: NullDriver. Forcing seated mode.");
             this.dh.vrSettings.seated = true;
 
             this.headIsTracking = true;
@@ -67,8 +66,8 @@ public class NullVR extends MCVR {
             this.hmdPose.M[1][3] = 1.62F;
 
             // eye offset, 10cm total distance
-            this.hmdPoseLeftEye.M[0][3] = -ipd * 0.5F;
-            this.hmdPoseRightEye.M[0][3] = ipd * 0.5F;
+            this.hmdPoseLeftEye.M[0][3] = -IPD * 0.5F;
+            this.hmdPoseRightEye.M[0][3] = IPD * 0.5F;
 
             this.populateInputActions();
 
@@ -118,17 +117,17 @@ public class NullVR extends MCVR {
             this.hmdRotation.M[2][1] = this.handRotation[0].M[2][1];
             this.hmdRotation.M[2][2] = this.handRotation[0].M[2][2];
 
-            if (GuiHandler.guiRotation_room != null) {
+            if (GuiHandler.GUI_ROTATION_ROOM != null) {
                 // look at screen, so that it's centered
-                this.hmdRotation.M[0][0] = GuiHandler.guiRotation_room.M[0][0];
-                this.hmdRotation.M[0][1] = GuiHandler.guiRotation_room.M[0][1];
-                this.hmdRotation.M[0][2] = GuiHandler.guiRotation_room.M[0][2];
-                this.hmdRotation.M[1][0] = GuiHandler.guiRotation_room.M[1][0];
-                this.hmdRotation.M[1][1] = GuiHandler.guiRotation_room.M[1][1];
-                this.hmdRotation.M[1][2] = GuiHandler.guiRotation_room.M[1][2];
-                this.hmdRotation.M[2][0] = GuiHandler.guiRotation_room.M[2][0];
-                this.hmdRotation.M[2][1] = GuiHandler.guiRotation_room.M[2][1];
-                this.hmdRotation.M[2][2] = GuiHandler.guiRotation_room.M[2][2];
+                this.hmdRotation.M[0][0] = GuiHandler.GUI_ROTATION_ROOM.M[0][0];
+                this.hmdRotation.M[0][1] = GuiHandler.GUI_ROTATION_ROOM.M[0][1];
+                this.hmdRotation.M[0][2] = GuiHandler.GUI_ROTATION_ROOM.M[0][2];
+                this.hmdRotation.M[1][0] = GuiHandler.GUI_ROTATION_ROOM.M[1][0];
+                this.hmdRotation.M[1][1] = GuiHandler.GUI_ROTATION_ROOM.M[1][1];
+                this.hmdRotation.M[1][2] = GuiHandler.GUI_ROTATION_ROOM.M[1][2];
+                this.hmdRotation.M[2][0] = GuiHandler.GUI_ROTATION_ROOM.M[2][0];
+                this.hmdRotation.M[2][1] = GuiHandler.GUI_ROTATION_ROOM.M[2][1];
+                this.hmdRotation.M[2][2] = GuiHandler.GUI_ROTATION_ROOM.M[2][2];
             }
             this.mc.getProfiler().popPush("hmdSampling");
             this.hmdSampling();
@@ -182,7 +181,7 @@ public class NullVR extends MCVR {
 
     @Override
     public float getIPD() {
-        return ipd;
+        return IPD;
     }
 
     @Override

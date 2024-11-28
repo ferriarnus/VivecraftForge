@@ -140,36 +140,36 @@ public abstract class GameRendererVRMixin
 
     @Inject(method = {"shutdownEffect", "checkEntityPostEffect", "cycleEffect", "loadEffect"}, at = @At("HEAD"))
     private void vivecraft$shutdownVREffects(CallbackInfo ci) {
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             RenderPassManager.setVanillaRenderPass();
             RenderPassManager.INSTANCE.vanillaPostEffect = null;
-            if (WorldRenderPass.stereoXR != null && WorldRenderPass.stereoXR.postEffect != null) {
-                WorldRenderPass.stereoXR.postEffect.close();
-                WorldRenderPass.stereoXR.postEffect = null;
+            if (WorldRenderPass.STEREO_XR != null && WorldRenderPass.STEREO_XR.postEffect != null) {
+                WorldRenderPass.STEREO_XR.postEffect.close();
+                WorldRenderPass.STEREO_XR.postEffect = null;
             }
-            if (WorldRenderPass.center != null && WorldRenderPass.center.postEffect != null) {
-                WorldRenderPass.center.postEffect.close();
-                WorldRenderPass.center.postEffect = null;
+            if (WorldRenderPass.CENTER != null && WorldRenderPass.CENTER.postEffect != null) {
+                WorldRenderPass.CENTER.postEffect.close();
+                WorldRenderPass.CENTER.postEffect = null;
             }
         }
     }
 
     @Inject(method = "loadEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/PostChain;resize(II)V", shift = Shift.AFTER))
     private void vivecraft$loadVREffects(ResourceLocation resourceLocation, CallbackInfo ci) throws IOException {
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             RenderPassManager.INSTANCE.vanillaPostEffect = this.postEffect;
-            if (WorldRenderPass.stereoXR != null) {
-                WorldRenderPass.stereoXR.postEffect = WorldRenderPass.createPostChain(resourceLocation, WorldRenderPass.stereoXR.target);
+            if (WorldRenderPass.STEREO_XR != null) {
+                WorldRenderPass.STEREO_XR.postEffect = WorldRenderPass.createPostChain(resourceLocation, WorldRenderPass.STEREO_XR.target);
             }
-            if (WorldRenderPass.center != null) {
-                WorldRenderPass.center.postEffect = WorldRenderPass.createPostChain(resourceLocation, WorldRenderPass.center.target);
+            if (WorldRenderPass.CENTER != null) {
+                WorldRenderPass.CENTER.postEffect = WorldRenderPass.createPostChain(resourceLocation, WorldRenderPass.CENTER.target);
             }
         }
     }
 
     @Inject(method = "pick", at = @At("HEAD"), cancellable = true)
     private void vivecraft$skipFirstPick(CallbackInfo ci) {
-        if (VRState.vrRunning && vivecraft$DATA_HOLDER.vrPlayer.vrdata_world_render == null) {
+        if (VRState.VR_RUNNING && vivecraft$DATA_HOLDER.vrPlayer.vrdata_world_render == null) {
             ci.cancel();
         }
     }
@@ -178,7 +178,7 @@ public abstract class GameRendererVRMixin
     private HitResult vivecraft$changeRaytrace(
         Entity instance, double hitDistance, float partialTick, boolean hitFluids, Operation<HitResult> original)
     {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             return original.call(instance, hitDistance, partialTick, hitFluids);
         } else {
             this.vivecraft$crossVec = vivecraft$DATA_HOLDER.vrPlayer.AimedPointAtDistance(vivecraft$DATA_HOLDER.vrPlayer.vrdata_world_render, 0, hitDistance);
@@ -188,7 +188,7 @@ public abstract class GameRendererVRMixin
 
     @WrapOperation(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getEyePosition(F)Lnet/minecraft/world/phys/Vec3;"))
     private Vec3 vivecraft$changeRayStart(Entity instance, float partialTick, Operation<Vec3> original) {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             return original.call(instance, partialTick);
         } else {
             return vivecraft$DATA_HOLDER.vrPlayer.vrdata_world_render.getController(0).getPosition();
@@ -197,7 +197,7 @@ public abstract class GameRendererVRMixin
 
     @WrapOperation(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getViewVector(F)Lnet/minecraft/world/phys/Vec3;"))
     private Vec3 vivecraft$changeRayDirection(Entity instance, float partialTick, Operation<Vec3> original) {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             return original.call(instance, partialTick);
         } else {
             return vivecraft$DATA_HOLDER.vrPlayer.vrdata_world_render.getController(0).getDirection();
@@ -207,7 +207,7 @@ public abstract class GameRendererVRMixin
     @ModifyReturnValue(method = {"method_18144", "lambda$getMouseOver$61"}, at = @At("RETURN"))
     private static boolean vivecraft$dontHitRiddenEntity(boolean original, Entity entity) {
         // it is technically possible to hit the ridden entity when the distance is 0, we don't want that
-        return original && (!VRState.vrRunning || entity != Minecraft.getInstance().getCameraEntity().getVehicle());
+        return original && (!VRState.VR_RUNNING || entity != Minecraft.getInstance().getCameraEntity().getVehicle());
     }
 
     @Inject(method = "tickFov", at = @At("HEAD"), cancellable = true)
@@ -229,7 +229,7 @@ public abstract class GameRendererVRMixin
     @WrapOperation(method = "getProjectionMatrix", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;setPerspective(FFFF)Lorg/joml/Matrix4f;", remap = false), remap = true)
     private Matrix4f vivecraft$customProjectionMatrix(
         Matrix4f instance, float fovy, float aspect, float zNear, float zFar, Operation<Matrix4f> original) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             zNear = vivecraft$minClipDistance;
             if (MethodHolder.isInMenuRoom()) {
                 // use 16 Chunks as minimum, to have no issues with clipping in the menuworld
@@ -263,7 +263,7 @@ public abstract class GameRendererVRMixin
 
         Matrix4f proj = original.call(instance, fovy, aspect, zNear, zFar);
 
-        if (VRState.vrRunning && vivecraft$DATA_HOLDER.currentPass == RenderPass.THIRD) {
+        if (VRState.VR_RUNNING && vivecraft$DATA_HOLDER.currentPass == RenderPass.THIRD) {
             this.vivecraft$thirdPassProjectionMatrix = proj;
         }
         return proj;
@@ -271,7 +271,7 @@ public abstract class GameRendererVRMixin
 
     @Inject(method = "shouldRenderBlockOutline", at = @At("HEAD"), cancellable = true)
     private void vivecraft$shouldDrawBlockOutline(CallbackInfoReturnable<Boolean> cir) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             if (vivecraft$DATA_HOLDER.teleportTracker.isAiming() ||
                 vivecraft$DATA_HOLDER.vrSettings.renderBlockOutlineMode == VRSettings.RenderPointerElement.NEVER)
             {
@@ -287,14 +287,14 @@ public abstract class GameRendererVRMixin
 
     @ModifyExpressionValue(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;isWindowActive()Z"))
     private boolean vivecraft$noPauseOnFocusLoss(boolean windowActive) {
-        return windowActive || VRState.vrRunning;
+        return windowActive || VRState.VR_RUNNING;
     }
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V"))
     private void vivecraft$renderFaceOverlay(
         GameRenderer instance, float partialTick, long finishTimeNano, PoseStack poseStack, Operation<Void> original) {
         original.call(instance, partialTick, finishTimeNano, poseStack);
-        if (VRState.vrRunning && vivecraft$DATA_HOLDER.currentPass != RenderPass.THIRD &&
+        if (VRState.VR_RUNNING && vivecraft$DATA_HOLDER.currentPass != RenderPass.THIRD &&
             vivecraft$DATA_HOLDER.currentPass != RenderPass.CAMERA)
         {
             VREffectsHelper.renderFaceOverlay(partialTick, poseStack);
@@ -352,12 +352,12 @@ public abstract class GameRendererVRMixin
             RenderHelper.applyVRModelView(vivecraft$DATA_HOLDER.currentPass, poseStack);
             VREffectsHelper.renderGuiLayer(partialTick, true, poseStack);
 
-            if (KeyboardHandler.Showing) {
+            if (KeyboardHandler.SHOWING) {
                 if (vivecraft$DATA_HOLDER.vrSettings.physicalKeyboard) {
                     VREffectsHelper.renderPhysicalKeyboard(partialTick, poseStack);
                 } else {
-                    VREffectsHelper.render2D(partialTick, KeyboardHandler.Framebuffer, KeyboardHandler.Pos_room,
-                        KeyboardHandler.Rotation_room, vivecraft$DATA_HOLDER.vrSettings.menuAlwaysFollowFace && MethodHolder.isInMenuRoom(), poseStack);
+                    VREffectsHelper.render2D(partialTick, KeyboardHandler.FRAMEBUFFER, KeyboardHandler.POS_ROOM,
+                        KeyboardHandler.ROTATION_ROOM, vivecraft$DATA_HOLDER.vrSettings.menuAlwaysFollowFace && MethodHolder.isInMenuRoom(), poseStack);
                 }
             }
 
@@ -391,14 +391,14 @@ public abstract class GameRendererVRMixin
     private void vivecraft$noGUIWithViewOnly(
         Gui instance, GuiGraphics guiGraphics, float partialTick, Operation<Void> original)
     {
-        if (RenderPassType.isVanilla() || !ClientDataHolderVR.viewonly) {
+        if (RenderPassType.isVanilla() || !ClientDataHolderVR.VIEW_ONLY) {
             original.call(instance, guiGraphics, partialTick);
         }
     }
 
     @Inject(method = "takeAutoScreenshot", at = @At("HEAD"), cancellable = true)
     private void vivecraft$noScreenshotInMenu(CallbackInfo ci) {
-        if (VRState.vrRunning && MethodHolder.isInMenuRoom()) {
+        if (VRState.VR_RUNNING && MethodHolder.isInMenuRoom()) {
             ci.cancel();
         }
     }

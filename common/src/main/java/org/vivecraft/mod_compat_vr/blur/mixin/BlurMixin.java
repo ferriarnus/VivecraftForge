@@ -18,7 +18,7 @@ public class BlurMixin {
      */
     @Inject(method = "getProgress", at = @At("HEAD"), cancellable = true, remap = false)
     private static void vivecraft$noBlurInVR(CallbackInfoReturnable<Float> cir) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             cir.setReturnValue(0.0F);
         }
     }

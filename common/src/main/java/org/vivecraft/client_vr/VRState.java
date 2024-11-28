@@ -28,18 +28,18 @@ public class VRState {
     /**
      * true when VR is enabled
      */
-    public static boolean vrEnabled = false;
+    public static boolean VR_ENABLED = false;
     /**
      * true when VR is enabled, and successfully initialized
      */
-    public static boolean vrInitialized = false;
+    public static boolean VR_INITIALIZED = false;
     /**
      * true when VR is enabled, successfully initialized and currently active
      */
-    public static boolean vrRunning = false;
+    public static boolean VR_RUNNING = false;
 
     public static void initializeVR() {
-        if (vrInitialized) {
+        if (VR_INITIALIZED) {
             return;
         }
         try {
@@ -63,7 +63,7 @@ public class VRState {
             dh.vrRenderer = dh.vr.createVRRenderer();
 
             // everything related to VR is created now
-            vrInitialized = true;
+            VR_INITIALIZED = true;
 
             dh.vrRenderer.setupRenderConfiguration();
             RenderPassManager.setVanillaRenderPass();
@@ -95,14 +95,14 @@ public class VRState {
                 if (garbageCollector.isEmpty()) {
                     garbageCollector = ManagementFactory.getGarbageCollectorMXBeans().get(0).getName();
                 }
-                VRSettings.logger.info("Vivecraft: Garbage collector: {}", garbageCollector);
+                VRSettings.LOGGER.info("Vivecraft: Garbage collector: {}", garbageCollector);
 
                 // Fully qualified name here to avoid any ambiguity
                 com.sun.management.OperatingSystemMXBean os = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
                 // Might as well log this stuff since we have it, could be useful for technical support
-                VRSettings.logger.info("Vivecraft: Available CPU threads: {}", Runtime.getRuntime().availableProcessors());
-                VRSettings.logger.info("Vivecraft: Total physical memory: {} GiB", String.format("%.01f", os.getTotalMemorySize() / 1073741824.0F));
-                VRSettings.logger.info("Vivecraft: Free physical memory: {} GiB", String.format("%.01f", os.getFreeMemorySize() / 1073741824.0F));
+                VRSettings.LOGGER.info("Vivecraft: Available CPU threads: {}", Runtime.getRuntime().availableProcessors());
+                VRSettings.LOGGER.info("Vivecraft: Total physical memory: {} GiB", String.format("%.01f", os.getTotalMemorySize() / 1073741824.0F));
+                VRSettings.LOGGER.info("Vivecraft: Free physical memory: {} GiB", String.format("%.01f", os.getFreeMemorySize() / 1073741824.0F));
 
                 if (!garbageCollector.startsWith("ZGC") && !ClientDataHolderVR.getInstance().vrSettings.disableGarbageCollectorMessage) {
                     // At least 12 GiB RAM (minus 256 MiB for possible reserved) and 8 CPU threads
@@ -113,10 +113,10 @@ public class VRState {
                     }
                 }
             } catch (Throwable e) {
-                VRSettings.logger.error("Vivecraft: Failed checking GC: ", e);
+                VRSettings.LOGGER.error("Vivecraft: Failed checking GC: ", e);
             }
         } catch (Throwable exception) {
-            VRSettings.logger.error("Vivecraft: Failed to initialize VR: ", exception);
+            VRSettings.LOGGER.error("Vivecraft: Failed to initialize VR: ", exception);
             destroyVR(true);
             if (exception instanceof RenderConfigException renderConfigException) {
                 Minecraft.getInstance()
@@ -144,9 +144,9 @@ public class VRState {
             dh.menuWorldRenderer.completeDestroy();
             dh.menuWorldRenderer = null;
         }
-        vrEnabled = false;
-        vrInitialized = false;
-        vrRunning = false;
+        VR_ENABLED = false;
+        VR_INITIALIZED = false;
+        VR_RUNNING = false;
         if (disableVRSetting) {
             dh.vrSettings.vrEnabled = false;
             dh.vrSettings.saveOptions();

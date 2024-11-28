@@ -36,7 +36,7 @@ public abstract class FishingHookVRMixin extends Entity {
 
     @Inject(method = "tick", at = @At(value = "HEAD"))
     private void vivecraft$fishhookFeedback(CallbackInfo ci) {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             return;
         }
         Player player = this.getPlayerOwner();

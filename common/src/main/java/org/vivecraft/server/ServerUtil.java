@@ -27,11 +27,11 @@ public class ServerUtil {
     /**
      * scheduler to send delayed messages
      */
-    public static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    public static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
 
     static {
         // shut down the scheduler when the jvm terminates
-        Runtime.getRuntime().addShutdownHook(new Thread(scheduler::shutdownNow));
+        Runtime.getRuntime().addShutdownHook(new Thread(SCHEDULER::shutdownNow));
     }
 
     /**
@@ -40,19 +40,19 @@ public class ServerUtil {
      * @param serverPlayer player to send messages for / kick
      */
     public static void scheduleWelcomeMessageOrKick(ServerPlayer serverPlayer) {
-        if (ServerConfig.messagesEnabled.get() ||
-            (ServerConfig.vive_only.get() || ServerConfig.vr_only.get())) {
-            scheduler.schedule(() -> {
+        if (ServerConfig.MESSAGES_ENABLED.get() ||
+            (ServerConfig.VIVE_ONLY.get() || ServerConfig.VR_ONLY.get())) {
+            SCHEDULER.schedule(() -> {
                 // only do stuff, if the player is still on the server
                 if (!serverPlayer.hasDisconnected()) {
                     ServerVivePlayer vivePlayer = ServerVRPlayers.getVivePlayer(serverPlayer);
                     String message = "";
 
-                    boolean isOpAndAllowed = ServerConfig.allow_op.get() && serverPlayer.server.getPlayerList().isOp(serverPlayer.getGameProfile());
+                    boolean isOpAndAllowed = ServerConfig.ALLOW_OP.get() && serverPlayer.server.getPlayerList().isOp(serverPlayer.getGameProfile());
 
                     // kick non VR players
-                    if (!isOpAndAllowed && ServerConfig.vr_only.get() && (vivePlayer == null || !vivePlayer.isVR())) {
-                        String kickMessage = ServerConfig.messagesKickVROnly.get();
+                    if (!isOpAndAllowed && ServerConfig.VR_ONLY.get() && (vivePlayer == null || !vivePlayer.isVR())) {
+                        String kickMessage = ServerConfig.MESSAGES_KICK_VR_ONLY.get();
                         try {
                             kickMessage = kickMessage.formatted(serverPlayer.getName().getString());
                         } catch (IllegalFormatException e) {
@@ -64,9 +64,9 @@ public class ServerUtil {
                     }
 
                     // kick non vivecraft players
-                    if (!isOpAndAllowed && ServerConfig.vive_only.get()
+                    if (!isOpAndAllowed && ServerConfig.VIVE_ONLY.get()
                         && (vivePlayer == null)) {
-                        String kickMessage = ServerConfig.messagesKickViveOnly.get();
+                        String kickMessage = ServerConfig.MESSAGES_KICK_VIVE_ONLY.get();
                         try {
                             kickMessage = kickMessage.formatted(serverPlayer.getName().getString());
                         } catch (IllegalFormatException e) {
@@ -79,16 +79,16 @@ public class ServerUtil {
 
 
                     // welcome message
-                    if (ServerConfig.messagesEnabled.get()) {
+                    if (ServerConfig.MESSAGES_ENABLED.get()) {
                         // get the right message
                         if (vivePlayer == null) {
-                            message = ServerConfig.messagesWelcomeVanilla.get();
+                            message = ServerConfig.MESSAGES_WELCOME_VANILLA.get();
                         } else if (!vivePlayer.isVR()) {
-                            message = ServerConfig.messagesWelcomeNonVR.get();
+                            message = ServerConfig.MESSAGES_WELCOME_NONVR.get();
                         } else if (vivePlayer.isSeated()) {
-                            message = ServerConfig.messagesWelcomeSeated.get();
+                            message = ServerConfig.MESSAGES_WELCOME_SEATED.get();
                         } else {
-                            message = ServerConfig.messagesWelcomeVR.get();
+                            message = ServerConfig.MESSAGES_WELCOME_VR.get();
                         }
                         // actually send the message, if there is one set
                         if (!message.isEmpty()) {
@@ -101,7 +101,7 @@ public class ServerUtil {
                         }
                     }
                 }
-            }, (long) (ServerConfig.messageKickDelay.get() * 1000), TimeUnit.MILLISECONDS);
+            }, (long) (ServerConfig.MESSAGE_KICK_DELAY.get() * 1000), TimeUnit.MILLISECONDS);
         }
     }
 
@@ -110,13 +110,13 @@ public class ServerUtil {
      * @param serverPlayer player to notify
      */
     public static void sendUpdateNotificationIfOP(ServerPlayer serverPlayer) {
-        if (ServerConfig.checkForUpdate.get()) {
+        if (ServerConfig.CHECK_FOR_UPDATES.get()) {
             // don't send update notifications on singleplayer
             if (serverPlayer.server.isDedicatedServer() && serverPlayer.server.getPlayerList().isOp(serverPlayer.getGameProfile())) {
                 // check for update on not the main thread
-                scheduler.schedule(() -> {
+                SCHEDULER.schedule(() -> {
                     if (UpdateChecker.checkForUpdates()) {
-                        serverPlayer.sendSystemMessage(Component.literal("Vivecraft update available: §a" + UpdateChecker.newestVersion));
+                        serverPlayer.sendSystemMessage(Component.literal("Vivecraft update available: §a" + UpdateChecker.NEWEST_VERSION));
                     }
                 }, 0, TimeUnit.MILLISECONDS);
             }

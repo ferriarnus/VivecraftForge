@@ -31,7 +31,7 @@ import java.util.function.Consumer;
 public class ServerNetworking {
 
     // temporarily stores the packets from legacy clients to assemble a complete VrPlayerState
-    private static final Map<UUID, Map<PayloadIdentifier, VivecraftPayloadC2S>> legacyDataMap = new HashMap<>();
+    private static final Map<UUID, Map<PayloadIdentifier, VivecraftPayloadC2S>> LEGACY_DATA_MAP = new HashMap<>();
 
     /**
      * logger for messages from the server
@@ -66,7 +66,7 @@ public class ServerNetworking {
 
                 VersionPayloadC2S payload = (VersionPayloadC2S) c2sPayload;
 
-                if (ServerConfig.debug.get()) {
+                if (ServerConfig.DEBUG.get()) {
                     LOGGER.info("Vivecraft: player '{}' joined with {}", player.getName().getString(),
                         payload.version());
                 }
@@ -78,7 +78,7 @@ public class ServerNetworking {
                     {
                         vivePlayer.networkVersion = Math.min(payload.maxVersion(),
                             CommonNetworkHelper.MAX_SUPPORTED_NETWORK_VERSION);
-                        if (ServerConfig.debug.get()) {
+                        if (ServerConfig.DEBUG.get()) {
                             LOGGER.info("Vivecraft: {} networking supported, using version {}",
                                 player.getName().getString(), vivePlayer.networkVersion);
                         }
@@ -86,7 +86,7 @@ public class ServerNetworking {
                         // unsupported version, send notification, and disregard
                         player.sendSystemMessage(
                             Component.literal("Unsupported vivecraft version, VR features will not work"));
-                        if (ServerConfig.debug.get()) {
+                        if (ServerConfig.DEBUG.get()) {
                             LOGGER.info(
                                 "Vivecraft: {} networking not supported. client range [{},{}], server range [{},{}]",
                                 player.getScoreboardName(),
@@ -100,7 +100,7 @@ public class ServerNetworking {
                 } else {
                     // client didn't send a version, so it's a legacy client
                     vivePlayer.networkVersion = -1;
-                    if (ServerConfig.debug.get()) {
+                    if (ServerConfig.DEBUG.get()) {
                         LOGGER.info("Vivecraft: {} using legacy networking", player.getScoreboardName());
                     }
                 }
@@ -113,48 +113,48 @@ public class ServerNetworking {
                 packetConsumer.accept(new RequestDataPayloadS2C());
 
                 // send server settings
-                if (ServerConfig.climbeyEnabled.get()) {
+                if (ServerConfig.CLIMBEY_ENABLED.get()) {
                     packetConsumer.accept(getClimbeyServerPayload());
                 }
 
-                if (ServerConfig.teleportEnabled.get()) {
+                if (ServerConfig.TELEPORT_ENABLED.get()) {
                     packetConsumer.accept(new TeleportPayloadS2C());
                 }
-                if (ServerConfig.teleportLimitedSurvival.get()) {
+                if (ServerConfig.TELEPORT_LIMITED_SURVIVAL.get()) {
                     packetConsumer.accept(new SettingOverridePayloadS2C(Map.of(
                         "limitedTeleport", "true",
-                        "teleportLimitUp", String.valueOf(ServerConfig.teleportUpLimit.get()),
-                        "teleportLimitDown", String.valueOf(ServerConfig.teleportDownLimit.get()),
-                        "teleportLimitHoriz", String.valueOf(ServerConfig.teleportHorizontalLimit.get())
+                        "teleportLimitUp", String.valueOf(ServerConfig.TELEPORT_UP_LIMIT.get()),
+                        "teleportLimitDown", String.valueOf(ServerConfig.TELEPORT_DOWN_LIMIT.get()),
+                        "teleportLimitHoriz", String.valueOf(ServerConfig.TELEPORT_HORIZONTAL_LIMIT.get())
                     )));
                 }
 
-                if (ServerConfig.worldscaleLimited.get()) {
+                if (ServerConfig.WORLDSCALE_LIMITED.get()) {
                     packetConsumer.accept(new SettingOverridePayloadS2C(Map.of(
-                        "worldScale.min", String.valueOf(ServerConfig.worldscaleMin.get()),
-                        "worldScale.max", String.valueOf(ServerConfig.worldscaleMax.get())
+                        "worldScale.min", String.valueOf(ServerConfig.WORLDSCALE_MIN.get()),
+                        "worldScale.max", String.valueOf(ServerConfig.WORLDSCALE_MAX.get())
                     )));
                 }
 
-                if (ServerConfig.forceThirdPersonItems.get()) {
+                if (ServerConfig.FORCE_THIRD_PERSON_ITEMS.get()) {
                     packetConsumer.accept(new SettingOverridePayloadS2C(Map.of(
                         "thirdPersonItems", "true"
                     )));
                 }
 
-                if (ServerConfig.forceThirdPersonItemsCustom.get()) {
+                if (ServerConfig.FORCE_THIRD_PERSON_ITEMS_CUSTOM.get()) {
                     packetConsumer.accept(new SettingOverridePayloadS2C(Map.of(
                         "thirdPersonItemsCustom", "true"
                     )));
                 }
 
-                if (ServerConfig.crawlingEnabled.get()) {
+                if (ServerConfig.CRAWLING_ENABLED.get()) {
                     packetConsumer.accept(new CrawlPayloadS2C());
                 }
 
                 // send if hotswitching is allowed
                 packetConsumer.accept(
-                    new VRSwitchingPayloadS2C(ServerConfig.vrSwitchingEnabled.get() && !ServerConfig.vr_only.get()));
+                    new VRSwitchingPayloadS2C(ServerConfig.VR_SWITCHING_ENABLED.get() && !ServerConfig.VR_ONLY.get()));
 
                 packetConsumer.accept(new NetworkVersionPayloadS2C(vivePlayer.networkVersion));
             }
@@ -193,9 +193,9 @@ public class ServerNetworking {
             // legacy support
             case CONTROLLER0DATA, CONTROLLER1DATA, HEADDATA -> {
                 Map<PayloadIdentifier, VivecraftPayloadC2S> playerData;
-                if ((playerData = legacyDataMap.get(player.getUUID())) == null) {
+                if ((playerData = LEGACY_DATA_MAP.get(player.getUUID())) == null) {
                     playerData = new HashMap<>();
-                    legacyDataMap.put(player.getUUID(), playerData);
+                    LEGACY_DATA_MAP.put(player.getUUID(), playerData);
                 }
                 // keep the payload around
                 playerData.put(c2sPayload.payloadId(), c2sPayload);
@@ -217,7 +217,7 @@ public class ServerNetworking {
                         controller1Data.reverseHands(), // reverseHands 1
                         controller1Data.controller0Pose()); // controller1 pose
 
-                    legacyDataMap.remove(player.getUUID());
+                    LEGACY_DATA_MAP.remove(player.getUUID());
                 }
             }
             default -> throw new IllegalStateException("Vivecraft: got unexpected packet on server: " + c2sPayload.payloadId());
@@ -229,9 +229,9 @@ public class ServerNetworking {
      */
     public static VivecraftPayloadS2C getClimbeyServerPayload() {
         List<String> blocks = null;
-        if (ServerConfig.climbeyBlockmode.get() != ClimbeyBlockmode.DISABLED) {
+        if (ServerConfig.CLIMBEY_BLOCKMODE.get() != ClimbeyBlockmode.DISABLED) {
             blocks = new ArrayList<>();
-            for (String block : ServerConfig.climbeyBlocklist.get()) {
+            for (String block : ServerConfig.CLIMBEY_BLOCKLIST.get()) {
                 try {
                     Block b = BuiltInRegistries.BLOCK.get(new ResourceLocation(block));
                     // only send valid blocks
@@ -241,7 +241,7 @@ public class ServerNetworking {
                 } catch (ResourceLocationException ignore) {}
             }
         }
-        return new ClimbingPayloadS2C(true, ServerConfig.climbeyBlockmode.get(), blocks);
+        return new ClimbingPayloadS2C(true, ServerConfig.CLIMBEY_BLOCKMODE.get(), blocks);
     }
 
     /**

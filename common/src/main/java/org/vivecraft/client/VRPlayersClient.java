@@ -17,28 +17,30 @@ import org.vivecraft.common.utils.math.Vector3;
 import java.util.*;
 
 public class VRPlayersClient {
+
+    private static VRPlayersClient INSTANCE;
+
     private final Minecraft mc;
     private final Map<UUID, RotInfo> vivePlayers = new HashMap<>();
     private final Map<UUID, RotInfo> vivePlayersLast = new HashMap<>();
     private final Map<UUID, RotInfo> vivePlayersReceived = Collections.synchronizedMap(new HashMap<>());
     private final Map<UUID, Integer> donors = new HashMap<>();
-    private static VRPlayersClient instance;
     private final Random rand = new Random();
     public boolean debug = false;
 
     public static VRPlayersClient getInstance() {
-        if (instance == null) {
-            instance = new VRPlayersClient();
+        if (INSTANCE == null) {
+            INSTANCE = new VRPlayersClient();
         }
 
-        return instance;
+        return INSTANCE;
     }
 
     public static void clear() {
-        if (instance != null) {
-            instance.vivePlayers.clear();
-            instance.vivePlayersLast.clear();
-            instance.vivePlayersReceived.clear();
+        if (INSTANCE != null) {
+            INSTANCE.vivePlayers.clear();
+            INSTANCE.vivePlayersLast.clear();
+            INSTANCE.vivePlayersReceived.clear();
         }
     }
 

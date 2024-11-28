@@ -17,16 +17,16 @@ import org.vivecraft.client_vr.render.RenderPass;
 import java.util.UUID;
 
 public class VRPlayerRenderer extends PlayerRenderer {
-    private static final LayerDefinition VRLayerDef = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, false), 64, 64);
-    private static final LayerDefinition VRLayerDef_arms = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, false), 64, 64);
-    private static final LayerDefinition VRLayerDef_slim = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, true), 64, 64);
-    private static final LayerDefinition VRLayerDef_arms_slim = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, true), 64, 64);
+    private static final LayerDefinition VR_LAYER_DEF = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, false), 64, 64);
+    private static final LayerDefinition VR_LAYER_DEF_ARMS = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, false), 64, 64);
+    private static final LayerDefinition VR_LAYER_DEF_SLIM = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, true), 64, 64);
+    private static final LayerDefinition VR_LAYER_DEF_ARMS_SLIM = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, true), 64, 64);
 
     public VRPlayerRenderer(EntityRendererProvider.Context context, boolean slim, boolean seated) {
         super(context, slim);
         this.model = seated ?
-            new VRPlayerModel<>(slim ? VRLayerDef_slim.bakeRoot() : VRLayerDef.bakeRoot(), slim) :
-            new VRPlayerModel_WithArms<>(slim ? VRLayerDef_arms_slim.bakeRoot() : VRLayerDef_arms.bakeRoot(), slim);
+            new VRPlayerModel<>(slim ? VR_LAYER_DEF_SLIM.bakeRoot() : VR_LAYER_DEF.bakeRoot(), slim) :
+            new VRPlayerModel_WithArms<>(slim ? VR_LAYER_DEF_ARMS_SLIM.bakeRoot() : VR_LAYER_DEF_ARMS.bakeRoot(), slim);
 
         this.addLayer(new HMDLayer(this));
     }

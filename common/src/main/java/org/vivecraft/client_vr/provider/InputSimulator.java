@@ -15,15 +15,15 @@ import java.util.Set;
  * Simulates GLFW inputs and keeps track of them
  */
 public class InputSimulator {
-    private static final Set<Integer> pressedKeys = new HashSet<>();
-    private static final Map<Integer, Integer> pressedModifiers = new HashMap<>();
+    private static final Set<Integer> PRESSED_KEYS = new HashSet<>();
+    private static final Map<Integer, Integer> PRESSED_MODIFIERS = new HashMap<>();
 
     public static boolean isKeyDown(int key) {
-        return pressedKeys.contains(key) || (pressedModifiers.getOrDefault(key, 0) > 0);
+        return PRESSED_KEYS.contains(key) || (PRESSED_MODIFIERS.getOrDefault(key, 0) > 0);
     }
 
     public static void pressKey(int key, int modifiers) {
-        pressedKeys.add(key);
+        PRESSED_KEYS.add(key);
         Minecraft.getInstance().keyboardHandler.keyPress(Minecraft.getInstance().getWindow().getWindow(), key, 0, 1, modifiers);
     }
 
@@ -32,7 +32,7 @@ public class InputSimulator {
     }
 
     public static void releaseKey(int key, int modifiers) {
-        pressedKeys.remove(key);
+        PRESSED_KEYS.remove(key);
         Minecraft.getInstance().keyboardHandler.keyPress(Minecraft.getInstance().getWindow().getWindow(), key, 0, 0, modifiers);
     }
 
@@ -41,7 +41,7 @@ public class InputSimulator {
     }
 
     public static void pressModifier(int key, int modifiers) {
-        pressedModifiers.merge(key, 1, Integer::sum);
+        PRESSED_MODIFIERS.merge(key, 1, Integer::sum);
         Minecraft.getInstance().keyboardHandler.keyPress(Minecraft.getInstance().getWindow().getWindow(), key, 0, 1, modifiers);
     }
 
@@ -50,7 +50,7 @@ public class InputSimulator {
     }
 
     public static void releaseModifier(int key, int modifiers) {
-        pressedModifiers.merge(key, -1, Integer::sum);
+        PRESSED_MODIFIERS.merge(key, -1, Integer::sum);
         Minecraft.getInstance().keyboardHandler.keyPress(Minecraft.getInstance().getWindow().getWindow(), key, 0, 0, modifiers);
     }
 
@@ -97,7 +97,7 @@ public class InputSimulator {
         }
     }
 
-    private static long airTypingWarningTime;
+    private static long AIR_TYPING_WARNING_TIME;
 
     public static void pressKeyForBind(int code) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -107,9 +107,9 @@ public class InputSimulator {
             if (code != GLFW.GLFW_KEY_UNKNOWN) {
                 pressKey(code);
             }
-        } else if (minecraft.screen == null && Utils.milliTime() - airTypingWarningTime >= 30000) {
+        } else if (minecraft.screen == null && Utils.milliTime() - AIR_TYPING_WARNING_TIME >= 30000) {
             minecraft.gui.getChat().addMessage(Component.translatable("vivecraft.messages.airtypingwarning"));
-            airTypingWarningTime = Utils.milliTime();
+            AIR_TYPING_WARNING_TIME = Utils.milliTime();
         }
     }
 

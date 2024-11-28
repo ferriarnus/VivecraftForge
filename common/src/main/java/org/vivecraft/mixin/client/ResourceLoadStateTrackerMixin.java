@@ -27,14 +27,14 @@ public abstract class ResourceLoadStateTrackerMixin {
                 if (ClientDataHolderVR.getInstance().vrSettings.vrEnabled &&
                     ClientDataHolderVR.getInstance().vrSettings.rememberVr)
                 {
-                    VRState.vrEnabled = true;
+                    VRState.VR_ENABLED = true;
                     VRState.initializeVR();
                 } else {
                     ClientDataHolderVR.getInstance().vrSettings.vrEnabled = false;
                     ClientDataHolderVR.getInstance().vrSettings.saveOptions();
                 }
             } catch (Exception exception) {
-                VRSettings.logger.error("Vivecraft: Failed to initialize VR", exception);
+                VRSettings.LOGGER.error("Vivecraft: Failed to initialize VR", exception);
             }
         }
     }

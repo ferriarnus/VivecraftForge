@@ -11,6 +11,6 @@ import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 public class NeoForgeOpenContainerVRMixin {
     @Inject(method = "handle(Lnet/neoforged/neoforge/network/payload/AdvancedOpenScreenPayload;Lnet/neoforged/neoforge/network/handling/PlayPayloadContext;)V", at = @At("HEAD"), remap = false)
     private void vivecraft$markScreenActiveNeoForge(CallbackInfo ci) {
-        GuiHandler.guiAppearOverBlockActive = true;
+        GuiHandler.GUI_APPEAR_OVER_BLOCK_ACTIVE = true;
     }
 }

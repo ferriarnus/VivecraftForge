@@ -56,8 +56,8 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
 
     @Inject(method = "onDisconnect", at = @At("TAIL"))
     private void vivecraft$doPlayerLeave(CallbackInfo ci) {
-        if (ServerConfig.messagesEnabled.get()) {
-            String message = ServerConfig.messagesLeaveMessage.get();
+        if (ServerConfig.MESSAGES_ENABLED.get()) {
+            String message = ServerConfig.MESSAGES_LEAVE_MESSAGE.get();
             if (!message.isEmpty()) {
                 this.server.getPlayerList().broadcastSystemMessage(
                     Component.literal(message.formatted(this.player.getScoreboardName())),false);

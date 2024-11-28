@@ -13,8 +13,8 @@ import java.util.Optional;
 
 public class IrisHelper {
 
-    private static boolean initialized = false;
-    private static boolean initFailed = false;
+    private static boolean INITIALIZED = false;
+    private static boolean INIT_FAILED = false;
 
     private static Method Iris_reload;
     private static Method Iris_getPipelineManager;
@@ -22,7 +22,7 @@ public class IrisHelper {
     private static Method WorldRenderingPipeline_shouldRenderUnderwaterOverlay;
 
     // for iris/dh compat
-    private static boolean dhPresent = false;
+    private static boolean DH_PRESENT = false;
     private static Object dhOverrideInjector;
     private static Method OverrideInjector_unbind;
 
@@ -68,7 +68,7 @@ public class IrisHelper {
                 Iris_reload.invoke(null);
             } catch (Exception e) {
                 // catch Exception, because that call can throw an IOException
-                VRSettings.logger.error("Vivecraft: Error reloading Iris shaders on Frame Buffer reinit:", e);
+                VRSettings.LOGGER.error("Vivecraft: Error reloading Iris shaders on Frame Buffer reinit:", e);
             }
         }
     }
@@ -84,12 +84,12 @@ public class IrisHelper {
                     try {
                         return WorldRenderingPipeline_shouldRenderUnderwaterOverlay.invoke(o);
                     } catch (IllegalAccessException | InvocationTargetException e) {
-                        VRSettings.logger.error("Vivecraft: Iris water effect check failed:", e);
+                        VRSettings.LOGGER.error("Vivecraft: Iris water effect check failed:", e);
                         return true;
                     }
                 }).orElse(true);
             } catch (InvocationTargetException | IllegalAccessException e) {
-                VRSettings.logger.error("Vivecraft: Iris water effect check failed:", e);
+                VRSettings.LOGGER.error("Vivecraft: Iris water effect check failed:", e);
             }
         }
         return true;
@@ -101,7 +101,7 @@ public class IrisHelper {
      * @param pipeline Rendering pileple to uinregister the overrides for
      */
     public static void unregisterDHIfThere(Object pipeline) {
-        if (init() && dhPresent) {
+        if (init() && DH_PRESENT) {
             try {
                 Object dhCompat = Pipeline_getDHCompat.invoke(pipeline);
                 // check if the shader even has a dh part
@@ -118,7 +118,7 @@ public class IrisHelper {
                     }
                 }
             } catch (IllegalAccessException | InvocationTargetException e) {
-                VRSettings.logger.error("Vivecraft: Iris DH reset failed", e);
+                VRSettings.LOGGER.error("Vivecraft: Iris DH reset failed", e);
             }
         }
     }
@@ -129,11 +129,11 @@ public class IrisHelper {
      * @return Matrix4fc current projection matrix
      */
     public static Matrix4fc getGbufferProjection(Object source) {
-        if (init() && dhPresent) {
+        if (init() && DH_PRESENT) {
             try {
                 return (Matrix4fc) CapturedRenderingState_getGbufferProjection.invoke(source);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                VRSettings.logger.error("Vivecraft: couldn't get iris gbuffer projection matrix:", e);
+                VRSettings.LOGGER.error("Vivecraft: couldn't get iris gbuffer projection matrix:", e);
             }
         }
         return new Matrix4f();
@@ -144,8 +144,8 @@ public class IrisHelper {
      * @return if init was successful
      */
     private static boolean init() {
-        if (initialized) {
-            return !initFailed;
+        if (INITIALIZED) {
+            return !INIT_FAILED;
         }
         try {
             Class<?> iris = getClassWithAlternative(
@@ -191,18 +191,18 @@ public class IrisHelper {
 
                     Class<?> CapturedRenderingState = Class.forName("net.irisshaders.iris.uniforms.CapturedRenderingState");
                     CapturedRenderingState_getGbufferProjection = CapturedRenderingState.getMethod("getGbufferProjection");
-                    dhPresent = true;
+                    DH_PRESENT = true;
                 } catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException | IllegalAccessException e) {
-                    VRSettings.logger.error("Vivecraft: DH present but compat init failed:", e);
-                    dhPresent = false;
+                    VRSettings.LOGGER.error("Vivecraft: DH present but compat init failed:", e);
+                    DH_PRESENT = false;
                 }
             }
         } catch (ClassNotFoundException | NoSuchMethodException e) {
-            initFailed = true;
+            INIT_FAILED = true;
         }
 
-        initialized = true;
-        return !initFailed;
+        INITIALIZED = true;
+        return !INIT_FAILED;
     }
 
     /**

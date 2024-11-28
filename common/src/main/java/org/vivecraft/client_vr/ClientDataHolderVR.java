@@ -13,13 +13,18 @@ import org.vivecraft.client_vr.settings.VRSettings;
 
 public class ClientDataHolderVR {
 
-    public static boolean kiosk;
-    public static boolean ismainhand;
-    public static boolean katvr;
-    public static boolean infinadeck;
-    public static boolean viewonly;
-    public static ModelResourceLocation thirdPersonCameraModel = new ModelResourceLocation("vivecraft", "camcorder", "");
-    public static ModelResourceLocation thirdPersonCameraDisplayModel = new ModelResourceLocation("vivecraft", "camcorder_display", "");
+    public static final ModelResourceLocation THIRD_PERSON_CAMERA_MODEL = new ModelResourceLocation("vivecraft", "camcorder", "");
+    public static final ModelResourceLocation THIRD_PERSON_CAMERA_DISPLAY_MODEL = new ModelResourceLocation("vivecraft", "camcorder_display", "");
+
+    public static boolean KAT_VR;
+    public static boolean INFINADECK;
+
+    public static boolean KIOSK;
+    public static boolean VIEW_ONLY;
+
+    public static boolean IS_MAIN_HAND;
+    public static boolean IS_FP_HAND;
+
     private static ClientDataHolderVR INSTANCE;
 
     public VRPlayer vrPlayer;
@@ -53,11 +58,11 @@ public class ClientDataHolderVR {
 
     public int tickCounter;
 
-    public static boolean isfphand;
     public VRFirstPersonArmSwing swingType = VRFirstPersonArmSwing.Attack;
 
     // showed chat notifications
     public boolean showedUpdateNotification;
+    public boolean showedStencilMessage;
 
     public static ClientDataHolderVR getInstance() {
         if (INSTANCE == null) {

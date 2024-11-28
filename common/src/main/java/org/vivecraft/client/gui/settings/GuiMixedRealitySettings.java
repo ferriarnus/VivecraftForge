@@ -66,7 +66,7 @@ public class GuiMixedRealitySettings extends GuiVROptionsBase {
     @Override
     protected void loadDefaults() {
         super.loadDefaults();
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             this.dataHolder.vrRenderer.reinitWithoutShaders("Defaults Loaded");
         }
     }

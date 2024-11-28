@@ -67,7 +67,7 @@ public class GuiListValueEditScreen extends GuiListScreen {
         }
         int i = 0;
         for (String item : this.elements) {
-            EditBox box = new EditBox(Minecraft.getInstance().font, 0, 0, ListValueEntry.valueButtonWidth - 1, 20, Component.literal(item));
+            EditBox box = new EditBox(Minecraft.getInstance().font, 0, 0, ListValueEntry.VALUE_BUTTON_WIDTH - 1, 20, Component.literal(item));
             box.setMaxLength(1000);
             box.setValue(item);
             int index = i++;
@@ -85,7 +85,7 @@ public class GuiListValueEditScreen extends GuiListScreen {
     }
 
     private static class ListValueEntry extends SettingsList.WidgetEntry {
-        public static final int valueButtonWidth = 280;
+        public static final int VALUE_BUTTON_WIDTH = 280;
 
         private final Button deleteButton;
 

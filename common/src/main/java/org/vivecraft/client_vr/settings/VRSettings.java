@@ -41,8 +41,8 @@ import java.util.stream.Stream;
 
 public class VRSettings {
     public static final int VERSION = 2;
-    public static final Logger logger = LoggerFactory.getLogger("Vivecraft");
-    public static VRSettings inst;
+    public static final Logger LOGGER = LoggerFactory.getLogger("Vivecraft");
+    public static VRSettings INSTANCE;
 
     public static final int UNKNOWN_VERSION = 0;
     public static final String DEGREE = "\u00b0";
@@ -526,7 +526,7 @@ public class VRSettings {
 
     // holds the default settings during runtime
     private final Map<String, String> defaultsMap = new HashMap<>();
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     public VRSettings() {
         this.vrCfgFile = Xplat.getConfigPath("vivecraft-client-config.json").toFile();
@@ -535,7 +535,7 @@ public class VRSettings {
         initializeFieldInfo();
 
         // Assumes GameSettings (and hence optifine's settings) have been read first
-        inst = this;
+        INSTANCE = this;
 
         // Store our class defaults to a member variable for later use
         storeDefaults();
@@ -663,7 +663,7 @@ public class VRSettings {
         }
 
         // If we get here, the value wasn't interpreted
-        logger.warn("Vivecraft: Don't know how to load VR option {} with type {}", name, type.getSimpleName());
+        LOGGER.warn("Vivecraft: Don't know how to load VR option {} with type {}", name, type.getSimpleName());
         return null;
     }
 
@@ -720,7 +720,7 @@ public class VRSettings {
         }
 
         // If we get here, the object wasn't interpreted
-        logger.warn("Vivecraft: Don't know how to save VR option {} with type {}", name, type.getSimpleName());
+        LOGGER.warn("Vivecraft: Don't know how to save VR option {} with type {}", name, type.getSimpleName());
         return null;
     }
 
@@ -808,7 +808,7 @@ public class VRSettings {
         }
 
         // If we get here, the value wasn't interpreted
-        logger.warn("Vivecraft: Don't know how to load default VR option {} with type {}", name, type.getSimpleName());
+        LOGGER.warn("Vivecraft: Don't know how to load default VR option {} with type {}", name, type.getSimpleName());
         return null;
     }
 
@@ -850,7 +850,7 @@ public class VRSettings {
                 field.set(this, obj);
             }
         } catch (Exception exception) {
-            logger.warn("Vivecraft: Failed to load default VR option: {}", option, exception);
+            LOGGER.warn("Vivecraft: Failed to load default VR option: {}", option, exception);
         }
     }
 
@@ -868,7 +868,7 @@ public class VRSettings {
                 // check if there is a legacy file
                 legacyFile = new File(Minecraft.getInstance().gameDirectory, "optionsviveprofiles.txt");
                 if (legacyFile.exists()) {
-                    VRSettings.logger.info("Vivecraft: Legacy Vivecraft settings File found, converting.");
+                    VRSettings.LOGGER.info("Vivecraft: Legacy Vivecraft settings File found, converting.");
                 } else {
                     fileExists = false;
                     legacyFile = null;
@@ -884,7 +884,7 @@ public class VRSettings {
                 try {
                     currentConfig = JsonParser.parseReader(inputstreamreader).getAsJsonObject();
                 } catch (Exception exception) {
-                    VRSettings.logger.error("Vivecraft: Error reading settings file:", exception);
+                    VRSettings.LOGGER.error("Vivecraft: Error reading settings file:", exception);
                 }
 
                 inputstreamreader.close();
@@ -902,7 +902,7 @@ public class VRSettings {
                 data.put(key, currentConfig.get(key).getAsString());
             }
         } catch (Exception exception) {
-            VRSettings.logger.error("Vivecraft: FAILED to read Vivecraft settings:", exception);
+            VRSettings.LOGGER.error("Vivecraft: FAILED to read Vivecraft settings:", exception);
         }
         return data;
     }
@@ -956,7 +956,7 @@ public class VRSettings {
                     field.set(this, obj);
                 }
             } catch (Exception exception) {
-                logger.warn("Vivecraft: Skipping bad VR option: {}:{}", name, value, exception);
+                LOGGER.warn("Vivecraft: Skipping bad VR option: {}:{}", name, value, exception);
             }
         }
 
@@ -974,11 +974,11 @@ public class VRSettings {
         data.forEach((key, value) -> jsonStorage.add(key, new JsonPrimitive(value)));
         try {
             OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(this.vrCfgFile), StandardCharsets.UTF_8);
-            writer.write(gson.toJson(jsonStorage));
+            writer.write(GSON.toJson(jsonStorage));
             writer.flush();
             writer.close();
         } catch (IOException ioException) {
-            logger.error("Vivecraft: Failed to save VR options to disk:", ioException);
+            LOGGER.error("Vivecraft: Failed to save VR options to disk:", ioException);
         }
     }
 
@@ -1031,11 +1031,11 @@ public class VRSettings {
                         data.put(name, value);
                     }
                 } catch (Exception exception) {
-                    logger.error("Vivecraft: Failed to save VR option: {}", name, exception);
+                    LOGGER.error("Vivecraft: Failed to save VR option: {}", name, exception);
                 }
             }
         } catch (Exception exception) {
-            logger.error("Vivecraft: Failed to save VR options:", exception);
+            LOGGER.error("Vivecraft: Failed to save VR options:", exception);
         }
     }
 
@@ -1090,7 +1090,7 @@ public class VRSettings {
                 return label + obj.toString();
             }
         } catch (Exception exception) {
-            logger.error("Vivecraft: Failed to get VR option display string: {}", vrOption, exception);
+            LOGGER.error("Vivecraft: Failed to get VR option display string: {}", vrOption, exception);
         }
 
         return name;
@@ -1118,7 +1118,7 @@ public class VRSettings {
 
             return Objects.requireNonNullElse(vrOption.getOptionFloatValue(value), value);
         } catch (Exception exception) {
-            logger.error("Vivecraft: Failed to get VR option float value: {}", vrOption, exception);
+            LOGGER.error("Vivecraft: Failed to get VR option float value: {}", vrOption, exception);
         }
 
         return 0.0F;
@@ -1145,7 +1145,7 @@ public class VRSettings {
             } else if (OptionEnum.class.isAssignableFrom(type)) {
                 field.set(this, ((OptionEnum<?>) field.get(this)).getNext());
             } else {
-                logger.warn("Vivecraft: Don't know how to set VR option {} with type {}", mapping.configName,
+                LOGGER.warn("Vivecraft: Don't know how to set VR option {} with type {}", mapping.configName,
                     type.getSimpleName());
                 return;
             }
@@ -1153,7 +1153,7 @@ public class VRSettings {
             vrOption.onOptionChange();
             this.saveOptions();
         } catch (Exception exception) {
-            logger.error("Vivecraft: Failed to set VR option: {}", vrOption, exception);
+            LOGGER.error("Vivecraft: Failed to set VR option: {}", vrOption, exception);
         }
     }
 
@@ -1188,7 +1188,7 @@ public class VRSettings {
             vrOption.onOptionChange();
             this.saveOptions();
         } catch (Exception exception) {
-            logger.error("Vivecraft: Failed to set VR option float value: {}", vrOption, exception);
+            LOGGER.error("Vivecraft: Failed to set VR option float value: {}", vrOption, exception);
         }
     }
 
@@ -1201,7 +1201,7 @@ public class VRSettings {
 
             @Override
             void onOptionChange() {
-                VRState.vrEnabled = ClientDataHolderVR.getInstance().vrSettings.vrEnabled;
+                VRState.VR_ENABLED = ClientDataHolderVR.getInstance().vrSettings.vrEnabled;
             }
         },
         VR_REMEMBER_ENABLED(false, true), // restore vr state on startup
@@ -1344,7 +1344,7 @@ public class VRSettings {
 
             @Override
             void onOptionChange() {
-                KeyboardHandler.physicalKeyboard.setScale(
+                KeyboardHandler.PHYSICAL_KEYBOARD.setScale(
                     ClientDataHolderVR.getInstance().vrSettings.physicalKeyboardScale);
             }
         },
@@ -1370,7 +1370,7 @@ public class VRSettings {
 
             @Override
             void onOptionChange() {
-                if (VRState.vrInitialized) {
+                if (VRState.VR_INITIALIZED) {
                     ClientDataHolderVR.getInstance().vrRenderer.resizeFrameBuffers("");
                 }
             }
@@ -1410,7 +1410,7 @@ public class VRSettings {
 
             @Override
             void onOptionChange() {
-                if (VRState.vrInitialized) {
+                if (VRState.VR_INITIALIZED) {
                     ClientDataHolderVR.getInstance().vrRenderer.reinitWithoutShaders("Mirror Setting Changed");
                 }
             }
@@ -1429,22 +1429,22 @@ public class VRSettings {
         },
         MIRROR_SCREENSHOT_CAMERA(false, true),
         MIXED_REALITY_KEY_COLOR(false, false) { // Key Color
-            private static final List<Pair<Color, String>> colors;
+            private static final List<Pair<Color, String>> COLORS;
             static {
-                colors = new ArrayList<>();
-                colors.add(Pair.of(new Color(0, 0, 0), "vivecraft.options.color.black"));
-                colors.add(Pair.of(new Color(255, 0, 0), "vivecraft.options.color.red"));
-                colors.add(Pair.of(new Color(255, 255, 0), "vivecraft.options.color.yellow"));
-                colors.add(Pair.of(new Color(0, 255, 0), "vivecraft.options.color.green"));
-                colors.add(Pair.of(new Color(0, 255, 255), "vivecraft.options.color.cyan"));
-                colors.add(Pair.of(new Color(0, 0, 255), "vivecraft.options.color.blue"));
-                colors.add(Pair.of(new Color(255, 0, 255), "vivecraft.options.color.magenta"));
+                COLORS = new ArrayList<>();
+                COLORS.add(Pair.of(new Color(0, 0, 0), "vivecraft.options.color.black"));
+                COLORS.add(Pair.of(new Color(255, 0, 0), "vivecraft.options.color.red"));
+                COLORS.add(Pair.of(new Color(255, 255, 0), "vivecraft.options.color.yellow"));
+                COLORS.add(Pair.of(new Color(0, 255, 0), "vivecraft.options.color.green"));
+                COLORS.add(Pair.of(new Color(0, 255, 255), "vivecraft.options.color.cyan"));
+                COLORS.add(Pair.of(new Color(0, 0, 255), "vivecraft.options.color.blue"));
+                COLORS.add(Pair.of(new Color(255, 0, 255), "vivecraft.options.color.magenta"));
             }
 
             @Override
             String getDisplayString(String prefix, Object value) {
                 Color color = (Color) value;
-                var p = colors.stream().filter(c -> c.getLeft().equals(color)).findFirst().orElse(null);
+                var p = COLORS.stream().filter(c -> c.getLeft().equals(color)).findFirst().orElse(null);
                 return p != null ? prefix + I18n.get(p.getRight()) :
                     prefix + color.getRed() + " " + color.getGreen() + " " + color.getBlue();
             }
@@ -1463,10 +1463,10 @@ public class VRSettings {
 
             @Override
             Object setOptionValue(Object value) {
-                int index = IntStream.range(0, colors.size()).filter(i -> colors.get(i).getLeft().equals(value))
+                int index = IntStream.range(0, COLORS.size()).filter(i -> COLORS.get(i).getLeft().equals(value))
                     .findFirst().orElse(-1);
-                return index == -1 || index == colors.size() - 1 ? colors.get(0).getLeft() :
-                    colors.get(index + 1).getLeft();
+                return index == -1 || index == COLORS.size() - 1 ? COLORS.get(0).getLeft() :
+                    COLORS.get(index + 1).getLeft();
             }
         },
         MIXED_REALITY_RENDER_HANDS(false, true), // Show Hands
@@ -1475,7 +1475,7 @@ public class VRSettings {
             @Override
             void onOptionChange() {
                 // reinit, because of maybe new first person pass
-                if (VRState.vrInitialized) {
+                if (VRState.VR_INITIALIZED) {
                     ClientDataHolderVR.getInstance().vrRenderer.reinitWithoutShaders("MR Setting Changed");
                 }
             }
@@ -1485,7 +1485,7 @@ public class VRSettings {
             @Override
             void onOptionChange() {
                 // reinit, because of maybe new first person pass
-                if (VRState.vrInitialized) {
+                if (VRState.VR_INITIALIZED) {
                     ClientDataHolderVR.getInstance().vrRenderer.reinitWithoutShaders("MR Setting Changed");
                 }
             }
@@ -1634,7 +1634,7 @@ public class VRSettings {
 
             @Override
             void onOptionChange() {
-                if (VRState.vrRunning) {
+                if (VRState.VR_RUNNING) {
                     ClientDataHolderVR.getInstance().vrPlayer.roomScaleMovementDelay = 2;
                     ClientDataHolderVR.getInstance().vrPlayer.snapRoomOriginToPlayerEntity(
                         Minecraft.getInstance().player, false, true);
@@ -1723,7 +1723,7 @@ public class VRSettings {
 
             @Override
             String getDisplayString(String prefix, Object value) {
-                if (VRState.vrEnabled) {
+                if (VRState.VR_ENABLED) {
                     RenderTarget eye0 = ClientDataHolderVR.getInstance().vrRenderer.framebufferEye0;
                     return prefix + Math.round((float) value * 100) + "% (" +
                         (int) Math.ceil(eye0.viewWidth * Math.sqrt((float) value)) + "x" +

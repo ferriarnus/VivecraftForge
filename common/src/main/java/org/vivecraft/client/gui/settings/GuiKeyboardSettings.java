@@ -41,7 +41,7 @@ public class GuiKeyboardSettings extends GuiVROptionsBase {
     protected void actionPerformed(AbstractWidget widget) {
         if (widget instanceof GuiVROption button) {
             if (button.getId() == VRSettings.VrOptions.PHYSICAL_KEYBOARD_THEME.ordinal()) {
-                KeyboardHandler.physicalKeyboard.init();
+                KeyboardHandler.PHYSICAL_KEYBOARD.init();
             }
         }
     }

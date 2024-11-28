@@ -41,17 +41,17 @@ public class MixinConfig implements IMixinConfigPlugin {
     @Override
     public void onLoad(String mixinPackage) {}
 
-    private static final Set<String> appliedModFixes = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final Set<String> APPLIED_MOD_FIXES = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    private static final Logger logger = LoggerFactory.getLogger("VivecraftMixin");
+    private static final Logger LOGGER = LoggerFactory.getLogger("VivecraftMixin");
 
-    private static final String classDependentMixin = "L" + ClassDependentMixin.class.getName().replace(".", "/") + ";";
+    private static final String CLASS_DEPENDENT_MIXIN = "L" + ClassDependentMixin.class.getName().replace(".", "/") + ";";
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         // this is here because forge doesn't finish mod loading, if any mod fails to load, and would crash the game
         if (!Xplat.isModLoadedSuccess()) {
-            logger.info("Vivecraft: not loading '{}' because mod failed to load completely", mixinClassName);
+            LOGGER.info("Vivecraft: not loading '{}' because mod failed to load completely", mixinClassName);
             return false;
         }
 
@@ -63,8 +63,8 @@ public class MixinConfig implements IMixinConfigPlugin {
                 return false;
             }
             String mod = mixinClassName.split("\\.")[3];
-            if (appliedModFixes.add(mod)) {
-                logger.info("Vivecraft: applying '{}' fixes", mod);
+            if (APPLIED_MOD_FIXES.add(mod)) {
+                LOGGER.info("Vivecraft: applying '{}' fixes", mod);
             }
         }
 
@@ -73,7 +73,7 @@ public class MixinConfig implements IMixinConfigPlugin {
             ClassNode mixinClass = MixinService.getService().getBytecodeProvider().getClassNode(mixinClassName);
             if (mixinClass.visibleAnnotations != null) {
                 for (AnnotationNode annotation : mixinClass.visibleAnnotations) {
-                    if (annotation.desc.equals(classDependentMixin)) {
+                    if (annotation.desc.equals(CLASS_DEPENDENT_MIXIN)) {
                         String neededClass = (String) annotation.values.get(1);
                         MixinService.getService().getBytecodeProvider().getClassNode(neededClass);
                     }
@@ -81,7 +81,7 @@ public class MixinConfig implements IMixinConfigPlugin {
                 return true;
             }
         } catch (ClassNotFoundException | IOException e) {
-            logger.info("Vivecraft: skipping mixin '{}'", mixinClassName);
+            LOGGER.info("Vivecraft: skipping mixin '{}'", mixinClassName);
             return false;
         }
 

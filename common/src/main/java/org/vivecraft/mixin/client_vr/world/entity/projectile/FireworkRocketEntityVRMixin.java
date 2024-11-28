@@ -25,7 +25,7 @@ public class FireworkRocketEntityVRMixin {
 
     @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"), index = 1)
     private double vivecraft$modifyX(double x, @Share("handPos") LocalRef<Vec3> handPos) {
-        if (VRState.vrRunning && this.attachedToEntity == Minecraft.getInstance().player &&
+        if (VRState.VR_RUNNING && this.attachedToEntity == Minecraft.getInstance().player &&
             this.attachedToEntity instanceof LocalPlayer localPlayer)
         {
             boolean fireworkInMainHand = localPlayer.getMainHandItem().is(Items.FIREWORK_ROCKET) &&

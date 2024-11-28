@@ -15,7 +15,7 @@ public abstract class ScreenVRMixin extends AbstractContainerEventHandler implem
 
     @Inject(method = "renderTransparentBackground", at = @At("HEAD"), cancellable = true)
     private void vivecraft$vrNoBackground(CallbackInfo ci) {
-        if (VRState.vrRunning && ClientDataHolderVR.getInstance().vrSettings != null &&
+        if (VRState.VR_RUNNING && ClientDataHolderVR.getInstance().vrSettings != null &&
             !ClientDataHolderVR.getInstance().vrSettings.menuBackground)
         {
             ci.cancel();

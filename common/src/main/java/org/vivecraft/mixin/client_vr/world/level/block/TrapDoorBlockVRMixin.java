@@ -19,7 +19,7 @@ public class TrapDoorBlockVRMixin {
     private void vivecraft$hapticFeedbackOnClose(
         Player player, Level level, BlockPos pos, boolean isOpened, CallbackInfo ci)
     {
-        if (VRState.vrRunning && !isOpened && Minecraft.getInstance().player != null &&
+        if (VRState.VR_RUNNING && !isOpened && Minecraft.getInstance().player != null &&
             Minecraft.getInstance().player.isAlive() &&
             Minecraft.getInstance().player.blockPosition().distSqr(pos) < 25.0D)
         {

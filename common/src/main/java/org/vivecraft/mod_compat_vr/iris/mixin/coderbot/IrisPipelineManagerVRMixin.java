@@ -69,8 +69,8 @@ public class IrisPipelineManagerVRMixin implements PipelineManagerExtension {
     @Inject(method = "preparePipeline", at = @At(value = "INVOKE", target = "Ljava/util/function/Function;apply(Ljava/lang/Object;)Ljava/lang/Object;"), remap = false)
     private void vivecraft$prepareForVanillaPipeline(CallbackInfoReturnable<WorldRenderingPipeline> cir) {
         // this also runs on game startup, when the renderpassManager isn't initialized yet
-        if (VRState.vrInitialized && RenderPassManager.INSTANCE != null) {
-            this.vivecraft$currentWorldRenderPass = RenderPassManager.wrp;
+        if (VRState.VR_INITIALIZED && RenderPassManager.INSTANCE != null) {
+            this.vivecraft$currentWorldRenderPass = RenderPassManager.WRP;
             RenderPass currentRenderPass = ClientDataHolderVR.getInstance().currentPass;
             RenderPassManager.setVanillaRenderPass();
             ClientDataHolderVR.getInstance().currentPass = currentRenderPass;
@@ -95,7 +95,7 @@ public class IrisPipelineManagerVRMixin implements PipelineManagerExtension {
 
     @Unique
     private void vivecraft$generateVRPipelines(Object newDimension) {
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             this.vivecraft$vanillaPipeline = this.pipeline;
             if (!this.vivecraft$vrPipelinesPerDimension.containsKey(newDimension)) {
                 this.vivecraft$vrPipelinesPerDimension.put(newDimension, new HashMap<>());
@@ -104,17 +104,17 @@ public class IrisPipelineManagerVRMixin implements PipelineManagerExtension {
                 this.vivecraft$shadowRenderTargets = null;
 
                 for (RenderPass renderPass : RenderPass.values()) {
-                    VRSettings.logger.info("Vivecraft: Creating VR pipeline for dimension {}, RenderPass {}", newDimension, renderPass);
+                    VRSettings.LOGGER.info("Vivecraft: Creating VR pipeline for dimension {}, RenderPass {}", newDimension, renderPass);
                     WorldRenderPass worldRenderPass = null;
                     switch (renderPass) {
-                        case LEFT, RIGHT -> worldRenderPass = WorldRenderPass.stereoXR;
-                        case CENTER -> worldRenderPass = WorldRenderPass.center;
-                        case THIRD -> worldRenderPass = WorldRenderPass.mixedReality;
-                        case SCOPEL -> worldRenderPass = WorldRenderPass.leftTelescope;
-                        case SCOPER -> worldRenderPass = WorldRenderPass.rightTelescope;
-                        case CAMERA -> worldRenderPass = WorldRenderPass.camera;
+                        case LEFT, RIGHT -> worldRenderPass = WorldRenderPass.STEREO_XR;
+                        case CENTER -> worldRenderPass = WorldRenderPass.CENTER;
+                        case THIRD -> worldRenderPass = WorldRenderPass.MIXED_REALITY;
+                        case SCOPEL -> worldRenderPass = WorldRenderPass.LEFT_TELESCOPE;
+                        case SCOPER -> worldRenderPass = WorldRenderPass.RIGHT_TELESCOPE;
+                        case CAMERA -> worldRenderPass = WorldRenderPass.CAMERA;
                         default -> {
-                            VRSettings.logger.info("Vivecraft: skipped VR pipeline for dimension {}, RenderPass {}, not used", newDimension, renderPass);
+                            VRSettings.LOGGER.info("Vivecraft: skipped VR pipeline for dimension {}, RenderPass {}, not used", newDimension, renderPass);
                             continue;
                         }
                     }
@@ -178,7 +178,7 @@ public class IrisPipelineManagerVRMixin implements PipelineManagerExtension {
     private void vivecraft$destroyVRPipelines(CallbackInfo ci) {
         this.vivecraft$vrPipelinesPerDimension.forEach((dimID, map) -> {
             map.forEach((renderPass, pipeline) -> {
-                VRSettings.logger.info("Vivecraft: Destroying VR pipeline {}", renderPass);
+                VRSettings.LOGGER.info("Vivecraft: Destroying VR pipeline {}", renderPass);
                 resetTextureState();
                 pipeline.destroy();
             });

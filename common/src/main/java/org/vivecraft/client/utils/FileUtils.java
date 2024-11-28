@@ -55,7 +55,7 @@ public class FileUtils {
      * throws an exception or logs it depending on the value of {@code required}
      */
     private static void handleAssetException(Throwable e, String name, boolean required) {
-        VRSettings.logger.error("Vivecraft: Failed to unpack '{}' from jar:", name, e);
+        VRSettings.LOGGER.error("Vivecraft: Failed to unpack '{}' from jar:", name, e);
         if (required) {
             throw new RuntimeException("Vivecraft: Failed to unpack '" + name + "' from jar: " + e.getMessage(), e);
         }
@@ -70,7 +70,7 @@ public class FileUtils {
      */
     private static boolean unpackFile(Path sourcePath, File targetFile, boolean required) {
         try {
-            VRSettings.logger.info("Vivecraft: Unpacking file '{}' ...", sourcePath);
+            VRSettings.LOGGER.info("Vivecraft: Unpacking file '{}' ...", sourcePath);
 
             targetFile.getParentFile().mkdirs();
 
@@ -101,7 +101,7 @@ public class FileUtils {
      * @return if a file was unpacked
      */
     public static boolean unpackFolder(String source, String target) {
-        VRSettings.logger.info("Vivecraft: Unpacking files of '{}' ...", source);
+        VRSettings.LOGGER.info("Vivecraft: Unpacking files of '{}' ...", source);
 
         new File(target).mkdirs();
 
@@ -117,7 +117,7 @@ public class FileUtils {
         }
 
         if (!didExtractSomething) {
-            VRSettings.logger.warn("Vivecraft: Failed to unpack files from jar, no files");
+            VRSettings.LOGGER.warn("Vivecraft: Failed to unpack files from jar, no files");
         }
         return didExtractSomething;
     }

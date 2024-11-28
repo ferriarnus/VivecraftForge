@@ -25,7 +25,7 @@ public abstract class PauseScreenVRModMenuMixin extends Screen {
      */
     @Inject(method = "init", at = @At("TAIL"))
     private void vivecraft$reduceModmenuButtonSize(CallbackInfo ci) {
-        if (VRState.vrInitialized && ClientDataHolderVR.getInstance().vrSettings.modifyPauseMenu) {
+        if (VRState.VR_INITIALIZED && ClientDataHolderVR.getInstance().vrSettings.modifyPauseMenu) {
             Button modmenuButton = null;
             Button commandsButton = null;
             Button reportBugsButton = null;

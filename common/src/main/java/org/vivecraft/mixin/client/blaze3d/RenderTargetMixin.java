@@ -121,7 +121,7 @@ public abstract class RenderTargetMixin implements RenderTargetExtension {
             ))
             {
                 // log a limited StackTrace to find the cause, we don't need to spam the log with full StackTraces
-                VRSettings.logger.error("Vivecraft: Mismatched RenderTarget size detected, viewport size change was blocked. MainTarget size: {}x{}, RenderTarget size: {}x{}. RenderPass: {}, Stacktrace:",
+                VRSettings.LOGGER.error("Vivecraft: Mismatched RenderTarget size detected, viewport size change was blocked. MainTarget size: {}x{}, RenderTarget size: {}x{}. RenderPass: {}, Stacktrace:",
                     Minecraft.getInstance().getMainRenderTarget().width,
                     Minecraft.getInstance().getMainRenderTarget().height,
                     this.width, this.height, ClientDataHolderVR.getInstance().currentPass,

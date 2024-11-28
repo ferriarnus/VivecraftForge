@@ -192,7 +192,7 @@ public class TeleportTracker extends Tracker {
                 String command = "tp " + destination.x + " " + destination.y + " " + destination.z;
                 player.connection.sendCommand(command);
             } else {
-                if (ClientNetworking.serverSupportsDirectTeleport) {
+                if (ClientNetworking.SERVER_SUPPORTS_DIRECT_TELEPORT) {
                     ((PlayerExtension) player).vivecraft$setTeleported(true);
                 }
 

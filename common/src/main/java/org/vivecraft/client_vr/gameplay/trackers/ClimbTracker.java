@@ -31,7 +31,8 @@ import org.vivecraft.server.config.ClimbeyBlockmode;
 import java.util.*;
 
 public class ClimbTracker extends Tracker {
-    public static final ModelResourceLocation clawsModel = new ModelResourceLocation("vivecraft", "climb_claws", "inventory");
+    public static final ModelResourceLocation CLAWS_MODEL = new ModelResourceLocation("vivecraft", "climb_claws", "inventory");
+
     public Set<Block> blocklist = new HashSet<>();
     public ClimbeyBlockmode serverBlockmode = ClimbeyBlockmode.DISABLED;
     public boolean forceActivate = false;
@@ -64,7 +65,7 @@ public class ClimbTracker extends Tracker {
     private final AABB upBB = new AABB(0.0D, 0.9D, 0.0D, 1.0D, 1.1D, 1.0D);
     private final AABB fullBB = new AABB(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
     private final Random rand = new Random();
-    boolean unsetFlag;
+    private boolean unsetFlag;
 
     public ClimbTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -98,7 +99,7 @@ public class ClimbTracker extends Tracker {
      * @return if the given {@code player} has a climbing claw item in either hand
      */
     public static boolean hasClimbeyClimbEquipped(Player player) {
-        return ClientNetworking.serverAllowsClimbey &&
+        return ClientNetworking.SERVER_ALLOWS_CLIMBEY &&
             (isClaws(player.getMainHandItem()) || isClaws(player.getOffhandItem()));
     }
 

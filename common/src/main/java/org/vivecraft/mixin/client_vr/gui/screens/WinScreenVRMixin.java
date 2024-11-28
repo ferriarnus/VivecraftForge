@@ -15,7 +15,7 @@ public class WinScreenVRMixin {
     private void vivecraft$dontDestroyAlpha(
         GlStateManager.SourceFactor sourceFactor, GlStateManager.DestFactor destFactor, Operation<Void> original)
     {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             RenderSystem.blendFuncSeparate(sourceFactor, destFactor,
                 GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         } else {

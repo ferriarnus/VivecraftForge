@@ -27,12 +27,12 @@ import org.vivecraft.mod_compat_vr.iris.IrisHelper;
 
 public class ShaderHelper {
 
-    private static final Minecraft mc = Minecraft.getInstance();
-    private static final ClientDataHolderVR dataHolder = ClientDataHolderVR.getInstance();
+    private static final Minecraft MC = Minecraft.getInstance();
+    private static final ClientDataHolderVR DATA_HOLDER = ClientDataHolderVR.getInstance();
 
-    private static float fovReduction = 1.0F;
-    private static float waterEffect;
-    private static boolean wasInWater;
+    private static float FOV_REDUCTION = 1.0F;
+    private static float WATER_EFFECT;
+    private static boolean WAS_IN_WATER;
 
     /**
      * renders a fullscreen quad with the given shader, and the given RenderTarget bound as "Sampler0"
@@ -109,155 +109,155 @@ public class ShaderHelper {
             float pumpkinEffect = 0.0F;
             float portalEffect = 0.0F;
 
-            if (mc.player != null && mc.level != null) {
+            if (MC.player != null && MC.level != null) {
 
-                boolean isInWater = ((GameRendererExtension) mc.gameRenderer).vivecraft$isInWater();
-                if (dataHolder.vrSettings.waterEffect && wasInWater != isInWater) {
+                boolean isInWater = ((GameRendererExtension) MC.gameRenderer).vivecraft$isInWater();
+                if (DATA_HOLDER.vrSettings.waterEffect && WAS_IN_WATER != isInWater) {
                     // water state changed, start effect
-                    waterEffect = 2.3F;
+                    WATER_EFFECT = 2.3F;
                 } else {
                     if (isInWater) {
                         // slow falloff in water
-                        waterEffect -= 1F / 120F;
+                        WATER_EFFECT -= 1F / 120F;
                     } else {
                         // fast falloff outside water
-                        waterEffect -= 1F / 60F;
+                        WATER_EFFECT -= 1F / 60F;
                     }
 
-                    if (waterEffect < 0.0F) {
-                        waterEffect = 0.0F;
+                    if (WATER_EFFECT < 0.0F) {
+                        WATER_EFFECT = 0.0F;
                     }
                 }
 
-                wasInWater = isInWater;
+                WAS_IN_WATER = isInWater;
 
                 if (IrisHelper.isLoaded() && !IrisHelper.hasWaterEffect()) {
-                    waterEffect = 0.0F;
+                    WATER_EFFECT = 0.0F;
                 }
 
-                if (Mth.lerp(partialTick, mc.player.oSpinningEffectIntensity, mc.player.spinningEffectIntensity) >
-                    0.0F && !mc.player.hasEffect(MobEffects.CONFUSION))
+                if (Mth.lerp(partialTick, MC.player.oSpinningEffectIntensity, MC.player.spinningEffectIntensity) >
+                    0.0F && !MC.player.hasEffect(MobEffects.CONFUSION))
                 {
 
                 }
 
-                float portalTime = Mth.lerp(partialTick, mc.player.oSpinningEffectIntensity,
-                    mc.player.spinningEffectIntensity);
-                if (dataHolder.vrSettings.portalEffect &&
+                float portalTime = Mth.lerp(partialTick, MC.player.oSpinningEffectIntensity,
+                    MC.player.spinningEffectIntensity);
+                if (DATA_HOLDER.vrSettings.portalEffect &&
                     // vanilla check for portal overlay
-                    portalTime > 0.0F && !mc.player.hasEffect(MobEffects.CONFUSION))
+                    portalTime > 0.0F && !MC.player.hasEffect(MobEffects.CONFUSION))
                 {
                     portalEffect = portalTime;
                 }
 
-                ItemStack itemstack = mc.player.getInventory().getArmor(3);
+                ItemStack itemstack = MC.player.getInventory().getArmor(3);
 
-                if (dataHolder.vrSettings.pumpkinEffect && itemstack.getItem() == Blocks.CARVED_PUMPKIN.asItem() &&
+                if (DATA_HOLDER.vrSettings.pumpkinEffect && itemstack.getItem() == Blocks.CARVED_PUMPKIN.asItem() &&
                     (!itemstack.hasTag() || itemstack.getTag().getInt("CustomModelData") == 0))
                 {
                     pumpkinEffect = 1.0F;
                 }
 
-                float hurtTimer = (float) mc.player.hurtTime - partialTick;
-                float healthPercent = 1.0F - mc.player.getHealth() / mc.player.getMaxHealth();
+                float hurtTimer = (float) MC.player.hurtTime - partialTick;
+                float healthPercent = 1.0F - MC.player.getHealth() / MC.player.getMaxHealth();
                 healthPercent = (healthPercent - 0.5F) * 0.75F;
 
-                if (dataHolder.vrSettings.hitIndicator && hurtTimer > 0.0F) { // hurt flash
-                    hurtTimer = hurtTimer / (float) mc.player.hurtDuration;
+                if (DATA_HOLDER.vrSettings.hitIndicator && hurtTimer > 0.0F) { // hurt flash
+                    hurtTimer = hurtTimer / (float) MC.player.hurtDuration;
                     hurtTimer = healthPercent +
                         Mth.sin(hurtTimer * hurtTimer * hurtTimer * hurtTimer * (float) Math.PI) * 0.5F;
                     red = hurtTimer;
-                } else if (dataHolder.vrSettings.lowHealthIndicator) { // red due to low health
+                } else if (DATA_HOLDER.vrSettings.lowHealthIndicator) { // red due to low health
                     red = healthPercent * Mth.abs(Mth.sin((2.5F * time) / (1.0F - healthPercent + 0.1F)));
 
-                    if (mc.player.isCreative()) {
+                    if (MC.player.isCreative()) {
                         red = 0.0F;
                     }
                 }
 
-                float freeze = mc.player.getPercentFrozen();
-                if (dataHolder.vrSettings.freezeEffect && freeze > 0) {
+                float freeze = MC.player.getPercentFrozen();
+                if (DATA_HOLDER.vrSettings.freezeEffect && freeze > 0) {
                     blue = red;
                     blue = Math.max(freeze / 2, blue);
                     red = 0;
                 }
 
-                if (mc.player.isSleeping()) {
-                    black = 0.5F + 0.3F * mc.player.getSleepTimer() * 0.01F;
+                if (MC.player.isSleeping()) {
+                    black = 0.5F + 0.3F * MC.player.getSleepTimer() * 0.01F;
                 }
 
-                if (dataHolder.vr.isWalkingAbout && black < 0.8F) {
+                if (DATA_HOLDER.vr.isWalkingAbout && black < 0.8F) {
                     black = 0.5F;
                 }
 
                 // fov reduction when moving
-                if (dataHolder.vrSettings.useFOVReduction && dataHolder.vrPlayer.getFreeMove()) {
-                    if (Math.abs(mc.player.zza) > 0.0F || Math.abs(mc.player.xxa) > 0.0F) {
-                        fovReduction = fovReduction - 0.05F;
+                if (DATA_HOLDER.vrSettings.useFOVReduction && DATA_HOLDER.vrPlayer.getFreeMove()) {
+                    if (Math.abs(MC.player.zza) > 0.0F || Math.abs(MC.player.xxa) > 0.0F) {
+                        FOV_REDUCTION = FOV_REDUCTION - 0.05F;
                     } else {
-                        fovReduction = fovReduction + 0.01F;
+                        FOV_REDUCTION = FOV_REDUCTION + 0.01F;
                     }
-                    fovReduction = Mth.clamp(fovReduction, dataHolder.vrSettings.fovReductionMin, 0.8F);
+                    FOV_REDUCTION = Mth.clamp(FOV_REDUCTION, DATA_HOLDER.vrSettings.fovReductionMin, 0.8F);
                 } else {
-                    fovReduction = 1.0F;
+                    FOV_REDUCTION = 1.0F;
                 }
             } else {
-                waterEffect = 0.0F;
-                fovReduction = 1.0F;
+                WATER_EFFECT = 0.0F;
+                FOV_REDUCTION = 1.0F;
             }
 
             if (pumpkinEffect > 0.0F) {
-                VRShaders._FOVReduction_RadiusUniform.set(0.3F);
-                VRShaders._FOVReduction_BorderUniform.set(0.0F);
+                VRShaders.POST_PROCESSING_FOV_REDUCTION_RADIUS_UNIFORM.set(0.3F);
+                VRShaders.POST_PROCESSING_FOV_REDUCTION_BORDER_UNIFORM.set(0.0F);
             } else {
-                VRShaders._FOVReduction_RadiusUniform.set(fovReduction);
-                VRShaders._FOVReduction_BorderUniform.set(0.06F);
+                VRShaders.POST_PROCESSING_FOV_REDUCTION_RADIUS_UNIFORM.set(FOV_REDUCTION);
+                VRShaders.POST_PROCESSING_FOV_REDUCTION_BORDER_UNIFORM.set(0.06F);
             }
 
-            VRShaders._FOVReduction_OffsetUniform.set(dataHolder.vrSettings.fovRedutioncOffset);
+            VRShaders.POST_PROCESSING_FOV_REDUCTION_OFFSET_UNIFORM.set(DATA_HOLDER.vrSettings.fovRedutioncOffset);
 
-            VRShaders._Overlay_HealthAlpha.set(red);
-            VRShaders._Overlay_FreezeAlpha.set(blue);
-            VRShaders._Overlay_BlackAlpha.set(black);
-            VRShaders._Overlay_time.set(time);
-            VRShaders._Overlay_waterAmplitude.set(waterEffect);
-            VRShaders._Overlay_portalAmplitutde.set(portalEffect);
-            VRShaders._Overlay_pumpkinAmplitutde.set(pumpkinEffect);
+            VRShaders.POST_PROCESSING_OVERLAY_HEALTH_ALPHA_UNiFORM.set(red);
+            VRShaders.POST_PROCESSING_OVERLAY_FREEZE_ALPHA_UNiFORM.set(blue);
+            VRShaders.POST_PROCESSING_OVERLAY_BLACK_ALPHA_UNIFORM.set(black);
+            VRShaders.POST_PROCESSING_OVERLAY_TIME_UNIFORM.set(time);
+            VRShaders.POST_PROCESSING_OVERLAY_WATER_AMPLITUDE_UNIFORM.set(WATER_EFFECT);
+            VRShaders.POST_PROCESSING_OVERLAY_PORTAL_AMPLITUDE_UNIFORM.set(portalEffect);
+            VRShaders.POST_PROCESSING_OVERLAY_PUMPKIN_AMPLITUDE_UNIFORM.set(pumpkinEffect);
         }
 
         // this needs to be set for each eye
-        VRShaders._Overlay_eye.set(eye == RenderPass.LEFT ? 1 : -1);
+        VRShaders.POST_PROCESSING_OVERLAY_EYE_UNIFORM.set(eye == RenderPass.LEFT ? 1 : -1);
 
-        ShaderHelper.renderFullscreenQuad(VRShaders.postProcessingShader, source);
+        ShaderHelper.renderFullscreenQuad(VRShaders.POST_PROCESSING_SHADER, source);
     }
 
     /**
      * draws the desktop mirror to the bound buffer
      */
     public static void drawMirror() {
-        if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.OFF &&
-            dataHolder.vr.isHMDTracking())
+        if (DATA_HOLDER.vrSettings.displayMirrorMode == VRSettings.MirrorMode.OFF &&
+            DATA_HOLDER.vr.isHMDTracking())
         {
             // no mirror, only show when headset is not tracking, to be able to see the menu with the headset off
             MirrorNotification.notify("Mirror is OFF", true, 1000);
-        } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY) {
-            if (VRShaders.mixedRealityShader != null) {
+        } else if (DATA_HOLDER.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY) {
+            if (VRShaders.MIXED_REALITY_SHADER != null) {
                 ShaderHelper.doMixedRealityMirror();
             } else {
                 MirrorNotification.notify("Mixed Reality Shader compile failed, see log for info", true,
                     10000);
             }
-        } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.DUAL &&
-            (!dataHolder.vrSettings.displayMirrorUseScreenshotCamera ||
-                !dataHolder.cameraTracker.isVisible()
+        } else if (DATA_HOLDER.vrSettings.displayMirrorMode == VRSettings.MirrorMode.DUAL &&
+            (!DATA_HOLDER.vrSettings.displayMirrorUseScreenshotCamera ||
+                !DATA_HOLDER.cameraTracker.isVisible()
             ))
         {
             // show both eyes side by side
-            RenderTarget leftEye = dataHolder.vrRenderer.framebufferEye0;
-            RenderTarget rightEye = dataHolder.vrRenderer.framebufferEye1;
+            RenderTarget leftEye = DATA_HOLDER.vrRenderer.framebufferEye0;
+            RenderTarget rightEye = DATA_HOLDER.vrRenderer.framebufferEye1;
 
-            int screenWidth = ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenWidth() / 2;
-            int screenHeight = ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenHeight();
+            int screenWidth = ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenWidth() / 2;
+            int screenHeight = ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenHeight();
 
             if (leftEye != null) {
                 ShaderHelper.blitToScreen(leftEye, 0, screenWidth, screenHeight, 0, 0.0F, 0.0F, false);
@@ -271,32 +271,32 @@ public class ShaderHelper {
             float xCrop = 0.0F;
             float yCrop = 0.0F;
             boolean keepAspect = false;
-            RenderTarget source = dataHolder.vrRenderer.framebufferEye0;
+            RenderTarget source = DATA_HOLDER.vrRenderer.framebufferEye0;
 
-            if (dataHolder.vrSettings.displayMirrorUseScreenshotCamera &&
-                dataHolder.cameraTracker.isVisible())
+            if (DATA_HOLDER.vrSettings.displayMirrorUseScreenshotCamera &&
+                DATA_HOLDER.cameraTracker.isVisible())
             {
-                source = dataHolder.vrRenderer.cameraFramebuffer;
+                source = DATA_HOLDER.vrRenderer.cameraFramebuffer;
                 keepAspect = true;
-            } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.FIRST_PERSON) {
-                source = dataHolder.vrRenderer.framebufferUndistorted;
-            } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON) {
-                source = dataHolder.vrRenderer.framebufferMR;
-            } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.GUI) {
-                source = GuiHandler.guiFramebuffer;
-            } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.SINGLE ||
-                dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.OFF)
+            } else if (DATA_HOLDER.vrSettings.displayMirrorMode == VRSettings.MirrorMode.FIRST_PERSON) {
+                source = DATA_HOLDER.vrRenderer.framebufferUndistorted;
+            } else if (DATA_HOLDER.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON) {
+                source = DATA_HOLDER.vrRenderer.framebufferMR;
+            } else if (DATA_HOLDER.vrSettings.displayMirrorMode == VRSettings.MirrorMode.GUI) {
+                source = GuiHandler.GUI_FRAMEBUFFER;
+            } else if (DATA_HOLDER.vrSettings.displayMirrorMode == VRSettings.MirrorMode.SINGLE ||
+                DATA_HOLDER.vrSettings.displayMirrorMode == VRSettings.MirrorMode.OFF)
             {
-                if (!dataHolder.vrSettings.displayMirrorLeftEye) {
-                    source = dataHolder.vrRenderer.framebufferEye1;
+                if (!DATA_HOLDER.vrSettings.displayMirrorLeftEye) {
+                    source = DATA_HOLDER.vrRenderer.framebufferEye1;
                 }
-            } else if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.CROPPED) {
-                if (!dataHolder.vrSettings.displayMirrorLeftEye) {
-                    source = dataHolder.vrRenderer.framebufferEye1;
+            } else if (DATA_HOLDER.vrSettings.displayMirrorMode == VRSettings.MirrorMode.CROPPED) {
+                if (!DATA_HOLDER.vrSettings.displayMirrorLeftEye) {
+                    source = DATA_HOLDER.vrRenderer.framebufferEye1;
                 }
 
-                xCrop = dataHolder.vrSettings.mirrorCrop;
-                yCrop = dataHolder.vrSettings.mirrorCrop;
+                xCrop = DATA_HOLDER.vrSettings.mirrorCrop;
+                yCrop = DATA_HOLDER.vrSettings.mirrorCrop;
                 keepAspect = true;
             }
             // Debug
@@ -304,8 +304,8 @@ public class ShaderHelper {
             //
             if (source != null) {
                 ShaderHelper.blitToScreen(source,
-                    0, ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenWidth(),
-                    ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenHeight(), 0,
+                    0, ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenWidth(),
+                    ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenHeight(), 0,
                     xCrop, yCrop, keepAspect);
             }
         }
@@ -317,65 +317,65 @@ public class ShaderHelper {
     public static void doMixedRealityMirror() {
         // set viewport to fullscreen, since it would be still on the one from the last pass
         RenderSystem.viewport(0, 0,
-            ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenWidth(),
-            ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenHeight());
+            ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenWidth(),
+            ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenHeight());
 
-        Vec3 camPlayer = dataHolder.vrPlayer.vrdata_room_pre.getHeadPivot()
-            .subtract(dataHolder.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD).getPosition());
-        Matrix4f viewMatrix = dataHolder.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD)
+        Vec3 camPlayer = DATA_HOLDER.vrPlayer.vrdata_room_pre.getHeadPivot()
+            .subtract(DATA_HOLDER.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD).getPosition());
+        Matrix4f viewMatrix = DATA_HOLDER.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD)
             .getMatrix().transposed().toMCMatrix();
-        Vector3 cameraLook = dataHolder.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD).getMatrix()
+        Vector3 cameraLook = DATA_HOLDER.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD).getMatrix()
             .transform(Vector3.forward());
 
         // set uniforms
-        VRShaders._MixedReality_projectionMatrix.set(
-            ((GameRendererExtension) mc.gameRenderer).vivecraft$getThirdPassProjectionMatrix());
-        VRShaders._MixedReality_viewMatrix.set(viewMatrix);
+        VRShaders.MIXED_REALITY_PROJECTION_MATRIX_UNIFORM.set(
+            ((GameRendererExtension) MC.gameRenderer).vivecraft$getThirdPassProjectionMatrix());
+        VRShaders.MIXED_REALITY_VIEW_MATRIX_UNIFORM.set(viewMatrix);
 
-        VRShaders._MixedReality_hmdViewPosition.set((float) camPlayer.x, (float) camPlayer.y, (float) camPlayer.z);
-        VRShaders._MixedReality_hmdPlaneNormal.set(-cameraLook.getX(), 0.0F, -cameraLook.getZ());
+        VRShaders.MIXED_REALITY_HMD_VIEW_POSITION_UNIFORM.set((float) camPlayer.x, (float) camPlayer.y, (float) camPlayer.z);
+        VRShaders.MIXED_REALITY_HMD_PLANE_NORMAL_UNIFORM.set(-cameraLook.getX(), 0.0F, -cameraLook.getZ());
 
-        boolean alphaMask = dataHolder.vrSettings.mixedRealityUnityLike && dataHolder.vrSettings.mixedRealityAlphaMask;
+        boolean alphaMask = DATA_HOLDER.vrSettings.mixedRealityUnityLike && DATA_HOLDER.vrSettings.mixedRealityAlphaMask;
 
         if (!alphaMask) {
-            VRShaders._MixedReality_keyColorUniform.set(
-                (float) dataHolder.vrSettings.mixedRealityKeyColor.getRed() / 255.0F,
-                (float) dataHolder.vrSettings.mixedRealityKeyColor.getGreen() / 255.0F,
-                (float) dataHolder.vrSettings.mixedRealityKeyColor.getBlue() / 255.0F);
+            VRShaders.MIXED_REALITY_KEY_COLOR_UNIFORM.set(
+                (float) DATA_HOLDER.vrSettings.mixedRealityKeyColor.getRed() / 255.0F,
+                (float) DATA_HOLDER.vrSettings.mixedRealityKeyColor.getGreen() / 255.0F,
+                (float) DATA_HOLDER.vrSettings.mixedRealityKeyColor.getBlue() / 255.0F);
         } else {
-            VRShaders._MixedReality_keyColorUniform.set(0F, 0F, 0F);
+            VRShaders.MIXED_REALITY_KEY_COLOR_UNIFORM.set(0F, 0F, 0F);
         }
-        VRShaders._MixedReality_alphaModeUniform.set(alphaMask ? 1 : 0);
+        VRShaders.MIXED_REALITY_ALPHA_MODE_UNIFORM.set(alphaMask ? 1 : 0);
 
-        VRShaders._MixedReality_firstPersonPassUniform.set(dataHolder.vrSettings.mixedRealityUnityLike ? 1 : 0);
+        VRShaders.MIXED_REALITY_FIRST_PERSON_PASS_UNIFORM.set(DATA_HOLDER.vrSettings.mixedRealityUnityLike ? 1 : 0);
 
         // bind textures
-        VRShaders.mixedRealityShader.setSampler("thirdPersonColor",
-            dataHolder.vrRenderer.framebufferMR.getColorTextureId());
-        VRShaders.mixedRealityShader.setSampler("thirdPersonDepth",
-            dataHolder.vrRenderer.framebufferMR.getDepthTextureId());
+        VRShaders.MIXED_REALITY_SHADER.setSampler("thirdPersonColor",
+            DATA_HOLDER.vrRenderer.framebufferMR.getColorTextureId());
+        VRShaders.MIXED_REALITY_SHADER.setSampler("thirdPersonDepth",
+            DATA_HOLDER.vrRenderer.framebufferMR.getDepthTextureId());
 
-        if (dataHolder.vrSettings.mixedRealityUnityLike) {
+        if (DATA_HOLDER.vrSettings.mixedRealityUnityLike) {
             RenderTarget source;
-            if (dataHolder.vrSettings.displayMirrorUseScreenshotCamera && dataHolder.cameraTracker.isVisible()) {
-                source = dataHolder.vrRenderer.cameraFramebuffer;
-            } else if (dataHolder.vrSettings.mixedRealityUndistorted) {
-                source = dataHolder.vrRenderer.framebufferUndistorted;
+            if (DATA_HOLDER.vrSettings.displayMirrorUseScreenshotCamera && DATA_HOLDER.cameraTracker.isVisible()) {
+                source = DATA_HOLDER.vrRenderer.cameraFramebuffer;
+            } else if (DATA_HOLDER.vrSettings.mixedRealityUndistorted) {
+                source = DATA_HOLDER.vrRenderer.framebufferUndistorted;
             } else {
-                if (dataHolder.vrSettings.displayMirrorLeftEye) {
-                    source = dataHolder.vrRenderer.framebufferEye0;
+                if (DATA_HOLDER.vrSettings.displayMirrorLeftEye) {
+                    source = DATA_HOLDER.vrRenderer.framebufferEye0;
                 } else {
-                    source = dataHolder.vrRenderer.framebufferEye1;
+                    source = DATA_HOLDER.vrRenderer.framebufferEye1;
                 }
             }
-            VRShaders.mixedRealityShader.setSampler("firstPersonColor", source.getColorTextureId());
+            VRShaders.MIXED_REALITY_SHADER.setSampler("firstPersonColor", source.getColorTextureId());
         }
 
-        VRShaders.mixedRealityShader.apply();
+        VRShaders.MIXED_REALITY_SHADER.apply();
 
-        drawFullscreenQuad(VRShaders.mixedRealityShader.getVertexFormat());
+        drawFullscreenQuad(VRShaders.MIXED_REALITY_SHADER.getVertexFormat());
 
-        VRShaders.mixedRealityShader.clear();
+        VRShaders.MIXED_REALITY_SHADER.clear();
     }
 
     /**
@@ -386,7 +386,7 @@ public class ShaderHelper {
      */
     public static void doFSAA(RenderTarget source, RenderTarget firstPass, RenderTarget secondPass) {
         if (firstPass == null) {
-            dataHolder.vrRenderer.reinitFrameBuffers("FSAA Setting Changed");
+            DATA_HOLDER.vrRenderer.reinitFrameBuffers("FSAA Setting Changed");
         } else {
             RenderSystem.disableBlend();
             // set to always, since we want to override the depth
@@ -396,27 +396,27 @@ public class ShaderHelper {
             // first pass, horizontal
             firstPass.bindWrite(true);
 
-            VRShaders.lanczosShader.setSampler("Sampler0", source.getColorTextureId());
-            VRShaders.lanczosShader.setSampler("Sampler1", source.getDepthTextureId());
-            VRShaders._Lanczos_texelWidthOffsetUniform.set(1.0F / (3.0F * (float) firstPass.viewWidth));
-            VRShaders._Lanczos_texelHeightOffsetUniform.set(0.0F);
-            VRShaders.lanczosShader.apply();
+            VRShaders.LANCZOS_SHADER.setSampler("Sampler0", source.getColorTextureId());
+            VRShaders.LANCZOS_SHADER.setSampler("Sampler1", source.getDepthTextureId());
+            VRShaders.LANCZOS_TEXEL_WIDTH_OFFSET_UNIFORM.set(1.0F / (3.0F * (float) firstPass.viewWidth));
+            VRShaders.LANCZOS_TEXEL_HEIGHT_OFFSET_UNIFORM.set(0.0F);
+            VRShaders.LANCZOS_SHADER.apply();
 
-            drawFullscreenQuad(VRShaders.lanczosShader.getVertexFormat());
+            drawFullscreenQuad(VRShaders.LANCZOS_SHADER.getVertexFormat());
 
             // second pass, vertical
             secondPass.bindWrite(true);
 
-            VRShaders.lanczosShader.setSampler("Sampler0", firstPass.getColorTextureId());
-            VRShaders.lanczosShader.setSampler("Sampler1", firstPass.getDepthTextureId());
-            VRShaders._Lanczos_texelWidthOffsetUniform.set(0.0F);
-            VRShaders._Lanczos_texelHeightOffsetUniform.set(1.0F / (3.0F * (float) secondPass.viewHeight));
-            VRShaders.lanczosShader.apply();
+            VRShaders.LANCZOS_SHADER.setSampler("Sampler0", firstPass.getColorTextureId());
+            VRShaders.LANCZOS_SHADER.setSampler("Sampler1", firstPass.getDepthTextureId());
+            VRShaders.LANCZOS_TEXEL_WIDTH_OFFSET_UNIFORM.set(0.0F);
+            VRShaders.LANCZOS_TEXEL_HEIGHT_OFFSET_UNIFORM.set(1.0F / (3.0F * (float) secondPass.viewHeight));
+            VRShaders.LANCZOS_SHADER.apply();
 
-            drawFullscreenQuad(VRShaders.lanczosShader.getVertexFormat());
+            drawFullscreenQuad(VRShaders.LANCZOS_SHADER.getVertexFormat());
 
             // Clean up time
-            VRShaders.lanczosShader.clear();
+            VRShaders.LANCZOS_SHADER.clear();
             secondPass.unbindWrite();
 
             RenderSystem.depthFunc(GL43.GL_LEQUAL);
@@ -469,7 +469,7 @@ public class ShaderHelper {
             }
         }
 
-        ShaderInstance instance = VRShaders.blitVRShader;
+        ShaderInstance instance = VRShaders.BLIT_VR_SHADER;
         instance.setSampler("DiffuseSampler", source.getColorTextureId());
 
         instance.apply();

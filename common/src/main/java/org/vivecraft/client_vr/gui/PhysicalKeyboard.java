@@ -49,18 +49,19 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class PhysicalKeyboard {
-    private final Minecraft mc = Minecraft.getInstance();
-    private final ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
-    private boolean reinit;
-    private boolean shift;
-    private boolean shiftSticky;
-    private final List<KeyButton> keys;
     private static final int ROWS = 4;
     private static final int COLUMNS = 13;
     private static final float SPACING = 0.0064F;
     private static final float KEY_WIDTH = 0.04F;
     private static final float KEY_HEIGHT = 0.04F;
     private static final float KEY_WIDTH_SPECIAL = KEY_WIDTH * 2 + SPACING;
+
+    private final Minecraft mc = Minecraft.getInstance();
+    private final ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
+    private boolean reinit;
+    private boolean shift;
+    private boolean shiftSticky;
+    private final List<KeyButton> keys;
     private int rows;
     private int columns;
     private float spacing;
@@ -313,7 +314,7 @@ public class PhysicalKeyboard {
                         }
                     });
                 } catch (IOException ex) {
-                    VRSettings.logger.error("Vivecraft: error creating keyboard template: ", ex);
+                    VRSettings.LOGGER.error("Vivecraft: error creating keyboard template: ", ex);
                 }
             } else {
                 // Load theme file
@@ -330,11 +331,11 @@ public class PhysicalKeyboard {
                                 Integer.parseInt(colorSplit[1]), Integer.parseInt(colorSplit[2]), 255);
                             this.customTheme.put(id, color);
                         } catch (Exception ex) {
-                            VRSettings.logger.error("Vivecraft: error reading keyboard theme line: {}:", line, ex);
+                            VRSettings.LOGGER.error("Vivecraft: error reading keyboard theme line: {}:", line, ex);
                         }
                     });
                 } catch (IOException ex) {
-                    VRSettings.logger.error("Vivecraft: error reading keyboard theme:", ex);
+                    VRSettings.LOGGER.error("Vivecraft: error reading keyboard theme:", ex);
                 }
             }
         }
@@ -378,12 +379,12 @@ public class PhysicalKeyboard {
     }
 
     public void processBindings() {
-        if (GuiHandler.keyKeyboardShift.consumeClick()) {
+        if (GuiHandler.KEY_KEYBOARD_SHIFT.consumeClick()) {
             this.setShift(true, true);
             this.lastPressedShift = true;
         }
 
-        if (!GuiHandler.keyKeyboardShift.isDown() && this.lastPressedShift) {
+        if (!GuiHandler.KEY_KEYBOARD_SHIFT.isDown() && this.lastPressedShift) {
             this.setShift(false, false);
             this.lastPressedShift = false;
         }
@@ -402,8 +403,8 @@ public class PhysicalKeyboard {
         // Transform the controller into keyboard space
         Matrix4f matrix = new Matrix4f();
         matrix.translate(this.getCenterPos());
-        Matrix4f.mul(matrix, (Matrix4f) MathUtils.convertOVRMatrix(KeyboardHandler.Rotation_room).invert(), matrix);
-        matrix.translate((Vector3f) MathUtils.convertToVector3f(KeyboardHandler.Pos_room).negate());
+        Matrix4f.mul(matrix, (Matrix4f) MathUtils.convertOVRMatrix(KeyboardHandler.ROTATION_ROOM).invert(), matrix);
+        matrix.translate((Vector3f) MathUtils.convertToVector3f(KeyboardHandler.POS_ROOM).negate());
 
         Vec3 pos = MathUtils.convertToVector3d(MathUtils.transformVector(matrix,
             MathUtils.convertToVector3f(this.dh.vrPlayer.vrdata_room_pre.getController(controller.ordinal()).getPosition()),

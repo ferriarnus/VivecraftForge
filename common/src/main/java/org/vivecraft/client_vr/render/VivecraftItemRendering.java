@@ -21,7 +21,7 @@ import org.vivecraft.client_vr.gameplay.trackers.SwingTracker;
 import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 
 public class VivecraftItemRendering {
-    private static final ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
+    private static final ClientDataHolderVR DH = ClientDataHolderVR.getInstance();
 
     /**
      * determines how the given ItemStack should be rendered
@@ -55,8 +55,8 @@ public class VivecraftItemRendering {
         } else if (itemStack.getUseAnimation() == UseAnim.BOW && !itemStack.is(ItemTags.VIVECRAFT_BOW_EXCLUSION)) {
             itemTransformType = VivecraftItemTransformType.Bow_Seated;
 
-            if (dh.bowTracker.isActive((LocalPlayer) player)) {
-                if (dh.bowTracker.isDrawing) {
+            if (DH.bowTracker.isActive((LocalPlayer) player)) {
+                if (DH.bowTracker.isDrawing) {
                     itemTransformType = VivecraftItemTransformType.Bow_Roomscale_Drawing;
                 } else {
                     itemTransformType = VivecraftItemTransformType.Bow_Roomscale;
@@ -131,7 +131,7 @@ public class VivecraftItemRendering {
      */
     public static void applyFirstPersonItemTransforms(PoseStack poseStack, VivecraftItemTransformType itemTransformType, boolean mainHand, AbstractClientPlayer player, float equippedProgress, float partialTick, ItemStack itemStack, InteractionHand hand) {
 
-        float gunAngle = (float) dh.vr.getGunAngle();
+        float gunAngle = (float) DH.vr.getGunAngle();
 
         // defaults
         float scale = 0.7F;
@@ -166,13 +166,13 @@ public class VivecraftItemRendering {
                 int bowHand = 1;
 
                 // bow in main hand
-                if (dh.vrSettings.reverseShootingEye) {
+                if (DH.vrSettings.reverseShootingEye) {
                     bowHand = 0;
                 }
 
-                Vec3 aim = dh.bowTracker.getAimVector();
+                Vec3 aim = DH.bowTracker.getAimVector();
 
-                Vec3 localBack = dh.vrPlayer.vrdata_world_render.getHand(bowHand)
+                Vec3 localBack = DH.vrPlayer.vrdata_world_render.getHand(bowHand)
                     .getCustomVector(new Vec3(0.0D, 0.0D, -1.0D));
 
                 float aimPitch = (float) Math.toDegrees(Math.asin(aim.y / aim.length()));
@@ -210,16 +210,16 @@ public class VivecraftItemRendering {
                 // calculate bow model roll.
                 float roll = (180F / (float) Math.PI) * angle;
 
-                if (dh.bowTracker.isCharged()) {
+                if (DH.bowTracker.isCharged()) {
                     // bow jitter
-                    long j = Util.getMillis() - dh.bowTracker.startDrawTime;
+                    long j = Util.getMillis() - DH.bowTracker.startDrawTime;
                     translateX += 0.003F * (float) Math.sin((double) j);
                 }
 
                 poseStack.translate(0.0F, 0.0F, 0.1F);
                 // un-do controller tracking
                 poseStack.last().pose()
-                    .mul(dh.vrPlayer.vrdata_world_render.getController(bowHand).getMatrix().transposed().toMCMatrix());
+                    .mul(DH.vrPlayer.vrdata_world_render.getController(bowHand).getMatrix().transposed().toMCMatrix());
 
                 // rotate in world coords
                 rotation.mul(Axis.YP.rotationDegrees(yaw));
@@ -288,7 +288,7 @@ public class VivecraftItemRendering {
             }
             case Shield -> {
                 int side = mainHand ? 1 : -1;
-                if (dh.vrSettings.reverseHands) {
+                if (DH.vrSettings.reverseHands) {
                     side *= -1;
                 }
 
@@ -358,9 +358,9 @@ public class VivecraftItemRendering {
 
                             // every 4 frames at 90fps equals every 44ms
                             // TODO: this should not be FPS bound. do it in tick maybe? then it would be every 50ms
-                            if (dh.frameIndex % 4L == 0L) {
+                            if (DH.frameIndex % 4L == 0L) {
                                 // haptics when charged
-                                dh.vr.triggerHapticPulse(mainHand ? 0 : 1, 200);
+                                DH.vr.triggerHapticPulse(mainHand ? 0 : 1, 200);
                             }
 
                             // charge jitter
@@ -373,7 +373,7 @@ public class VivecraftItemRendering {
                     riptideLevel = 5;
                     translateZ -= 0.15F;
                     poseStack.mulPose(Axis.ZP.rotationDegrees(
-                        (-dh.tickCounter * 10 * riptideLevel) % 360 - partialTick * 10.0F * riptideLevel));
+                        (-DH.tickCounter * 10 * riptideLevel) % 360 - partialTick * 10.0F * riptideLevel));
                     charging = true;
                 }
 

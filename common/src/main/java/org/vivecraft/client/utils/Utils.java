@@ -16,7 +16,7 @@ import java.util.Random;
 
 public class Utils {
 
-    private static final Random avRandomizer = new Random();
+    private static final Random AV_RANDOMIZER = new Random();
 
     /**
      * tries to read the give registry key from the Windows registry
@@ -37,7 +37,7 @@ public class Utils {
                 }
             }
         } catch (Exception e) {
-            VRSettings.logger.error("Vivecraft: error reading registry key: ", e);
+            VRSettings.LOGGER.error("Vivecraft: error reading registry key: ", e);
         }
         return null;
     }
@@ -54,19 +54,19 @@ public class Utils {
         Minecraft minecraft = Minecraft.getInstance();
 
         for (int k = 0; k < count; k++) {
-            double offX = avRandomizer.nextGaussian() * size.x;
-            double offY = avRandomizer.nextGaussian() * size.y;
-            double offZ = avRandomizer.nextGaussian() * size.z;
-            double dirX = avRandomizer.nextGaussian() * speed;
-            double dirY = avRandomizer.nextGaussian() * speed;
-            double dirZ = avRandomizer.nextGaussian() * speed;
+            double offX = AV_RANDOMIZER.nextGaussian() * size.x;
+            double offY = AV_RANDOMIZER.nextGaussian() * size.y;
+            double offZ = AV_RANDOMIZER.nextGaussian() * size.z;
+            double dirX = AV_RANDOMIZER.nextGaussian() * speed;
+            double dirY = AV_RANDOMIZER.nextGaussian() * speed;
+            double dirZ = AV_RANDOMIZER.nextGaussian() * speed;
 
             try {
                 minecraft.level.addParticle(type,
                     position.x + offX, position.y + offY, position.z + offZ,
                     dirX, dirY, dirZ);
             } catch (Throwable throwable) {
-                VRSettings.logger.warn("Vivecraft: Could not spawn particle effect {}", type);
+                VRSettings.LOGGER.warn("Vivecraft: Could not spawn particle effect {}", type);
                 return;
             }
         }

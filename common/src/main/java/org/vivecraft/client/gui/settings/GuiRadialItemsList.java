@@ -12,8 +12,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.Arrays;
 
 public class GuiRadialItemsList extends ObjectSelectionList<GuiRadialItemsList.BaseEntry> {
+
+    private static final int MAX_LIST_LABEL_WIDTH = 300;
+
     private final GuiRadialConfiguration parent;
-    private static final int maxListLabelWidth = 300;
 
     public GuiRadialItemsList(GuiRadialConfiguration parent, Minecraft mc) {
         super(mc, parent.width, parent.height - 77, 49, 20);
@@ -80,7 +82,7 @@ public class GuiRadialItemsList extends ObjectSelectionList<GuiRadialItemsList.B
             }
 
             guiGraphics.drawString(Minecraft.getInstance().font, chatformatting + I18n.get(this.myKey.getName()),
-                (Minecraft.getInstance().screen.width / 2 - maxListLabelWidth / 2), (top + height / 2 - 9 / 2), 0xFFFFFF);
+                (Minecraft.getInstance().screen.width / 2 - MAX_LIST_LABEL_WIDTH / 2), (top + height / 2 - 9 / 2), 0xFFFFFF);
         }
 
         @Override

@@ -53,7 +53,7 @@ public abstract class ServerPlayerMixin extends PlayerMixin {
     private void vivecraft$addItemEasterEgg(CallbackInfo ci) {
         // triggers on player respawn and rejoin
         ServerVivePlayer serverVivePlayer = vivecraft$getVivePlayer();
-        if (ServerConfig.vrFun.get() && serverVivePlayer != null && serverVivePlayer.isVR() &&
+        if (ServerConfig.VR_FUN.get() && serverVivePlayer != null && serverVivePlayer.isVR() &&
             this.random.nextInt(40) == 3)
         {
             ItemStack easterEggItem;
@@ -161,7 +161,7 @@ public abstract class ServerPlayerMixin extends PlayerMixin {
                 (!thisVive.isVR() && otherVive.isVR() && otherVive.isSeated()))
             {
                 // nonvr vs Seated
-                if (!ServerConfig.pvpSEATEDVRvsNONVR.get()) {
+                if (!ServerConfig.PVP_SEATEDVR_VS_NONVR.get()) {
                     blockedDamage = true;
                     blockedDamageCase = "canceled nonvr vs seated VR damage";
                 }
@@ -169,7 +169,7 @@ public abstract class ServerPlayerMixin extends PlayerMixin {
                 (!thisVive.isVR() && otherVive.isVR() && !otherVive.isSeated()))
             {
                 // nonvr vs Standing
-                if (!ServerConfig.pvpVRvsNONVR.get()) {
+                if (!ServerConfig.PVP_VR_VS_NONVR.get()) {
                     blockedDamage = true;
                     blockedDamageCase = "canceled nonvr vs standing VR damage";
                 }
@@ -177,25 +177,25 @@ public abstract class ServerPlayerMixin extends PlayerMixin {
                 (thisVive.isVR() && thisVive.isSeated() && otherVive.isVR() && !otherVive.isSeated()))
             {
                 // Standing vs Seated
-                if (!ServerConfig.pvpVRvsSEATEDVR.get()) {
+                if (!ServerConfig.PVP_VR_VS_SEATEDVR.get()) {
                     blockedDamage = true;
                     blockedDamageCase = "canceled seated VR vs standing VR damage";
                 }
             } else if (otherVive.isVR() && !otherVive.isSeated() && thisVive.isVR() && !thisVive.isSeated()) {
                 // Standing vs Standing
-                if (!ServerConfig.pvpVRvsVR.get()) {
+                if (!ServerConfig.PVP_VR_VS_VR.get()) {
                     blockedDamage = true;
                     blockedDamageCase = "canceled standing VR vs standing VR damage";
                 }
             } else if (otherVive.isVR() && otherVive.isSeated() && thisVive.isVR() && thisVive.isSeated()) {
                 // Seated vs Seated
-                if (!ServerConfig.pvpSEATEDVRvsSEATEDVR.get()) {
+                if (!ServerConfig.PVP_SEATEDVR_VS_SEATEDVR.get()) {
                     blockedDamage = true;
                     blockedDamageCase = "canceled seated VR vs seated VR damage";
                 }
             }
             if (blockedDamage) {
-                if (ServerConfig.pvpNotifyBlockedDamage.get()) {
+                if (ServerConfig.PVP_NOTIFY_BLOCKED_DAMAGE.get()) {
                     other.sendSystemMessage(Component.literal(blockedDamageCase));
                 }
                 cir.setReturnValue(false);
@@ -206,7 +206,7 @@ public abstract class ServerPlayerMixin extends PlayerMixin {
     @Inject(method = "die", at = @At("HEAD"))
     private void vivecraft$customDeathMessage(DamageSource damageSource, CallbackInfo ci) {
         // only when enabled
-        if (ServerConfig.messagesEnabled.get()) {
+        if (ServerConfig.MESSAGES_ENABLED.get()) {
             ServerVivePlayer vivePlayer = ServerVRPlayers.getVivePlayer((ServerPlayer) (Object) this);
             String message = "";
             String entity = "";
@@ -216,26 +216,26 @@ public abstract class ServerPlayerMixin extends PlayerMixin {
                 entity = damageSource.getEntity().getName().plainCopy().getString();
                 // death by mob
                 if (vivePlayer == null) {
-                    message = ServerConfig.messagesDeathByMobVanilla.get();
+                    message = ServerConfig.MESSAGES_DEATH_BY_MOB_VANILLA.get();
                 } else if (!vivePlayer.isVR()) {
-                    message = ServerConfig.messagesDeathByMobNonVR.get();
+                    message = ServerConfig.MESSAGES_DEATH_BY_MOB_NONVR.get();
                 } else if (vivePlayer.isSeated()) {
-                    message = ServerConfig.messagesDeathByMobSeated.get();
+                    message = ServerConfig.MESSAGES_DEATH_BY_MOB_SEATED.get();
                 } else {
-                    message = ServerConfig.messagesDeathByMobVR.get();
+                    message = ServerConfig.MESSAGES_DEATH_BY_MOB_VR.get();
                 }
             }
 
             if (message.isEmpty()) {
                 // general death, of if the mob one isn't set
                 if (vivePlayer == null) {
-                    message = ServerConfig.messagesDeathVanilla.get();
+                    message = ServerConfig.MESSAGES_DEATH_VANILLA.get();
                 } else if (!vivePlayer.isVR()) {
-                    message = ServerConfig.messagesDeathNonVR.get();
+                    message = ServerConfig.MESSAGES_DEATH_NONVR.get();
                 } else if (vivePlayer.isSeated()) {
-                    message = ServerConfig.messagesDeathSeated.get();
+                    message = ServerConfig.MESSAGES_DEATH_SEATED.get();
                 } else {
-                    message = ServerConfig.messagesDeathVR.get();
+                    message = ServerConfig.MESSAGES_DEATH_VR.get();
                 }
             }
 

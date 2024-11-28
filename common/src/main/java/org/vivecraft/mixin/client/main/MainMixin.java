@@ -13,18 +13,18 @@ public class MainMixin {
 
     @Inject(method = "main", at = @At("HEAD"), remap = false)
     private static void vivecraft$options(String[] strings, CallbackInfo ci) {
-        ClientDataHolderVR.kiosk = System.getProperty("kiosk", "false").equals("true");
+        ClientDataHolderVR.KIOSK = System.getProperty("kiosk", "false").equals("true");
 
-        if (ClientDataHolderVR.kiosk) {
-            VRSettings.logger.info("Vivecraft: Setting kiosk");
-            ClientDataHolderVR.viewonly = System.getProperty("viewonly", "false").equals("true");
+        if (ClientDataHolderVR.KIOSK) {
+            VRSettings.LOGGER.info("Vivecraft: Setting kiosk");
+            ClientDataHolderVR.VIEW_ONLY = System.getProperty("viewonly", "false").equals("true");
 
-            if (ClientDataHolderVR.viewonly) {
-                VRSettings.logger.info("Vivecraft: Setting viewonly");
+            if (ClientDataHolderVR.VIEW_ONLY) {
+                VRSettings.LOGGER.info("Vivecraft: Setting viewonly");
             }
         }
 
-        ClientDataHolderVR.katvr = System.getProperty("katvr", "false").equals("true");
-        ClientDataHolderVR.infinadeck = System.getProperty("infinadeck", "false").equals("true");
+        ClientDataHolderVR.KAT_VR = System.getProperty("katvr", "false").equals("true");
+        ClientDataHolderVR.INFINADECK = System.getProperty("infinadeck", "false").equals("true");
     }
 }

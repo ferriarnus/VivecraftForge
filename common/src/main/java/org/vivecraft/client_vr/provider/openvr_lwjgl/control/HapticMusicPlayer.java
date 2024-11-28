@@ -13,26 +13,26 @@ import java.util.Map;
  * uses the haptics frequency feature to play music
  */
 public class HapticMusicPlayer {
-    private static final Map<String, Music> map = new HashMap<>();
+    private static final Map<String, Music> MAP = new HashMap<>();
 
     private HapticMusicPlayer() {}
 
     public static Music newMusic(String name) {
         Music music = new Music(name);
-        map.put(name, music);
+        MAP.put(name, music);
         return music;
     }
 
     public static boolean hasMusic(String name) {
-        return map.containsKey(name);
+        return MAP.containsKey(name);
     }
 
     public static Music getMusic(String name) {
-        return map.get(name);
+        return MAP.get(name);
     }
 
     public static void removeMusic(String name) {
-        map.remove(name);
+        MAP.remove(name);
     }
 
     public static class Music {

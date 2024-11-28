@@ -11,7 +11,7 @@ import org.vivecraft.client_vr.VRState;
 public class OptifineGamerRendererVRMixin {
     @Inject(method = "setFxaaShader(I)Z", at = @At(value = "HEAD"), remap = false, cancellable = true)
     private void vivecraft$shutdownFXAA(int fxaaLevel, CallbackInfoReturnable<Boolean> cir) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             // don't create FXAA pass when VR is running, it messes with the recreation detection
             cir.setReturnValue(true);
         }

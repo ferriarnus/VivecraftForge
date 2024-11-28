@@ -13,7 +13,7 @@ public class OpenVRHapticScheduler extends HapticScheduler {
         int error = VRInput.VRInput_TriggerHapticVibrationAction(MCOpenVR.get().getHapticHandle(controller), 0.0F, durationSeconds, frequency, amplitude, 0L);
 
         if (error != VR.EVRInputError_VRInputError_None) {
-            VRSettings.logger.error("Vivecraft: Error triggering haptic: {}", MCOpenVR.getInputErrorName(error));
+            VRSettings.LOGGER.error("Vivecraft: Error triggering haptic: {}", MCOpenVR.getInputErrorName(error));
         }
     }
 

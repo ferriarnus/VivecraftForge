@@ -23,7 +23,7 @@ public class UpdateScreen extends Screen {
     @Override
     protected void init() {
 
-        this.addRenderableWidget(new TextScrollWidget(this.width / 2 - 155, 30, 310, this.height - 30 - 60, UpdateChecker.changelog));
+        this.addRenderableWidget(new TextScrollWidget(this.width / 2 - 155, 30, 310, this.height - 30 - 60, UpdateChecker.CHANGELOG));
 
         this.addRenderableWidget(new Button.Builder(Component.translatable("vivecraft.gui.downloadfrom", Component.literal("Modrinth")),
             ConfirmLinkScreen.confirmLink(this, "https://modrinth.com/mod/vivecraft"))

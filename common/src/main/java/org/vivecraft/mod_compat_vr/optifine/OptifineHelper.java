@@ -16,8 +16,8 @@ import java.lang.reflect.Method;
 
 public class OptifineHelper {
 
-    private static boolean checkedForOptifine = false;
-    private static boolean optifineLoaded = false;
+    private static boolean CHECKED_FOR_OPTIFINE = false;
+    private static boolean OPTIFINE_LOADED = false;
 
     private static Class<?> Config;
     private static Method Config_IsShaders;
@@ -62,22 +62,22 @@ public class OptifineHelper {
      * @return if Optifine is present
      */
     public static boolean isOptifineLoaded() {
-        if (!checkedForOptifine) {
-            checkedForOptifine = true;
+        if (!CHECKED_FOR_OPTIFINE) {
+            CHECKED_FOR_OPTIFINE = true;
             // check for optifine with a class search
             try {
                 Class.forName("net.optifine.Config");
-                VRSettings.logger.info("Vivecraft: Optifine detected");
-                optifineLoaded = true;
+                VRSettings.LOGGER.info("Vivecraft: Optifine detected");
+                OPTIFINE_LOADED = true;
             } catch (ClassNotFoundException ignore) {
-                VRSettings.logger.info("Vivecraft: Optifine not detected");
-                optifineLoaded = false;
+                VRSettings.LOGGER.info("Vivecraft: Optifine not detected");
+                OPTIFINE_LOADED = false;
             }
-            if (optifineLoaded) {
+            if (OPTIFINE_LOADED) {
                 init();
             }
         }
-        return optifineLoaded;
+        return OPTIFINE_LOADED;
     }
 
     /**
@@ -248,7 +248,7 @@ public class OptifineHelper {
         try {
             Options_ofRenderRegions.set(Minecraft.getInstance().options, active);
         } catch (IllegalAccessException e) {
-            VRSettings.logger.error("Vivecraft: error setting Optifine render regions:", e);
+            VRSettings.LOGGER.error("Vivecraft: error setting Optifine render regions:", e);
         }
     }
 
@@ -410,7 +410,7 @@ public class OptifineHelper {
             try {
                 Vertex_renderPositions.set(dest, Vertex_renderPositions.get(source));
             } catch (IllegalAccessException e) {
-                VRSettings.logger.error("Vivecraft: error copying Optifine vertex data:", e);
+                VRSettings.LOGGER.error("Vivecraft: error copying Optifine vertex data:", e);
             }
         }
     }
@@ -476,17 +476,17 @@ public class OptifineHelper {
                 Vertex_renderPositions = null;
             }
         } catch (ClassNotFoundException e) {
-            VRSettings.logger.error("Vivecraft: Optifine detected, but couldn't load class:", e);
-            optifineLoaded = false;
+            VRSettings.LOGGER.error("Vivecraft: Optifine detected, but couldn't load class:", e);
+            OPTIFINE_LOADED = false;
         } catch (NoSuchMethodException e) {
-            VRSettings.logger.error("Vivecraft: Optifine detected, but couldn't load Method:", e);
-            optifineLoaded = false;
+            VRSettings.LOGGER.error("Vivecraft: Optifine detected, but couldn't load Method:", e);
+            OPTIFINE_LOADED = false;
         } catch (NoSuchFieldException e) {
-            VRSettings.logger.error("Vivecraft: Optifine detected, but couldn't load Field:", e);
+            VRSettings.LOGGER.error("Vivecraft: Optifine detected, but couldn't load Field:", e);
         }
     }
 
     private static void logError(Exception e, String call) {
-        VRSettings.logger.error("Vivecraft: error calling Optifine '{}':", call, e);
+        VRSettings.LOGGER.error("Vivecraft: error calling Optifine '{}':", call, e);
     }
 }

@@ -29,7 +29,7 @@ public class FabricMinecraftVRMixin {
     private void vivecraft$renderVRPassesFabric(
         boolean renderLevel, CallbackInfo ci, @Local(ordinal = 0) long nanoTime)
     {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             VRPassHelper.renderAndSubmit(renderLevel, nanoTime,
                 this.pause ? this.pausePartialTick : this.timer.partialTick);
         }

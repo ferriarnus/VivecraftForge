@@ -50,8 +50,8 @@ import java.util.stream.Stream;
 public abstract class MCVR {
     protected Minecraft mc;
     protected ClientDataHolderVR dh;
-    protected static MCVR me;
-    protected static VivecraftVRMod mod;
+    protected static MCVR ME;
+    protected static VivecraftVRMod MOD;
 
     protected HardwareType detectedHardware = HardwareType.VIVE;
 
@@ -80,8 +80,8 @@ public abstract class MCVR {
     protected org.vivecraft.common.utils.math.Matrix4f[] poseMatrices;
     protected Vec3[] deviceVelocity;
     protected Vec3[] aimSource = new Vec3[3];
-    public static final Vector3 forward = new Vector3(0.0F, 0.0F, -1.0F);
-    public static final Vector3 up = new Vector3(0.0F, 1.0F, 0.0F);
+    public static final Vector3 FORWARD = new Vector3(0.0F, 0.0F, -1.0F);
+    public static final Vector3 UP = new Vector3(0.0F, 1.0F, 0.0F);
 
     //hmd sampling
     private static final int HMD_AVG_MAX_SAMPLES = 90;
@@ -121,8 +121,8 @@ public abstract class MCVR {
     public MCVR(Minecraft mc, ClientDataHolderVR dh, VivecraftVRMod vrMod) {
         this.mc = mc;
         this.dh = dh;
-        mod = vrMod;
-        me = this;
+        MOD = vrMod;
+        ME = this;
 
         // initialize all controller/tracker fields
         for (int c = 0; c < 3; c++) {
@@ -137,7 +137,7 @@ public abstract class MCVR {
      * @return the current active MCVR implementation
      */
     public static MCVR get() {
-        return me;
+        return ME;
     }
 
     /**
@@ -262,7 +262,7 @@ public abstract class MCVR {
      * @return forward aim direction of the specified controller/tracker in room space
      */
     public Vec3 getAimVector(int controller) {
-        Vector3 aim = this.controllerRotation[controller].transform(forward);
+        Vector3 aim = this.controllerRotation[controller].transform(FORWARD);
         return aim.toVector3d();
     }
 
@@ -331,7 +331,7 @@ public abstract class MCVR {
      * @return forward vector of the headset, in room space
      */
     public Vec3 getHmdVector() {
-        Vector3 look = this.hmdRotation.transform(forward);
+        Vector3 look = this.hmdRotation.transform(FORWARD);
         return look.toVector3d();
     }
 
@@ -467,7 +467,7 @@ public abstract class MCVR {
             return; //how did u get here
         }
 
-        float guiScaleFactor = (float) this.mc.getWindow().getGuiScale() / GuiHandler.guiScaleFactorMax;
+        float guiScaleFactor = (float) this.mc.getWindow().getGuiScale() / GuiHandler.GUI_SCALE_FACTOR_MAX;
 
         Vec3 barMidPos = barStartPos.add(barEndPos).scale(0.5);
 
@@ -537,7 +537,7 @@ public abstract class MCVR {
      * @return found KeyMapping or null if none was found
      */
     protected KeyMapping findKeyBinding(String name) {
-        return Stream.concat(Arrays.stream(this.mc.options.keyMappings), mod.getHiddenKeyBindings().stream())
+        return Stream.concat(Arrays.stream(this.mc.options.keyMappings), MOD.getHiddenKeyBindings().stream())
             .filter((kb) -> name.equals(kb.getName())).findFirst().orElse(null);
     }
 
@@ -568,7 +568,7 @@ public abstract class MCVR {
 
         if (Math.abs(MathUtils.angleNormalize(this.hmdYawTotal) - this.hmdYawLast) > 1.0F || this.hmdYawTotal > 100000.0F) {
             this.hmdYawTotal = this.hmdYawLast;
-            VRSettings.logger.info("Vivecraft: HMD yaw desync/overflow corrected");
+            VRSettings.LOGGER.info("Vivecraft: HMD yaw desync/overflow corrected");
         }
 
         float yawAvg = 0.0F;
@@ -722,7 +722,7 @@ public abstract class MCVR {
             }
 
             this.controllerForwardHistory[c].add(aimDir);
-            Vec3 upDir = this.controllerRotation[c].transform(up).toVector3d();
+            Vec3 upDir = this.controllerRotation[c].transform(UP).toVector3d();
             this.controllerUpHistory[c].add(upDir);
         }
 
@@ -769,7 +769,7 @@ public abstract class MCVR {
 
         boolean sleeping = this.mc.level != null && this.mc.player != null && this.mc.player.isSleeping();
         boolean gui = this.mc.screen != null;
-        boolean toggleMovementPressed = mod.keyToggleMovement.consumeClick();
+        boolean toggleMovementPressed = MOD.keyToggleMovement.consumeClick();
 
         // allow movement switching with long pressing pick block
         if (this.mc.options.keyPickItem.isDown() || toggleMovementPressed) {
@@ -804,8 +804,8 @@ public abstract class MCVR {
 
         if (!gui) {
             // world rotation
-            if (mod.keyWalkabout.isDown()) {
-                ControllerType controller = this.findActiveBindingControllerType(mod.keyWalkabout);
+            if (MOD.keyWalkabout.isDown()) {
+                ControllerType controller = this.findActiveBindingControllerType(MOD.keyWalkabout);
 
                 float yaw = controller == ControllerType.LEFT ? offYaw : mainYaw;
 
@@ -821,8 +821,8 @@ public abstract class MCVR {
                 this.isWalkingAbout = false;
             }
 
-            if (mod.keyRotateFree.isDown()) {
-                ControllerType controller = this.findActiveBindingControllerType(mod.keyRotateFree);
+            if (MOD.keyRotateFree.isDown()) {
+                ControllerType controller = this.findActiveBindingControllerType(MOD.keyRotateFree);
 
                 float yaw = controller == ControllerType.LEFT ? offYaw : mainYaw;
 
@@ -839,27 +839,27 @@ public abstract class MCVR {
 
         if (this.dh.vrSettings.worldRotationIncrement == 0.0F) {
             // smooth rotation
-            float ax = this.getInputAction(mod.keyRotateAxis).getAxis2DUseTracked().getX();
+            float ax = this.getInputAction(MOD.keyRotateAxis).getAxis2DUseTracked().getX();
 
             if (ax == 0.0F) {
-                ax = this.getInputAction(mod.keyFreeMoveRotate).getAxis2DUseTracked().getX();
+                ax = this.getInputAction(MOD.keyFreeMoveRotate).getAxis2DUseTracked().getX();
             }
 
             // single direction keys
-            ax -= Math.abs(this.getInputAction(mod.keyRotateLeft).getAxis1DUseTracked());
-            ax += Math.abs(this.getInputAction(mod.keyRotateRight).getAxis1DUseTracked());
+            ax -= Math.abs(this.getInputAction(MOD.keyRotateLeft).getAxis1DUseTracked());
+            ax += Math.abs(this.getInputAction(MOD.keyRotateRight).getAxis1DUseTracked());
 
             if (ax != 0.0F) {
                 float analogRotSpeed = 10.0F * ax;
                 this.dh.vrSettings.worldRotation -= analogRotSpeed;
                 this.dh.vrSettings.worldRotation %= 360.0F;
             }
-        } else if (mod.keyRotateAxis.consumeClick() || mod.keyFreeMoveRotate.consumeClick()) {
+        } else if (MOD.keyRotateAxis.consumeClick() || MOD.keyFreeMoveRotate.consumeClick()) {
             // axis snap turning
-            float ax = this.getInputAction(mod.keyRotateAxis).getAxis2D(false).getX();
+            float ax = this.getInputAction(MOD.keyRotateAxis).getAxis2D(false).getX();
 
             if (ax == 0.0F) {
-                ax = this.getInputAction(mod.keyFreeMoveRotate).getAxis2D(false).getX();
+                ax = this.getInputAction(MOD.keyFreeMoveRotate).getAxis2D(false).getX();
             }
 
             // dead zone
@@ -867,16 +867,16 @@ public abstract class MCVR {
                 this.dh.vrSettings.worldRotation -= this.dh.vrSettings.worldRotationIncrement * Math.signum(ax);
                 this.dh.vrSettings.worldRotation %= 360.0F;
             }
-        } else if (mod.keyRotateLeft.consumeClick()){
+        } else if (MOD.keyRotateLeft.consumeClick()){
             // button snap turning
             this.dh.vrSettings.worldRotation += this.dh.vrSettings.worldRotationIncrement;
             this.dh.vrSettings.worldRotation %= 360.0F;
-        } else if (mod.keyRotateRight.consumeClick()){
+        } else if (MOD.keyRotateRight.consumeClick()){
             this.dh.vrSettings.worldRotation -= this.dh.vrSettings.worldRotationIncrement;
             this.dh.vrSettings.worldRotation %= 360.0F;
         }
 
-        Vector2 axis = this.getInputAction(mod.keyFlickStick).getAxis2DUseTracked();
+        Vector2 axis = this.getInputAction(MOD.keyFlickStick).getAxis2DUseTracked();
         if (axis.getX() != 0F || axis.getY() != 0F) {
             float rotation = (float) Math.toDegrees(Math.atan2(axis.getX(), axis.getY()));
             if (this.isFlickStick) {
@@ -895,18 +895,18 @@ public abstract class MCVR {
 
         this.seatedRot = this.dh.vrSettings.worldRotation;
 
-        if (mod.keyHotbarNext.consumeClick()) {
+        if (MOD.keyHotbarNext.consumeClick()) {
             this.changeHotbar(-1);
-            this.triggerBindingHapticPulse(mod.keyHotbarNext, 250);
+            this.triggerBindingHapticPulse(MOD.keyHotbarNext, 250);
         }
 
-        if (mod.keyHotbarPrev.consumeClick()) {
+        if (MOD.keyHotbarPrev.consumeClick()) {
             this.changeHotbar(1);
-            this.triggerBindingHapticPulse(mod.keyHotbarPrev, 250);
+            this.triggerBindingHapticPulse(MOD.keyHotbarPrev, 250);
         }
 
         // quick torch, checks for a torch in the hotbar, and places it
-        if (mod.keyQuickTorch.consumeClick() && this.mc.player != null && this.mc.screen == null) {
+        if (MOD.keyQuickTorch.consumeClick() && this.mc.player != null && this.mc.screen == null) {
             for (int slot = 0; slot < 9; slot++) {
                 ItemStack itemstack = this.mc.player.getInventory().getItem(slot);
 
@@ -938,7 +938,7 @@ public abstract class MCVR {
         }
 
         // swap slow mirror between Third and First Person
-        if (mod.keySwapMirrorView.consumeClick()) {
+        if (MOD.keySwapMirrorView.consumeClick()) {
             if (this.dh.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON) {
                 this.dh.vrSettings.displayMirrorMode = VRSettings.MirrorMode.FIRST_PERSON;
             } else if (this.dh.vrSettings.displayMirrorMode == VRSettings.MirrorMode.FIRST_PERSON) {
@@ -948,8 +948,8 @@ public abstract class MCVR {
         }
 
         // start third person cam movement
-        if (mod.keyMoveThirdPersonCam.consumeClick() && !ClientDataHolderVR.kiosk && !this.dh.vrSettings.seated && (this.dh.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY || this.dh.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON)) {
-            ControllerType controller = this.findActiveBindingControllerType(mod.keyMoveThirdPersonCam);
+        if (MOD.keyMoveThirdPersonCam.consumeClick() && !ClientDataHolderVR.KIOSK && !this.dh.vrSettings.seated && (this.dh.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY || this.dh.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON)) {
+            ControllerType controller = this.findActiveBindingControllerType(MOD.keyMoveThirdPersonCam);
             if (controller != null) {
                 VRHotkeys.startMovingThirdPersonCam(controller.ordinal(), VRHotkeys.Triggerer.BINDING);
             }
@@ -959,8 +959,8 @@ public abstract class MCVR {
         if (VRHotkeys.isMovingThirdPersonCam()) {
             VRHotkeys.Triggerer trigger = VRHotkeys.getMovingThirdPersonCamTriggerer();
             // check type first, to not consume unrelated clicks
-            if ((trigger == VRHotkeys.Triggerer.MENUBUTTON && mod.keyMenuButton.consumeClick()) ||
-                (trigger == VRHotkeys.Triggerer.BINDING && !mod.keyMoveThirdPersonCam.isDown()))
+            if ((trigger == VRHotkeys.Triggerer.MENUBUTTON && MOD.keyMenuButton.consumeClick()) ||
+                (trigger == VRHotkeys.Triggerer.BINDING && !MOD.keyMoveThirdPersonCam.isDown()))
             {
                 VRHotkeys.stopMovingThirdPersonCam();
                 this.dh.vrSettings.saveOptions();
@@ -968,32 +968,32 @@ public abstract class MCVR {
         }
 
         // keyboard
-        if (mod.keyToggleKeyboard.consumeClick()) {
-            KeyboardHandler.setOverlayShowing(!KeyboardHandler.Showing);
+        if (MOD.keyToggleKeyboard.consumeClick()) {
+            KeyboardHandler.setOverlayShowing(!KeyboardHandler.SHOWING);
         }
 
         // close keyboard with ESC
-        if (KeyboardHandler.Showing && this.mc.screen == null && mod.keyMenuButton.consumeClick()) {
+        if (KeyboardHandler.SHOWING && this.mc.screen == null && MOD.keyMenuButton.consumeClick()) {
             KeyboardHandler.setOverlayShowing(false);
         }
 
         // radial menu
-        if (mod.keyRadialMenu.consumeClick() && !gui) {
-            ControllerType controller = this.findActiveBindingControllerType(mod.keyRadialMenu);
+        if (MOD.keyRadialMenu.consumeClick() && !gui) {
+            ControllerType controller = this.findActiveBindingControllerType(MOD.keyRadialMenu);
             if (controller != null) {
                 RadialHandler.setOverlayShowing(!RadialHandler.isShowing(), controller);
             }
         }
 
         // close radial with ESC when not hold mode
-        if (RadialHandler.isShowing() && mod.keyMenuButton.consumeClick()) {
+        if (RadialHandler.isShowing() && MOD.keyMenuButton.consumeClick()) {
             RadialHandler.setOverlayShowing(false, null);
         }
 
-        if (mod.keyMenuButton.consumeClick()) {
+        if (MOD.keyMenuButton.consumeClick()) {
             // handle menu directly
             if (!gui) {
-                if (!ClientDataHolderVR.kiosk) {
+                if (!ClientDataHolderVR.KIOSK) {
                     this.mc.pauseGame(false);
                 }
             } else {
@@ -1005,13 +1005,13 @@ public abstract class MCVR {
         }
 
         // player list
-        if (mod.keyTogglePlayerList.consumeClick()) {
+        if (MOD.keyTogglePlayerList.consumeClick()) {
             ((GuiExtension) this.mc.gui).vivecraft$setShowPlayerList(!((GuiExtension) this.mc.gui).vivecraft$getShowPlayerList());
         }
 
         // screenshot cam
-        boolean toggleCam = mod.keyToggleHandheldCam.consumeClick();
-        boolean quickCam = mod.keyQuickHandheldCam.consumeClick();
+        boolean toggleCam = MOD.keyToggleHandheldCam.consumeClick();
+        boolean quickCam = MOD.keyQuickHandheldCam.consumeClick();
         if (this.mc.player != null && (toggleCam || quickCam)) {
             if (toggleCam || !this.dh.cameraTracker.isVisible()) {
                 this.dh.cameraTracker.toggleVisibility();
@@ -1020,7 +1020,7 @@ public abstract class MCVR {
             // if the cam is now visible position it
             if (this.dh.cameraTracker.isVisible()) {
                 ControllerType hand = this.findActiveBindingControllerType(
-                    toggleCam ? mod.keyToggleHandheldCam : mod.keyQuickHandheldCam);
+                    toggleCam ? MOD.keyToggleHandheldCam : MOD.keyQuickHandheldCam);
 
                 if (hand == null) {
                     hand = ControllerType.RIGHT;
@@ -1038,7 +1038,7 @@ public abstract class MCVR {
         }
 
         // stop quick cam
-        if (!mod.keyQuickHandheldCam.isDown() && this.dh.cameraTracker.isMoving() && this.dh.cameraTracker.isQuickMode() && this.mc.player != null) {
+        if (!MOD.keyQuickHandheldCam.isDown() && this.dh.cameraTracker.isMoving() && this.dh.cameraTracker.isQuickMode() && this.mc.player != null) {
             this.dh.cameraTracker.stopMoving();
             this.dh.grabScreenShot = true;
         }
@@ -1056,19 +1056,20 @@ public abstract class MCVR {
         Map<String, ActionParams> actionParams = this.getSpecialActionParams();
 
         // iterate over all minecraft keys, and our hidden keys
-        for (KeyMapping keyMapping : Stream.concat(Arrays.stream(this.mc.options.keyMappings), mod.getHiddenKeyBindings().stream()).toList()) {
+        for (KeyMapping keyMapping : Stream.concat(Arrays.stream(this.mc.options.keyMappings), MOD.getHiddenKeyBindings().stream()).toList()) {
             ActionParams params = actionParams.getOrDefault(keyMapping.getName(), ActionParams.DEFAULT);
-            VRInputAction action = new VRInputAction(keyMapping, params.requirement, params.type, params.actionSetOverride);
+            VRInputAction action = new VRInputAction(keyMapping, params.requirement(), params.type(),
+                params.actionSetOverride());
 
             this.inputActions.put(action.name, action);
             this.inputActionsByKeyBinding.put(action.keyBinding.getName(), action);
         }
 
-        this.getInputAction(mod.keyVRInteract).setPriority(5).setEnabled(false);
-        this.getInputAction(mod.keyClimbeyGrab).setPriority(10).setEnabled(false);
-        this.getInputAction(mod.keyClimbeyJump).setEnabled(false);
-        this.getInputAction(GuiHandler.keyKeyboardClick).setPriority(50);
-        this.getInputAction(GuiHandler.keyKeyboardShift).setPriority(50);
+        this.getInputAction(MOD.keyVRInteract).setPriority(5).setEnabled(false);
+        this.getInputAction(MOD.keyClimbeyGrab).setPriority(10).setEnabled(false);
+        this.getInputAction(MOD.keyClimbeyJump).setEnabled(false);
+        this.getInputAction(GuiHandler.KEY_KEYBOARD_CLICK).setPriority(50);
+        this.getInputAction(GuiHandler.KEY_KEYBOARD_SHIFT).setPriority(50);
     }
 
     /**
@@ -1088,40 +1089,40 @@ public abstract class MCVR {
         this.addActionParams(map, this.mc.options.keyAttack, "suggested", "boolean", null);
         this.addActionParams(map, this.mc.options.keyUse, "suggested", "boolean", null);
         this.addActionParams(map, this.mc.options.keyChat, "optional", "boolean", VRInputActionSet.GLOBAL);
-        this.addActionParams(map, mod.keyHotbarScroll, "optional", "vector2", null);
-        this.addActionParams(map, mod.keyHotbarSwipeX, "optional", "vector2", null);
-        this.addActionParams(map, mod.keyHotbarSwipeY, "optional", "vector2", null);
-        this.addActionParams(map, mod.keyMenuButton, "suggested", "boolean", VRInputActionSet.GLOBAL);
-        this.addActionParams(map, mod.keyTeleportFallback, "suggested", "vector1", null);
-        this.addActionParams(map, mod.keyFreeMoveRotate, "optional", "vector2", null);
-        this.addActionParams(map, mod.keyFreeMoveStrafe, "optional", "vector2", null);
-        this.addActionParams(map, mod.keyRotateLeft, "optional", "vector1", null);
-        this.addActionParams(map, mod.keyRotateRight, "optional", "vector1", null);
-        this.addActionParams(map, mod.keyRotateAxis, "optional", "vector2", null);
-        this.addActionParams(map, mod.keyFlickStick, "optional", "vector2", null);
-        this.addActionParams(map, mod.keyRadialMenu, "suggested", "boolean", null);
-        this.addActionParams(map, mod.keySwapMirrorView, "optional", "boolean", VRInputActionSet.GLOBAL);
-        this.addActionParams(map, mod.keyToggleKeyboard, "optional", "boolean", VRInputActionSet.GLOBAL);
-        this.addActionParams(map, mod.keyMoveThirdPersonCam, "optional", "boolean", VRInputActionSet.GLOBAL);
-        this.addActionParams(map, mod.keyToggleHandheldCam, "optional", "boolean", VRInputActionSet.GLOBAL);
-        this.addActionParams(map, mod.keyQuickHandheldCam, "optional", "boolean", VRInputActionSet.GLOBAL);
-        this.addActionParams(map, mod.keyTrackpadTouch, "optional", "boolean", VRInputActionSet.TECHNICAL);
-        this.addActionParams(map, mod.keyVRInteract, "suggested", "boolean", VRInputActionSet.CONTEXTUAL);
-        this.addActionParams(map, mod.keyClimbeyGrab, "suggested", "boolean", null);
-        this.addActionParams(map, mod.keyClimbeyJump, "suggested", "boolean", null);
-        this.addActionParams(map, GuiHandler.keyLeftClick, "suggested", "boolean", null);
-        this.addActionParams(map, GuiHandler.keyScrollAxis, "optional", "vector2", null);
-        this.addActionParams(map, GuiHandler.keyRightClick, "suggested", "boolean", null);
-        this.addActionParams(map, GuiHandler.keyShift, "suggested", "boolean", null);
-        this.addActionParams(map, GuiHandler.keyKeyboardClick, "suggested", "boolean", null);
-        this.addActionParams(map, GuiHandler.keyKeyboardShift, "suggested", "boolean", null);
+        this.addActionParams(map, MOD.keyHotbarScroll, "optional", "vector2", null);
+        this.addActionParams(map, MOD.keyHotbarSwipeX, "optional", "vector2", null);
+        this.addActionParams(map, MOD.keyHotbarSwipeY, "optional", "vector2", null);
+        this.addActionParams(map, MOD.keyMenuButton, "suggested", "boolean", VRInputActionSet.GLOBAL);
+        this.addActionParams(map, MOD.keyTeleportFallback, "suggested", "vector1", null);
+        this.addActionParams(map, MOD.keyFreeMoveRotate, "optional", "vector2", null);
+        this.addActionParams(map, MOD.keyFreeMoveStrafe, "optional", "vector2", null);
+        this.addActionParams(map, MOD.keyRotateLeft, "optional", "vector1", null);
+        this.addActionParams(map, MOD.keyRotateRight, "optional", "vector1", null);
+        this.addActionParams(map, MOD.keyRotateAxis, "optional", "vector2", null);
+        this.addActionParams(map, MOD.keyFlickStick, "optional", "vector2", null);
+        this.addActionParams(map, MOD.keyRadialMenu, "suggested", "boolean", null);
+        this.addActionParams(map, MOD.keySwapMirrorView, "optional", "boolean", VRInputActionSet.GLOBAL);
+        this.addActionParams(map, MOD.keyToggleKeyboard, "optional", "boolean", VRInputActionSet.GLOBAL);
+        this.addActionParams(map, MOD.keyMoveThirdPersonCam, "optional", "boolean", VRInputActionSet.GLOBAL);
+        this.addActionParams(map, MOD.keyToggleHandheldCam, "optional", "boolean", VRInputActionSet.GLOBAL);
+        this.addActionParams(map, MOD.keyQuickHandheldCam, "optional", "boolean", VRInputActionSet.GLOBAL);
+        this.addActionParams(map, MOD.keyTrackpadTouch, "optional", "boolean", VRInputActionSet.TECHNICAL);
+        this.addActionParams(map, MOD.keyVRInteract, "suggested", "boolean", VRInputActionSet.CONTEXTUAL);
+        this.addActionParams(map, MOD.keyClimbeyGrab, "suggested", "boolean", null);
+        this.addActionParams(map, MOD.keyClimbeyJump, "suggested", "boolean", null);
+        this.addActionParams(map, GuiHandler.KEY_LEFT_CLICK, "suggested", "boolean", null);
+        this.addActionParams(map, GuiHandler.KEY_SCROLL_AXIS, "optional", "vector2", null);
+        this.addActionParams(map, GuiHandler.KEY_RIGHT_CLICK, "suggested", "boolean", null);
+        this.addActionParams(map, GuiHandler.KEY_SHIFT, "suggested", "boolean", null);
+        this.addActionParams(map, GuiHandler.KEY_KEYBOARD_CLICK, "suggested", "boolean", null);
+        this.addActionParams(map, GuiHandler.KEY_KEYBOARD_SHIFT, "suggested", "boolean", null);
 
         // users can provide their own action parameters if they want
         // this allows them to split mod KeyMappings into GUI, INGAME and GLOBAL categories
         File file = new File("customactionsets.txt");
 
         if (file.exists()) {
-            VRSettings.logger.info("Vivecraft: Loading custom action set definitions...");
+            VRSettings.LOGGER.info("Vivecraft: Loading custom action set definitions...");
             String line;
 
             try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
@@ -1129,15 +1130,15 @@ public abstract class MCVR {
                     String[] tokens = line.split(":", 2);
 
                     if (tokens.length < 2) {
-                        VRSettings.logger.warn("Vivecraft: Invalid tokens: {}", line);
+                        VRSettings.LOGGER.warn("Vivecraft: Invalid tokens: {}", line);
                         continue;
                     }
                     KeyMapping keyMapping = this.findKeyBinding(tokens[0]);
 
                     if (keyMapping == null) {
-                        VRSettings.logger.warn("Vivecraft: Unknown key binding: {}", tokens[0]);
-                    } else if (mod.getAllKeyBindings().contains(keyMapping)) {
-                        VRSettings.logger.warn("Vivecraft: NO! Don't touch Vivecraft bindings!: {}", keyMapping.getName());
+                        VRSettings.LOGGER.warn("Vivecraft: Unknown key binding: {}", tokens[0]);
+                    } else if (MOD.getAllKeyBindings().contains(keyMapping)) {
+                        VRSettings.LOGGER.warn("Vivecraft: NO! Don't touch Vivecraft bindings!: {}", keyMapping.getName());
                     } else {
                         VRInputActionSet actionSet = switch (tokens[1].toLowerCase()) {
                             case "ingame" -> VRInputActionSet.INGAME;
@@ -1147,14 +1148,14 @@ public abstract class MCVR {
                         };
 
                         if (actionSet == null) {
-                            VRSettings.logger.warn("Vivecraft: Unknown action set: {}", tokens[1]);
+                            VRSettings.LOGGER.warn("Vivecraft: Unknown action set: {}", tokens[1]);
                         } else {
                             this.addActionParams(map, keyMapping, "optional", "boolean", actionSet);
                         }
                     }
                 }
             } catch (IOException e) {
-                VRSettings.logger.error("Vivecraft: Failed to read customactionsets.txt: ", e);
+                VRSettings.LOGGER.error("Vivecraft: Failed to read customactionsets.txt: ", e);
             }
         }
 
@@ -1165,9 +1166,9 @@ public abstract class MCVR {
      * convenience method to create an ActionParam and add to the map
      * @param map Map to add the ActionParam to
      * @param keyMapping KeyMapping the ActionParam belongs to
-     * @param requirement requirement of the action. See {@link ActionParams#requirement}
-     * @param type input type of the action. See {@link ActionParams#type}
-     * @param actionSetOverride actionset this should be in. See {@link ActionParams#actionSetOverride}
+     * @param requirement requirement of the action. See {@link ActionParams#requirement()}
+     * @param type input type of the action. See {@link ActionParams#type()}
+     * @param actionSetOverride actionset this should be in. See {@link ActionParams#actionSetOverride()}
      */
     private void addActionParams(Map<String, ActionParams> map, KeyMapping keyMapping, String requirement, String type, VRInputActionSet actionSetOverride) {
         ActionParams actionparams = new ActionParams(requirement, type, actionSetOverride);

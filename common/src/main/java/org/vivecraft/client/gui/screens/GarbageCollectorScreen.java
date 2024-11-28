@@ -17,9 +17,10 @@ import org.vivecraft.client_vr.ClientDataHolderVR;
 
 public class GarbageCollectorScreen extends Screen {
 
+    private static final String GUIDE_URL = "https://github.com/Vivecraft/VivecraftMod/wiki/Memory-and-GC-Setup";
+
     private final Screen lastScreen;
     private final String currentGarbageCollector;
-    private static final String guideURL = "https://github.com/Vivecraft/VivecraftMod/wiki/Memory-and-GC-Setup";
 
     public GarbageCollectorScreen(String currentGarbageCollector) {
         super(Component.translatable("vivecraft.messages.gctitle"));
@@ -41,7 +42,7 @@ public class GarbageCollectorScreen extends Screen {
                 .withUnderlined(true)
                 .withColor(ChatFormatting.GREEN)
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, CommonComponents.GUI_OPEN_IN_BROWSER))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, guideURL))));
+                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, GUIDE_URL))));
         this.addRenderableWidget(new TextScrollWidget(this.width / 2 - 155, 30, 310, this.height - 30 - 60, message));
 
         this.addRenderableWidget(new Button.Builder(Component.translatable("vivecraft.gui.dontshowagain"), (p) -> {
@@ -60,7 +61,7 @@ public class GarbageCollectorScreen extends Screen {
             .build());
 
         this.addRenderableWidget(new Button.Builder(Component.translatable("vivecraft.gui.openguide"),
-            ConfirmLinkScreen.confirmLink(this, guideURL))
+            ConfirmLinkScreen.confirmLink(this, GUIDE_URL))
             .pos(this.width / 2 - 75, this.height - 32)
             .size(150, 20)
             .build());

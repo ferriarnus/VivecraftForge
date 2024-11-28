@@ -122,7 +122,7 @@ public class MenuWorldRenderer {
     private final Queue<Thread> builderThreads = new ConcurrentLinkedQueue<>();
     private Throwable builderError;
 
-    private static boolean firstRenderDone;
+    private static boolean FIRST_RENDER_DONE;
 
     public MenuWorldRenderer() {
         this.mc = Minecraft.getInstance();
@@ -136,24 +136,24 @@ public class MenuWorldRenderer {
 
     public void init() {
         if (ClientDataHolderVR.getInstance().vrSettings.menuWorldSelection == VRSettings.MenuWorld.NONE) {
-            VRSettings.logger.info("Vivecraft: Main menu worlds disabled.");
+            VRSettings.LOGGER.info("Vivecraft: Main menu worlds disabled.");
             return;
         }
 
         try {
-            VRSettings.logger.info("Vivecraft: MenuWorlds: Initializing main menu world renderer...");
+            VRSettings.LOGGER.info("Vivecraft: MenuWorlds: Initializing main menu world renderer...");
             loadRenderers();
             this.getWorldTask = CompletableFuture.supplyAsync(() -> {
                 try (InputStream inputStream = MenuWorldDownloader.getRandomWorld()) {
-                    VRSettings.logger.info("Vivecraft: MenuWorlds: Loading world data...");
+                    VRSettings.LOGGER.info("Vivecraft: MenuWorlds: Loading world data...");
                     return inputStream != null ? MenuWorldExporter.loadWorld(inputStream) : null;
                 } catch (Exception e) {
-                    VRSettings.logger.error("Vivecraft: Exception thrown when loading main menu world, falling back to old menu room.", e);
+                    VRSettings.LOGGER.error("Vivecraft: Exception thrown when loading main menu world, falling back to old menu room.", e);
                     return null;
                 }
             }, Util.backgroundExecutor());
         } catch (Exception e) {
-            VRSettings.logger.error("Vivecraft: Exception thrown when initializing main menu world renderer, falling back to old menu room.", e);
+            VRSettings.LOGGER.error("Vivecraft: Exception thrown when initializing main menu world renderer, falling back to old menu room.", e);
         }
     }
 
@@ -168,10 +168,10 @@ public class MenuWorldRenderer {
                 setWorld(world);
                 prepare();
             } else {
-                VRSettings.logger.warn("Vivecraft: Failed to load any main menu world, falling back to old menu room");
+                VRSettings.LOGGER.warn("Vivecraft: Failed to load any main menu world, falling back to old menu room");
             }
         } catch (Exception e) {
-            VRSettings.logger.error("Vivecraft: error starting menuworld building:", e);
+            VRSettings.LOGGER.error("Vivecraft: error starting menuworld building:", e);
         } finally {
             this.getWorldTask = null;
         }
@@ -267,7 +267,7 @@ public class MenuWorldRenderer {
 
     public void prepare() {
         if (this.vertexBuffers == null && !this.building) {
-            VRSettings.logger.info("Vivecraft: MenuWorlds: Building geometry...");
+            VRSettings.LOGGER.info("Vivecraft: MenuWorlds: Building geometry...");
 
             // random offset to make the player fly
             if (this.rand.nextInt(1000) == 0) {
@@ -303,7 +303,7 @@ public class MenuWorldRenderer {
                     }
                 }
             } catch (OutOfMemoryError e) {
-                VRSettings.logger.error("Vivecraft: OutOfMemoryError while building main menu world. Low system memory or 32-bit Java?", e);
+                VRSettings.LOGGER.error("Vivecraft: OutOfMemoryError while building main menu world. Low system memory or 32-bit Java?", e);
                 destroy();
                 return;
             }
@@ -331,14 +331,14 @@ public class MenuWorldRenderer {
         long startTime = Utils.milliTime();
         for (var pair : this.bufferBuilders.keySet()) {
             if (this.currentPositions.get(pair).getY() < Math.min(this.segmentSize.getY() + pair.getRight().getY(), this.blockAccess.getYSize() - (int) this.blockAccess.getGround())) {
-                if (firstRenderDone || !SodiumHelper.isLoaded() || !SodiumHelper.hasIssuesWithParallelBlockBuilding()) {
+                if (FIRST_RENDER_DONE || !SodiumHelper.isLoaded() || !SodiumHelper.hasIssuesWithParallelBlockBuilding()) {
                     // generate the data in parallel
                     this.builderFutures.add(CompletableFuture.runAsync(() -> buildGeometry(pair, startTime, this.renderMaxTime), Util.backgroundExecutor()));
                 } else {
                     // generate first data in series to avoid weird class loading error
                     buildGeometry(pair, startTime, this.renderMaxTime);
                     if (this.blockCounts.getOrDefault(pair, 0) > 0) {
-                        firstRenderDone = true;
+                        FIRST_RENDER_DONE = true;
                     }
                 }
             }
@@ -414,7 +414,7 @@ public class MenuWorldRenderer {
             this.renderTimes.put(pair, this.renderTimes.getOrDefault(pair, 0L) + (Utils.milliTime() - realStartTime));
 
             if (pos.getY() >= Math.min(this.segmentSize.getY() + offset.getY(), this.blockAccess.getYSize() - (int) this.blockAccess.getGround())) {
-                VRSettings.logger.debug("Vivecraft: MenuWorlds: Built {} blocks on {} layer at {},{},{} in {} ms",
+                VRSettings.LOGGER.debug("Vivecraft: MenuWorlds: Built {} blocks on {} layer at {},{},{} in {} ms",
                     this.blockCounts.get(pair),
                     ((RenderStateShardAccessor) layer).getName(),
                     offset.getX(), offset.getY(), offset.getZ(),
@@ -458,11 +458,11 @@ public class MenuWorldRenderer {
         this.bufferBuilders = null;
         this.currentPositions = null;
         this.ready = true;
-        VRSettings.logger.info("Vivecraft: MenuWorlds: Built {} blocks in {} ms ({} ms CPU time)",
+        VRSettings.LOGGER.info("Vivecraft: MenuWorlds: Built {} blocks in {} ms ({} ms CPU time)",
             this.blockCounts.values().stream().reduce(Integer::sum).orElse(0),
             Utils.milliTime() - this.buildStartTime,
             this.renderTimes.values().stream().reduce(Long::sum).orElse(0L));
-        VRSettings.logger.info("Vivecraft: MenuWorlds: Used {} temporary buffers ({} MiB), uploaded {} non-empty buffers",
+        VRSettings.LOGGER.info("Vivecraft: MenuWorlds: Used {} temporary buffers ({} MiB), uploaded {} non-empty buffers",
             entryList.size(),
             totalMemory / 1048576,
             count);
@@ -477,9 +477,9 @@ public class MenuWorldRenderer {
             return;
         }
         if (this.builderError instanceof OutOfMemoryError || this.builderError.getCause() instanceof OutOfMemoryError) {
-            VRSettings.logger.error("Vivecraft: OutOfMemoryError while building main menu world. Low system memory or 32-bit Java?", this.builderError);
+            VRSettings.LOGGER.error("Vivecraft: OutOfMemoryError while building main menu world. Low system memory or 32-bit Java?", this.builderError);
         } else {
-            VRSettings.logger.error("Vivecraft: Exception thrown when building main menu world, falling back to old menu room.:", this.builderError);
+            VRSettings.LOGGER.error("Vivecraft: Exception thrown when building main menu world, falling back to old menu room.:", this.builderError);
         }
         destroy();
         setWorld(null);

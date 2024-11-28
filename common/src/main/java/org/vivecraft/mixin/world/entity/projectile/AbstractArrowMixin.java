@@ -66,12 +66,12 @@ public abstract class AbstractArrowMixin extends Entity {
             if ((hitPos = vivecraft$isHeadshot(entityHitResult)) != null) {
                 if (serverVivePlayer != null && serverVivePlayer.isVR()) {
                     if (serverVivePlayer.isSeated()) {
-                        multiplier = ServerConfig.bowSeatedHeadshotMultiplier.get();
+                        multiplier = ServerConfig.BOW_SEATED_HEADSHOT_MULTIPLIER.get();
                     } else {
-                        multiplier = ServerConfig.bowStandingHeadshotMultiplier.get();
+                        multiplier = ServerConfig.BOW_STANDING_HEADSHOT_MULTIPLIER.get();
                     }
                 } else {
-                    multiplier = ServerConfig.bowVanillaHeadshotMultiplier.get();
+                    multiplier = ServerConfig.BOW_VANILLA_HEADSHOT_MULTIPLIER.get();
                 }
 
                 if (multiplier > 1.0) {
@@ -94,9 +94,9 @@ public abstract class AbstractArrowMixin extends Entity {
             // if headshots are disabled, still use the regular multiplier
             if (serverVivePlayer != null && serverVivePlayer.isVR()) {
                 if (serverVivePlayer.isSeated()) {
-                    multiplier = Math.max(multiplier, ServerConfig.bowSeatedMultiplier.get());
+                    multiplier = Math.max(multiplier, ServerConfig.BOW_SEATED_MULTIPLIER.get());
                 } else {
-                    multiplier = Math.max(multiplier, ServerConfig.bowStandingMultiplier.get());
+                    multiplier = Math.max(multiplier, ServerConfig.BOW_STANDING_MULTIPLIER.get());
                 }
             }
 

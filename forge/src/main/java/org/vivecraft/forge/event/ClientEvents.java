@@ -18,12 +18,12 @@ import org.vivecraft.forge.Vivecraft;
 public class ClientEvents {
     @SubscribeEvent
     public static void registerModels(ModelEvent.RegisterAdditional event) {
-        event.register(TelescopeTracker.scopeModel);
-        event.register(ClimbTracker.clawsModel);
-        event.register(ClientDataHolderVR.thirdPersonCameraModel);
-        event.register(ClientDataHolderVR.thirdPersonCameraDisplayModel);
-        event.register(CameraTracker.cameraModel);
-        event.register(CameraTracker.cameraDisplayModel);
+        event.register(TelescopeTracker.SCOPE_MODEL);
+        event.register(ClimbTracker.CLAWS_MODEL);
+        event.register(ClientDataHolderVR.THIRD_PERSON_CAMERA_MODEL);
+        event.register(ClientDataHolderVR.THIRD_PERSON_CAMERA_DISPLAY_MODEL);
+        event.register(CameraTracker.CAMERA_MODEL);
+        event.register(CameraTracker.CAMERA_DISPLAY_MODEL);
     }
 
     @SubscribeEvent

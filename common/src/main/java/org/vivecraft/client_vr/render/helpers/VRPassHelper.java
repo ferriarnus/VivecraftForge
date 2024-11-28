@@ -26,8 +26,8 @@ import java.util.List;
 
 public class VRPassHelper {
 
-    private static final Minecraft mc = Minecraft.getInstance();
-    private static final ClientDataHolderVR dataHolder = ClientDataHolderVR.getInstance();
+    private static final Minecraft MC = Minecraft.getInstance();
+    private static final ClientDataHolderVR DATA_HOLDER = ClientDataHolderVR.getInstance();
 
     /**
      * renders a single RenderPass view
@@ -42,71 +42,71 @@ public class VRPassHelper {
         RenderSystem.enableDepthTest();
 
         // THIS IS WHERE EVERYTHING IS RENDERED
-        mc.gameRenderer.render(partialTick, nanoTime, renderLevel);
+        MC.gameRenderer.render(partialTick, nanoTime, renderLevel);
 
         RenderHelper.checkGLError("post game render " + eye);
 
-        if (dataHolder.currentPass == RenderPass.LEFT || dataHolder.currentPass == RenderPass.RIGHT) {
+        if (DATA_HOLDER.currentPass == RenderPass.LEFT || DATA_HOLDER.currentPass == RenderPass.RIGHT) {
             // copies the rendered scene to eye tex with fsaa and other postprocessing effects.
-            mc.getProfiler().push("postProcessEye");
-            RenderTarget rendertarget = mc.getMainRenderTarget();
+            MC.getProfiler().push("postProcessEye");
+            RenderTarget rendertarget = MC.getMainRenderTarget();
 
-            if (dataHolder.vrSettings.useFsaa) {
-                mc.getProfiler().push("fsaa");
-                ShaderHelper.doFSAA(dataHolder.vrRenderer.framebufferVrRender,
-                    dataHolder.vrRenderer.fsaaFirstPassResultFBO,
-                    dataHolder.vrRenderer.fsaaLastPassResultFBO);
-                rendertarget = dataHolder.vrRenderer.fsaaLastPassResultFBO;
+            if (DATA_HOLDER.vrSettings.useFsaa) {
+                MC.getProfiler().push("fsaa");
+                ShaderHelper.doFSAA(DATA_HOLDER.vrRenderer.framebufferVrRender,
+                    DATA_HOLDER.vrRenderer.fsaaFirstPassResultFBO,
+                    DATA_HOLDER.vrRenderer.fsaaLastPassResultFBO);
+                rendertarget = DATA_HOLDER.vrRenderer.fsaaLastPassResultFBO;
                 RenderHelper.checkGLError("fsaa " + eye);
-                mc.getProfiler().pop();
+                MC.getProfiler().pop();
             }
 
             if (eye == RenderPass.LEFT) {
-                dataHolder.vrRenderer.framebufferEye0.bindWrite(true);
+                DATA_HOLDER.vrRenderer.framebufferEye0.bindWrite(true);
             } else {
-                dataHolder.vrRenderer.framebufferEye1.bindWrite(true);
+                DATA_HOLDER.vrRenderer.framebufferEye1.bindWrite(true);
             }
 
             // do post-processing
             ShaderHelper.doVrPostProcess(eye, rendertarget, partialTick);
 
             RenderHelper.checkGLError("post overlay" + eye);
-            mc.getProfiler().pop();
+            MC.getProfiler().pop();
         }
 
-        if (dataHolder.currentPass == RenderPass.CAMERA) {
-            mc.getProfiler().push("cameraCopy");
-            dataHolder.vrRenderer.cameraFramebuffer.bindWrite(true);
+        if (DATA_HOLDER.currentPass == RenderPass.CAMERA) {
+            MC.getProfiler().push("cameraCopy");
+            DATA_HOLDER.vrRenderer.cameraFramebuffer.bindWrite(true);
             RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 1.0F);
             RenderSystem.clear(GL13C.GL_COLOR_BUFFER_BIT | GL13C.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
-            dataHolder.vrRenderer.cameraRenderFramebuffer.blitToScreen(
-                dataHolder.vrRenderer.cameraFramebuffer.viewWidth,
-                dataHolder.vrRenderer.cameraFramebuffer.viewHeight);
-            mc.getProfiler().pop();
+            DATA_HOLDER.vrRenderer.cameraRenderFramebuffer.blitToScreen(
+                DATA_HOLDER.vrRenderer.cameraFramebuffer.viewWidth,
+                DATA_HOLDER.vrRenderer.cameraFramebuffer.viewHeight);
+            MC.getProfiler().pop();
         }
 
-        if (dataHolder.currentPass == RenderPass.THIRD &&
-            dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY &&
-            renderLevel && mc.level != null &&
+        if (DATA_HOLDER.currentPass == RenderPass.THIRD &&
+            DATA_HOLDER.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY &&
+            renderLevel && MC.level != null &&
             OptifineHelper.isOptifineLoaded() && OptifineHelper.isShaderActive() &&
             OptifineHelper.bindShaderFramebuffer())
         {
             // copy optifine depth buffer, since we need it for the mixed reality split
             RenderSystem.activeTexture(GL13C.GL_TEXTURE0);
-            RenderSystem.bindTexture(dataHolder.vrRenderer.framebufferMR.getDepthTextureId());
+            RenderSystem.bindTexture(DATA_HOLDER.vrRenderer.framebufferMR.getDepthTextureId());
             RenderHelper.checkGLError("pre copy depth");
-            GlStateManager._glCopyTexSubImage2D(GL13C.GL_TEXTURE_2D, 0, 0, 0, 0, 0, dataHolder.vrRenderer.framebufferMR.width, dataHolder.vrRenderer.framebufferMR.height);
+            GlStateManager._glCopyTexSubImage2D(GL13C.GL_TEXTURE_2D, 0, 0, 0, 0, 0, DATA_HOLDER.vrRenderer.framebufferMR.width, DATA_HOLDER.vrRenderer.framebufferMR.height);
             RenderHelper.checkGLError("post copy depth");
             // rebind the original buffer
-            dataHolder.vrRenderer.framebufferMR.bindWrite(false);
+            DATA_HOLDER.vrRenderer.framebufferMR.bindWrite(false);
         }
     }
 
     public static void renderAndSubmit(boolean renderLevel, long nanoTime, float actualPartialTick) {
         // still rendering
-        mc.getProfiler().push("gameRenderer");
+        MC.getProfiler().push("gameRenderer");
 
-        mc.getProfiler().push("VR guis");
+        MC.getProfiler().push("VR guis");
 
         // some mods mess with the depth mask?
         RenderSystem.depthMask(true);
@@ -114,11 +114,11 @@ public class VRPassHelper {
         RenderSystem.enableCull();
 
         // to render gui stuff
-        GuiGraphics guiGraphics = new GuiGraphics(mc, mc.renderBuffers().bufferSource());
+        GuiGraphics guiGraphics = new GuiGraphics(MC, MC.renderBuffers().bufferSource());
 
-        mc.getProfiler().push("gui cursor");
+        MC.getProfiler().push("gui cursor");
         // draw cursor on Gui Layer
-        if (mc.screen != null || !mc.mouseHandler.isMouseGrabbed()) {
+        if (MC.screen != null || !MC.mouseHandler.isMouseGrabbed()) {
             PoseStack poseStack = RenderSystem.getModelViewStack();
             poseStack.pushPose();
             poseStack.setIdentity();
@@ -126,13 +126,15 @@ public class VRPassHelper {
             RenderSystem.applyModelViewMatrix();
 
             Matrix4f guiProjection = (new Matrix4f()).setOrtho(
-                0.0F, mc.getWindow().getGuiScaledWidth(),
-                mc.getWindow().getGuiScaledHeight(), 0.0F,
+                0.0F, MC.getWindow().getGuiScaledWidth(),
+                MC.getWindow().getGuiScaledHeight(), 0.0F,
                 1000.0F, 21000.0F);
             RenderSystem.setProjectionMatrix(guiProjection, VertexSorting.ORTHOGRAPHIC_Z);
 
-            int x = (int) (mc.mouseHandler.xpos() * (double) mc.getWindow().getGuiScaledWidth() / (double) mc.getWindow().getScreenWidth());
-            int y = (int) (mc.mouseHandler.ypos() * (double) mc.getWindow().getGuiScaledHeight() / (double) mc.getWindow().getScreenHeight());
+            int x = (int) (
+                MC.mouseHandler.xpos() * (double) MC.getWindow().getGuiScaledWidth() / (double) MC.getWindow().getScreenWidth());
+            int y = (int) (
+                MC.mouseHandler.ypos() * (double) MC.getWindow().getGuiScaledHeight() / (double) MC.getWindow().getScreenHeight());
             RenderHelper.drawMouseMenuQuad(guiGraphics, x, y);
 
             guiGraphics.flush();
@@ -140,75 +142,75 @@ public class VRPassHelper {
             RenderSystem.applyModelViewMatrix();
         }
 
-        mc.getProfiler().popPush("fps pie");
+        MC.getProfiler().popPush("fps pie");
         // draw debug pie
-        ((MinecraftExtension) mc).vivecraft$drawProfiler();
+        ((MinecraftExtension) MC).vivecraft$drawProfiler();
 
         // pop pose that we pushed before the gui
         RenderSystem.getModelViewStack().popPose();
         RenderSystem.applyModelViewMatrix();
 
-        if (dataHolder.vrSettings.guiMipmaps) {
+        if (DATA_HOLDER.vrSettings.guiMipmaps) {
             // update mipmaps
-            mc.mainRenderTarget.bindRead();
+            MC.mainRenderTarget.bindRead();
             GL30C.glGenerateMipmap(GL30C.GL_TEXTURE_2D);
-            mc.mainRenderTarget.unbindRead();
+            MC.mainRenderTarget.unbindRead();
         }
 
-        mc.getProfiler().popPush("2D Keyboard");
-        if (KeyboardHandler.Showing && !dataHolder.vrSettings.physicalKeyboard) {
-            mc.mainRenderTarget = KeyboardHandler.Framebuffer;
-            mc.mainRenderTarget.clear(Minecraft.ON_OSX);
-            mc.mainRenderTarget.bindWrite(true);
+        MC.getProfiler().popPush("2D Keyboard");
+        if (KeyboardHandler.SHOWING && !DATA_HOLDER.vrSettings.physicalKeyboard) {
+            MC.mainRenderTarget = KeyboardHandler.FRAMEBUFFER;
+            MC.mainRenderTarget.clear(Minecraft.ON_OSX);
+            MC.mainRenderTarget.bindWrite(true);
             RenderHelper.drawScreen(guiGraphics, actualPartialTick, KeyboardHandler.UI, true);
             guiGraphics.flush();
         }
 
-        mc.getProfiler().popPush("Radial Menu");
+        MC.getProfiler().popPush("Radial Menu");
         if (RadialHandler.isShowing()) {
-            mc.mainRenderTarget = RadialHandler.Framebuffer;
-            mc.mainRenderTarget.clear(Minecraft.ON_OSX);
-            mc.mainRenderTarget.bindWrite(true);
+            MC.mainRenderTarget = RadialHandler.FRAMEBUFFER;
+            MC.mainRenderTarget.clear(Minecraft.ON_OSX);
+            MC.mainRenderTarget.bindWrite(true);
             RenderHelper.drawScreen(guiGraphics, actualPartialTick, RadialHandler.UI, true);
             guiGraphics.flush();
         }
-        mc.getProfiler().pop();
+        MC.getProfiler().pop();
         RenderHelper.checkGLError("post 2d ");
 
         // done with guis
-        mc.getProfiler().pop();
+        MC.getProfiler().pop();
 
         // render the different vr passes
-        List<RenderPass> list = dataHolder.vrRenderer.getRenderPasses();
-        dataHolder.isFirstPass = true;
+        List<RenderPass> list = DATA_HOLDER.vrRenderer.getRenderPasses();
+        DATA_HOLDER.isFirstPass = true;
         for (RenderPass renderpass : list) {
-            dataHolder.currentPass = renderpass;
+            DATA_HOLDER.currentPass = renderpass;
 
-            if (dataHolder.vrSettings.displayMirrorUseScreenshotCamera && dataHolder.cameraTracker.isVisible()) {
+            if (DATA_HOLDER.vrSettings.displayMirrorUseScreenshotCamera && DATA_HOLDER.cameraTracker.isVisible()) {
                 if (renderpass == RenderPass.CENTER) {
                     continue;
-                } else if (renderpass == RenderPass.THIRD && dataHolder.vrSettings.displayMirrorMode != VRSettings.MirrorMode.MIXED_REALITY) {
+                } else if (renderpass == RenderPass.THIRD && DATA_HOLDER.vrSettings.displayMirrorMode != VRSettings.MirrorMode.MIXED_REALITY) {
                     continue;
                 }
             }
 
             switch (renderpass) {
-                case LEFT, RIGHT -> RenderPassManager.setWorldRenderPass(WorldRenderPass.stereoXR);
-                case CENTER -> RenderPassManager.setWorldRenderPass(WorldRenderPass.center);
-                case THIRD -> RenderPassManager.setWorldRenderPass(WorldRenderPass.mixedReality);
-                case SCOPEL -> RenderPassManager.setWorldRenderPass(WorldRenderPass.leftTelescope);
-                case SCOPER -> RenderPassManager.setWorldRenderPass(WorldRenderPass.rightTelescope);
-                case CAMERA -> RenderPassManager.setWorldRenderPass(WorldRenderPass.camera);
+                case LEFT, RIGHT -> RenderPassManager.setWorldRenderPass(WorldRenderPass.STEREO_XR);
+                case CENTER -> RenderPassManager.setWorldRenderPass(WorldRenderPass.CENTER);
+                case THIRD -> RenderPassManager.setWorldRenderPass(WorldRenderPass.MIXED_REALITY);
+                case SCOPEL -> RenderPassManager.setWorldRenderPass(WorldRenderPass.LEFT_TELESCOPE);
+                case SCOPER -> RenderPassManager.setWorldRenderPass(WorldRenderPass.RIGHT_TELESCOPE);
+                case CAMERA -> RenderPassManager.setWorldRenderPass(WorldRenderPass.CAMERA);
             }
 
-            mc.getProfiler().push("Eye:" + dataHolder.currentPass);
-            mc.getProfiler().push("setup");
-            mc.mainRenderTarget.bindWrite(true);
-            mc.getProfiler().pop();
+            MC.getProfiler().push("Eye:" + DATA_HOLDER.currentPass);
+            MC.getProfiler().push("setup");
+            MC.mainRenderTarget.bindWrite(true);
+            MC.getProfiler().pop();
             VRPassHelper.renderSingleView(renderpass, actualPartialTick, nanoTime, renderLevel);
-            mc.getProfiler().pop();
+            MC.getProfiler().pop();
 
-            if (dataHolder.grabScreenShot) {
+            if (DATA_HOLDER.grabScreenShot) {
                 boolean flag;
 
                 if (list.contains(RenderPass.CAMERA)) {
@@ -216,39 +218,39 @@ public class VRPassHelper {
                 } else if (list.contains(RenderPass.CENTER)) {
                     flag = renderpass == RenderPass.CENTER;
                 } else {
-                    flag = dataHolder.vrSettings.displayMirrorLeftEye ?
+                    flag = DATA_HOLDER.vrSettings.displayMirrorLeftEye ?
                            renderpass == RenderPass.LEFT :
                            renderpass == RenderPass.RIGHT;
                 }
 
                 if (flag) {
-                    RenderTarget rendertarget = mc.mainRenderTarget;
+                    RenderTarget rendertarget = MC.mainRenderTarget;
 
                     if (renderpass == RenderPass.CAMERA) {
-                        rendertarget = dataHolder.vrRenderer.cameraFramebuffer;
+                        rendertarget = DATA_HOLDER.vrRenderer.cameraFramebuffer;
                     }
 
-                    mc.mainRenderTarget.unbindWrite();
+                    MC.mainRenderTarget.unbindWrite();
                     Utils.takeScreenshot(rendertarget);
-                    mc.getWindow().updateDisplay();
-                    dataHolder.grabScreenShot = false;
+                    MC.getWindow().updateDisplay();
+                    DATA_HOLDER.grabScreenShot = false;
                 }
             }
 
-            dataHolder.isFirstPass = false;
+            DATA_HOLDER.isFirstPass = false;
         }
         // now we are done with rendering
-        mc.getProfiler().pop();
+        MC.getProfiler().pop();
 
-        dataHolder.vrPlayer.postRender(actualPartialTick);
-        mc.getProfiler().push("Display/Reproject");
+        DATA_HOLDER.vrPlayer.postRender(actualPartialTick);
+        MC.getProfiler().push("Display/Reproject");
 
         try {
-            dataHolder.vrRenderer.endFrame();
+            DATA_HOLDER.vrRenderer.endFrame();
         } catch (RenderConfigException exception) {
-            VRSettings.logger.error("Vivecraft: error ending frame: {}", exception.error);
+            VRSettings.LOGGER.error("Vivecraft: error ending frame: {}", exception.error);
         }
-        mc.getProfiler().pop();
+        MC.getProfiler().pop();
         RenderHelper.checkGLError("post submit");
     }
 }

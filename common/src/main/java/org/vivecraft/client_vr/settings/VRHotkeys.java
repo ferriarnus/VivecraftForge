@@ -22,14 +22,14 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class VRHotkeys {
-    static final boolean debug = false;
-    private static int startController;
-    private static VRData.VRDevicePose startControllerPose;
-    private static float startCamposX;
-    private static float startCamposY;
-    private static float startCamposZ;
-    private static Quaternion startCamrotQuat;
-    private static Triggerer camTriggerer;
+    static final boolean DEBUG = false;
+    private static int START_CONTROLLER;
+    private static VRData.VRDevicePose START_CONTROLLER_POSE;
+    private static float START_CAMPOS_X;
+    private static float START_CAMPOS_Y;
+    private static float START_CAMPOS_Z;
+    private static Quaternion START_CAMROT_QUAT;
+    private static Triggerer CAM_TRIGGERER;
 
     /**
      * process debug keys
@@ -49,7 +49,7 @@ public class VRHotkeys {
         if (action == GLFW.GLFW_PRESS) {
             // control key combinations
             if (MethodHolder.isKeyDown(GLFW.GLFW_KEY_RIGHT_CONTROL)) {
-                if (VRState.vrInitialized) {
+                if (VRState.VR_INITIALIZED) {
                     // Debug aim
                     if (key == GLFW.GLFW_KEY_RIGHT_SHIFT) {
                         dataHolder.vrSettings.storeDebugAim = true;
@@ -92,13 +92,13 @@ public class VRHotkeys {
 
                 // toggle VR with a keyboard shortcut
                 if (key == GLFW.GLFW_KEY_F7) {
-                    VRState.vrEnabled = !VRState.vrEnabled;
-                    ClientDataHolderVR.getInstance().vrSettings.vrEnabled = VRState.vrEnabled;
+                    VRState.VR_ENABLED = !VRState.VR_ENABLED;
+                    ClientDataHolderVR.getInstance().vrSettings.vrEnabled = VRState.VR_ENABLED;
                     gotKey = true;
                 }
             }
 
-            if (key == GLFW.GLFW_KEY_F12 && debug) {
+            if (key == GLFW.GLFW_KEY_F12 && DEBUG) {
                 Screen current = minecraft.screen;
                 minecraft.setScreen(new WinScreen(false, () -> minecraft.setScreen(current)));
                 gotKey = true;
@@ -106,7 +106,7 @@ public class VRHotkeys {
 
             // toggle mirror mode
             if (key == GLFW.GLFW_KEY_F5 && (minecraft.level == null || minecraft.screen != null) &&
-                VRState.vrInitialized)
+                VRState.VR_INITIALIZED)
             {
                 dataHolder.vrSettings.setOptionValue(VRSettings.VrOptions.MIRROR_DISPLAY);
                 MirrorNotification.notify(
@@ -115,7 +115,7 @@ public class VRHotkeys {
             }
         }
 
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             gotKey |= dataHolder.vr.handleKeyboardInputs(key, scanCode, action, modifiers);
 
             if (dataHolder.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY ||
@@ -322,22 +322,22 @@ public class VRHotkeys {
     public static void updateMovingThirdPersonCam() {
         ClientDataHolderVR dataHolder = ClientDataHolderVR.getInstance();
 
-        if (startControllerPose != null) {
-            VRData.VRDevicePose controllerPose = dataHolder.vrPlayer.vrdata_room_pre.getController(startController);
-            Vec3 startPos = startControllerPose.getPosition();
+        if (START_CONTROLLER_POSE != null) {
+            VRData.VRDevicePose controllerPose = dataHolder.vrPlayer.vrdata_room_pre.getController(START_CONTROLLER);
+            Vec3 startPos = START_CONTROLLER_POSE.getPosition();
             Vec3 deltaPos = controllerPose.getPosition().subtract(startPos);
 
-            Matrix4f deltaMatrix = Matrix4f.multiply(controllerPose.getMatrix(), startControllerPose.getMatrix().inverted());
+            Matrix4f deltaMatrix = Matrix4f.multiply(controllerPose.getMatrix(), START_CONTROLLER_POSE.getMatrix().inverted());
             Vector3 offset = new Vector3(
-                startCamposX - (float) startPos.x,
-                startCamposY - (float) startPos.y,
-                startCamposZ - (float) startPos.z);
+                START_CAMPOS_X - (float) startPos.x,
+                START_CAMPOS_Y - (float) startPos.y,
+                START_CAMPOS_Z - (float) startPos.z);
             Vector3 offsetRotated = deltaMatrix.transform(offset);
 
-            dataHolder.vrSettings.vrFixedCamposX = startCamposX + (float) deltaPos.x + (offsetRotated.getX() - offset.getX());
-            dataHolder.vrSettings.vrFixedCamposY = startCamposY + (float) deltaPos.y + (offsetRotated.getY() - offset.getY());
-            dataHolder.vrSettings.vrFixedCamposZ = startCamposZ + (float) deltaPos.z + (offsetRotated.getZ() - offset.getZ());
-            dataHolder.vrSettings.vrFixedCamrotQuat.set(startCamrotQuat.multiply(new Quaternion(MathUtils.convertOVRMatrix(deltaMatrix))));
+            dataHolder.vrSettings.vrFixedCamposX = START_CAMPOS_X + (float) deltaPos.x + (offsetRotated.getX() - offset.getX());
+            dataHolder.vrSettings.vrFixedCamposY = START_CAMPOS_Y + (float) deltaPos.y + (offsetRotated.getY() - offset.getY());
+            dataHolder.vrSettings.vrFixedCamposZ = START_CAMPOS_Z + (float) deltaPos.z + (offsetRotated.getZ() - offset.getZ());
+            dataHolder.vrSettings.vrFixedCamrotQuat.set(START_CAMROT_QUAT.multiply(new Quaternion(MathUtils.convertOVRMatrix(deltaMatrix))));
         }
     }
 
@@ -349,41 +349,41 @@ public class VRHotkeys {
     public static void startMovingThirdPersonCam(int controller, Triggerer triggerer) {
         ClientDataHolderVR dataHolder = ClientDataHolderVR.getInstance();
 
-        startController = controller;
-        startControllerPose = dataHolder.vrPlayer.vrdata_room_pre.getController(controller);
-        startCamposX = dataHolder.vrSettings.vrFixedCamposX;
-        startCamposY = dataHolder.vrSettings.vrFixedCamposY;
-        startCamposZ = dataHolder.vrSettings.vrFixedCamposZ;
-        startCamrotQuat = dataHolder.vrSettings.vrFixedCamrotQuat.copy();
-        camTriggerer = triggerer;
+        START_CONTROLLER = controller;
+        START_CONTROLLER_POSE = dataHolder.vrPlayer.vrdata_room_pre.getController(controller);
+        START_CAMPOS_X = dataHolder.vrSettings.vrFixedCamposX;
+        START_CAMPOS_Y = dataHolder.vrSettings.vrFixedCamposY;
+        START_CAMPOS_Z = dataHolder.vrSettings.vrFixedCamposZ;
+        START_CAMROT_QUAT = dataHolder.vrSettings.vrFixedCamrotQuat.copy();
+        CAM_TRIGGERER = triggerer;
     }
 
     /**
      * stops moving the third person camera
      */
     public static void stopMovingThirdPersonCam() {
-        startControllerPose = null;
+        START_CONTROLLER_POSE = null;
     }
 
     /**
      * @return if the third person camera is currently being moved
      */
     public static boolean isMovingThirdPersonCam() {
-        return startControllerPose != null;
+        return START_CONTROLLER_POSE != null;
     }
 
     /**
      * @return which controller is moving the third person camera
      */
     public static int getMovingThirdPersonCamController() {
-        return startController;
+        return START_CONTROLLER;
     }
 
     /**
      * @return what caused the third person camera movement
      */
     public static Triggerer getMovingThirdPersonCamTriggerer() {
-        return camTriggerer;
+        return CAM_TRIGGERER;
     }
 
     /**
@@ -413,7 +413,7 @@ public class VRHotkeys {
                     }
                 }
             } catch (Exception exception) {
-                VRSettings.logger.error("Vivecraft: error reading camera config:", exception);
+                VRSettings.LOGGER.error("Vivecraft: error reading camera config:", exception);
                 return;
             }
 

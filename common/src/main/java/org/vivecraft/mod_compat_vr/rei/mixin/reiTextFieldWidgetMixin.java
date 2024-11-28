@@ -15,7 +15,7 @@ public abstract class reiTextFieldWidgetMixin implements ContainerEventHandler {
 
     @Inject(method = "setFocused", at = @At("HEAD"), remap = false)
     private void vivecraft$openKeyboard(boolean focused, CallbackInfo ci) {
-        if (VRState.vrRunning && focused) {
+        if (VRState.VR_RUNNING && focused) {
             KeyboardHandler.setOverlayShowing(true);
         }
     }

@@ -32,19 +32,19 @@ public abstract class BoatMixin extends Entity {
 
     @ModifyExpressionValue(method = "controlBoat", at = @At(value = "CONSTANT", args = "floatValue=1F", ordinal = 0))
     private float vivecraft$inputLeft(float leftInput) {
-        return VRState.vrRunning ? Minecraft.getInstance().player.input.leftImpulse : leftInput;
+        return VRState.VR_RUNNING ? Minecraft.getInstance().player.input.leftImpulse : leftInput;
     }
 
     @ModifyExpressionValue(method = "controlBoat", at = @At(value = "CONSTANT", args = "floatValue=1F", ordinal = 1))
     private float vivecraft$inputRight(float rightInput) {
-        return VRState.vrRunning ? -Minecraft.getInstance().player.input.leftImpulse : rightInput;
+        return VRState.VR_RUNNING ? -Minecraft.getInstance().player.input.leftImpulse : rightInput;
     }
 
     // LOAD also counts the += so we need to skip those 3
     @ModifyVariable(method = "controlBoat", at = @At(value = "LOAD", ordinal = 3))
     private float vivecraft$modifyAcceleration(float acceleration) {
         ClientDataHolderVR dataHolder = ClientDataHolderVR.getInstance();
-        if (VRState.vrRunning && !dataHolder.vrSettings.seated) {
+        if (VRState.VR_RUNNING && !dataHolder.vrSettings.seated) {
             // only custom boat controls in standing mode
             if (this.inputUp) {
                 //controller-based

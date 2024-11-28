@@ -23,7 +23,7 @@ public class CrawlTracker extends Tracker {
             return false;
         } else if (!this.dh.vrSettings.allowCrawling) {
             return false;
-        } else if (!ClientNetworking.serverAllowsCrawling) {
+        } else if (!ClientNetworking.SERVER_ALLOWS_CRAWLING) {
             return false;
         } else if (!player.isAlive()) {
             return false;
@@ -57,7 +57,7 @@ public class CrawlTracker extends Tracker {
                 this.crawlsteresis = true;
             }
 
-            if (ClientNetworking.serverAllowsCrawling) {
+            if (ClientNetworking.SERVER_ALLOWS_CRAWLING) {
                 if (this.mc.getConnection() != null) {
                     this.mc.getConnection()
                         .send(ClientNetworking.createServerPacket(new CrawlPayloadC2S(this.crawling)));

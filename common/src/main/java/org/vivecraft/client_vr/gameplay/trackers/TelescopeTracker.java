@@ -13,11 +13,11 @@ import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.render.RenderPass;
 
 public class TelescopeTracker extends Tracker {
-    public static final ModelResourceLocation scopeModel = new ModelResourceLocation("vivecraft", "spyglass_in_hand", "inventory");
-    private static final double lensDistMax = 0.05D;
-    private static final double lensDistMin = 0.185D;
-    private static final double lensDotMax = 0.9D;
-    private static final double lensDotMin = 0.75D;
+    public static final ModelResourceLocation SCOPE_MODEL = new ModelResourceLocation("vivecraft", "spyglass_in_hand", "inventory");
+    private static final double LENS_DIST_MAX = 0.05D;
+    private static final double LENS_DIST_MIN = 0.185D;
+    private static final double LENS_DOT_MAX = 0.9D;
+    private static final double LENS_DOT_MIN = 0.75D;
 
     public TelescopeTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -109,19 +109,19 @@ public class TelescopeTracker extends Tracker {
             double dfact = 0.0D;
             double distfact = 0.0D;
 
-            if (dot > lensDotMin) {
-                if (dot > lensDotMax) {
+            if (dot > LENS_DOT_MIN) {
+                if (dot > LENS_DOT_MAX) {
                     dfact = 1.0D;
                 } else {
-                    dfact = (dot - lensDotMin) / (lensDotMax - lensDotMin);
+                    dfact = (dot - LENS_DOT_MIN) / (LENS_DOT_MAX - LENS_DOT_MIN);
                 }
             }
 
-            if (dist < lensDistMin) {
-                if (dist < lensDistMax) {
+            if (dist < LENS_DIST_MIN) {
+                if (dist < LENS_DIST_MAX) {
                     distfact = 1.0D;
                 } else {
-                    distfact = 1.0D - (dist - lensDistMax) / (lensDistMin - lensDistMax);
+                    distfact = 1.0D - (dist - LENS_DIST_MAX) / (LENS_DIST_MIN - LENS_DIST_MAX);
                 }
             }
 

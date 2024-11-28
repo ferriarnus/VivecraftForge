@@ -69,7 +69,7 @@ public abstract class OpenVRMixin {
         VRCompositor = getGenericInterface(IVRCompositor_Version, OpenVR.IVRCompositor::new);
         if (VRCompositor == null) {
             // this happens when using an outdated Steamvr, IVRCompositor_026 seems to be binary compatible to IVRCompositor_027 so try to load that
-            org.vivecraft.client_vr.settings.VRSettings.logger.error("Vivecraft: openvr '{}' failed to load, trying IVRCompositor_026", IVRCompositor_Version);
+            org.vivecraft.client_vr.settings.VRSettings.LOGGER.error("Vivecraft: openvr '{}' failed to load, trying IVRCompositor_026", IVRCompositor_Version);
             VRCompositor = getGenericInterface("IVRCompositor_026", OpenVR.IVRCompositor::new);
         }
         VROverlay = getGenericInterface(IVROverlay_Version, OpenVR.IVROverlay::new);

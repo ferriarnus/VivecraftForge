@@ -13,15 +13,15 @@ import java.lang.reflect.Method;
 
 public class SodiumHelper {
 
-    private static boolean initialized = false;
-    private static boolean initFailed = false;
+    private static boolean INITIALIZED = false;
+    private static boolean INIT_FAILED = false;
 
     // use reflection, because sodium changed package in 0.6
     private static Method SpriteUtil_markSpriteActive;
 
-    private static boolean hasModelCuboidQuads;
-    private static boolean hasModelCuboidFloats;
-    private static boolean hasCubeModelCuboid;
+    private static boolean HAS_MODELCUBOID_QUADS;
+    private static boolean HAS_MODELCUBOID_FLOATS;
+    private static boolean HAS_MODELCUBOID_CUBES;
     private static Field ModelPart_sodium$cuboids;
     private static Field ModelCuboid_quads;
 
@@ -67,7 +67,7 @@ public class SodiumHelper {
                 // SpriteUtil.markSpriteActive(sprite);
                 SpriteUtil_markSpriteActive.invoke(null, sprite);
             } catch (InvocationTargetException | IllegalAccessException e) {
-                VRSettings.logger.error("Vivecraft: couldn't set Sodium sprite as animated:", e);
+                VRSettings.LOGGER.error("Vivecraft: couldn't set Sodium sprite as animated:", e);
             }
         }
     }
@@ -82,7 +82,7 @@ public class SodiumHelper {
     public static void copyModelCuboidUV(ModelPart source, ModelPart dest, int sourcePoly, int destPoly) {
         if (init()) {
             try {
-                if (hasModelCuboidQuads) {
+                if (HAS_MODELCUBOID_QUADS) {
                     // ModelCuboid stores the texture info in quads per face
                     Object sourceQuad = ((Object[]) ModelCuboid_quads.get(
                         ((Object[]) ModelPart_sodium$cuboids.get(source))[0])
@@ -98,9 +98,9 @@ public class SodiumHelper {
                         destTextures[i].x = sourceTextures[i].x;
                         destTextures[i].y = sourceTextures[i].y;
                     }
-                } else if (hasModelCuboidFloats) {
+                } else if (HAS_MODELCUBOID_FLOATS) {
                     // ModelCuboid stores the texture info in per cube floats
-                    Object sourceCuboid = hasCubeModelCuboid ? Cube_sodium$cuboid.get(source.cubes.get(0)) :
+                    Object sourceCuboid = HAS_MODELCUBOID_CUBES ? Cube_sodium$cuboid.get(source.cubes.get(0)) :
                         ((Object[]) ModelPart_sodium$cuboids.get(source))[0];
 
                     float[][] UVs = new float[][]{{
@@ -116,7 +116,7 @@ public class SodiumHelper {
                         (float) ModelCuboid_v2.get(sourceCuboid)
                     }};
 
-                    Object destCuboid = hasCubeModelCuboid ? Cube_sodium$cuboid.get(dest.cubes.get(0)) :
+                    Object destCuboid = HAS_MODELCUBOID_CUBES ? Cube_sodium$cuboid.get(dest.cubes.get(0)) :
                         ((Object[]) ModelPart_sodium$cuboids.get(dest))[0];
                     ((ModelCuboidExtension) destCuboid).vivecraft$addOverrides(
                         mapDirection(destPoly),
@@ -125,10 +125,10 @@ public class SodiumHelper {
                     );
                 }
             } catch (IllegalAccessException | ClassCastException e) {
-                VRSettings.logger.error(
+                VRSettings.LOGGER.error(
                     "Vivecraft: sodium version has ModelCuboids, but fields are an unexpected type. VR hands will probably look wrong:", e);
-                hasModelCuboidFloats = false;
-                hasModelCuboidQuads = false;
+                HAS_MODELCUBOID_FLOATS = false;
+                HAS_MODELCUBOID_QUADS = false;
             }
         }
     }
@@ -154,9 +154,9 @@ public class SodiumHelper {
      * @return if init was successful
      */
     private static boolean init() {
-        if (initialized) {
+        if (INITIALIZED) {
             // try to softly fail when something went wrong
-            return !initFailed;
+            return !INIT_FAILED;
         }
         try {
             Class<?> spriteUtil = getClassWithAlternative(
@@ -181,7 +181,7 @@ public class SodiumHelper {
                     // cuboid is stored in the Cube directly instead
                     Cube_sodium$cuboid = ModelPart.Cube.class.getDeclaredField("sodium$cuboid");
                     Cube_sodium$cuboid.setAccessible(true);
-                    hasCubeModelCuboid = true;
+                    HAS_MODELCUBOID_CUBES = true;
 
                 }
                 try {
@@ -192,7 +192,7 @@ public class SodiumHelper {
                     // texture bounds are stored in pre face quads
                     ModelCuboid_quads = ModelCuboid.getDeclaredField("quads");
                     ModelCuboid$Quad_textures = ModelCuboid$Quad.getDeclaredField("textures");
-                    hasModelCuboidQuads = true;
+                    HAS_MODELCUBOID_QUADS = true;
                 } catch (ClassNotFoundException noQuads) {
                     // texture bounds are stored in global UVs instead
                     ModelCuboid_u0 = ModelCuboid.getDeclaredField("u0");
@@ -204,19 +204,19 @@ public class SodiumHelper {
                     ModelCuboid_v0 = ModelCuboid.getDeclaredField("v0");
                     ModelCuboid_v1 = ModelCuboid.getDeclaredField("v1");
                     ModelCuboid_v2 = ModelCuboid.getDeclaredField("v2");
-                    hasModelCuboidFloats = true;
+                    HAS_MODELCUBOID_FLOATS = true;
                 }
             } catch (ClassNotFoundException ignored) {
                 // older versions didn't use that so can ignore it
             } catch (NoSuchFieldException e) {
-                VRSettings.logger.error("Vivecraft: sodium version has ModelCuboids, but some fields are not found. VR hands will probably look wrong:", e);
+                VRSettings.LOGGER.error("Vivecraft: sodium version has ModelCuboids, but some fields are not found. VR hands will probably look wrong:", e);
             }
         } catch (ClassNotFoundException | NoSuchMethodException e) {
-            initFailed = true;
-            VRSettings.logger.error("Vivecraft: Failed to initialize Sodium compat:", e);
+            INIT_FAILED = true;
+            VRSettings.LOGGER.error("Vivecraft: Failed to initialize Sodium compat:", e);
         }
-        initialized = true;
-        return !initFailed;
+        INITIALIZED = true;
+        return !INIT_FAILED;
     }
 
     /**

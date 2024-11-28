@@ -358,7 +358,7 @@ public class SwingTracker extends Tracker {
             fade = 0.75F;
         }
 
-        if (ClientDataHolderVR.getInstance().swingTracker.lastWeaponSolid[ClientDataHolderVR.ismainhand ? 0 : 1]) {
+        if (ClientDataHolderVR.getInstance().swingTracker.lastWeaponSolid[ClientDataHolderVR.IS_MAIN_HAND ? 0 : 1]) {
             fade -= 0.25F;
         }
 

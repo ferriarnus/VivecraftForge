@@ -34,17 +34,17 @@ import java.util.function.Supplier;
 
 public class RenderHelper {
 
-    private static int polyBlendSrcA;
-    private static int polyBlendDstA;
-    private static int polyBlendSrcRGB;
-    private static int polyBlendDstRGB;
-    private static boolean polyBlend;
-    private static boolean polyTex;
-    private static boolean polyLight;
-    private static boolean polyCull;
+    private static final ClientDataHolderVR DATA_HOLDER = ClientDataHolderVR.getInstance();
+    private static final Minecraft MC = Minecraft.getInstance();
 
-    private static final ClientDataHolderVR dataHolder = ClientDataHolderVR.getInstance();
-    private static final Minecraft mc = Minecraft.getInstance();
+    private static int POLY_BLEND_SRC_A;
+    private static int POLY_BLEND_DST_A;
+    private static int POLY_BLEND_SRC_RGB;
+    private static int POLY_BLEND_DST_RGB;
+    private static boolean POLY_BLEND;
+    private static boolean POLY_TEX;
+    private static boolean POLY_LIGHT;
+    private static boolean POLY_CULL;
 
     /**
      * Applies the rotation from the given RenderPass to the given PoseStack
@@ -53,11 +53,11 @@ public class RenderHelper {
      */
     public static void applyVRModelView(RenderPass renderPass, PoseStack poseStack) {
         Matrix4f modelView;
-        if (renderPass == RenderPass.CENTER && dataHolder.vrSettings.displayMirrorCenterSmooth > 0.0F) {
+        if (renderPass == RenderPass.CENTER && DATA_HOLDER.vrSettings.displayMirrorCenterSmooth > 0.0F) {
             modelView = new Matrix4f().rotation(MCVR.get().hmdRotHistory
-                .averageRotation(dataHolder.vrSettings.displayMirrorCenterSmooth));
+                .averageRotation(DATA_HOLDER.vrSettings.displayMirrorCenterSmooth));
         } else {
-            modelView = dataHolder.vrPlayer.vrdata_world_render.getEye(renderPass)
+            modelView = DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(renderPass)
                 .getMatrix().transposed().toMCMatrix();
         }
         poseStack.last().pose().mul(modelView);
@@ -72,8 +72,8 @@ public class RenderHelper {
      * @return camera position
      */
     public static Vec3 getSmoothCameraPosition(RenderPass renderPass, VRData vrData) {
-        if (dataHolder.currentPass == RenderPass.CENTER && dataHolder.vrSettings.displayMirrorCenterSmooth > 0.0F) {
-            return MCVR.get().hmdHistory.averagePosition(dataHolder.vrSettings.displayMirrorCenterSmooth)
+        if (DATA_HOLDER.currentPass == RenderPass.CENTER && DATA_HOLDER.vrSettings.displayMirrorCenterSmooth > 0.0F) {
+            return MCVR.get().hmdHistory.averagePosition(DATA_HOLDER.vrSettings.displayMirrorCenterSmooth)
                 .scale(vrData.worldScale)
                 .yRot(vrData.rotation_radians)
                 .add(vrData.origin);
@@ -90,8 +90,8 @@ public class RenderHelper {
      */
     public static void applyStereo(RenderPass renderPass, PoseStack poseStack) {
         if (renderPass == RenderPass.LEFT || renderPass == RenderPass.RIGHT) {
-            Vec3 eye = dataHolder.vrPlayer.vrdata_world_render.getEye(renderPass).getPosition()
-                .subtract(dataHolder.vrPlayer.vrdata_world_render.getEye(RenderPass.CENTER)
+            Vec3 eye = DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(renderPass).getPosition()
+                .subtract(DATA_HOLDER.vrPlayer.vrdata_world_render.getEye(RenderPass.CENTER)
                     .getPosition());
             poseStack.translate(-eye.x, -eye.y, -eye.z);
         }
@@ -105,44 +105,44 @@ public class RenderHelper {
      * @return position of the given controller
      */
     public static Vec3 getControllerRenderPos(int c) {
-        if (dataHolder.vrSettings.seated && c < 2) {
+        if (DATA_HOLDER.vrSettings.seated && c < 2) {
             // only do the seated override for the controllers, not trackers
 
             int mainHand = InteractionHand.MAIN_HAND.ordinal();
-            if (dataHolder.vrSettings.reverseHands) {
+            if (DATA_HOLDER.vrSettings.reverseHands) {
                 c = 1 - c;
                 mainHand = InteractionHand.OFF_HAND.ordinal();
             }
 
             // handle telescopes, allow for double scoping
-            if (mc.player != null && mc.level != null &&
-                TelescopeTracker.isTelescope(mc.player.getUseItem()) &&
-                TelescopeTracker.isTelescope(c == mainHand ? mc.player.getMainHandItem() : mc.player.getOffhandItem()))
+            if (MC.player != null && MC.level != null &&
+                TelescopeTracker.isTelescope(MC.player.getUseItem()) &&
+                TelescopeTracker.isTelescope(c == mainHand ? MC.player.getMainHandItem() : MC.player.getOffhandItem()))
             {
                 // move the controller in front of the eye when using the spyglass
-                VRData.VRDevicePose eye = c == 0 ? dataHolder.vrPlayer.vrdata_world_render.eye0 :
-                    dataHolder.vrPlayer.vrdata_world_render.eye1;
+                VRData.VRDevicePose eye = c == 0 ? DATA_HOLDER.vrPlayer.vrdata_world_render.eye0 :
+                    DATA_HOLDER.vrPlayer.vrdata_world_render.eye1;
 
                 return eye.getPosition()
-                    .add(dataHolder.vrPlayer.vrdata_world_render.hmd.getDirection()
-                        .scale(0.2 * dataHolder.vrPlayer.vrdata_world_render.worldScale));
+                    .add(DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getDirection()
+                        .scale(0.2 * DATA_HOLDER.vrPlayer.vrdata_world_render.worldScale));
             } else {
                 // general case
                 // no worldScale in the main menu
-                float worldScale = mc.player != null && mc.level != null ?
-                    dataHolder.vrPlayer.vrdata_world_render.worldScale : 1.0F;
+                float worldScale = MC.player != null && MC.level != null ?
+                    DATA_HOLDER.vrPlayer.vrdata_world_render.worldScale : 1.0F;
 
-                Vec3 dir = dataHolder.vrPlayer.vrdata_world_render.hmd.getDirection();
+                Vec3 dir = DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getDirection();
                 dir = dir.yRot((float) Math.toRadians(c == 0 ? -35.0D : 35.0D));
                 dir = new Vec3(dir.x, 0.0D, dir.z);
                 dir = dir.normalize();
-                return dataHolder.vrPlayer.vrdata_world_render.hmd.getPosition().add(
+                return DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getPosition().add(
                     dir.x * 0.3D * worldScale,
                     -0.4D * worldScale,
                     dir.z * 0.3D * worldScale);
             }
         } else {
-            return dataHolder.vrPlayer.vrdata_world_render.getController(c).getPosition();
+            return DATA_HOLDER.vrPlayer.vrdata_world_render.getController(c).getPosition();
         }
     }
 
@@ -154,26 +154,26 @@ public class RenderHelper {
     public static void setupRenderingAtController(int c, PoseStack poseStack) {
         Vec3 aimSource = getControllerRenderPos(c);
         aimSource = aimSource.subtract(
-            getSmoothCameraPosition(dataHolder.currentPass, dataHolder.vrPlayer.getVRDataWorld()));
+            getSmoothCameraPosition(DATA_HOLDER.currentPass, DATA_HOLDER.vrPlayer.getVRDataWorld()));
         //move from head to hand origin.
         poseStack.translate(aimSource.x, aimSource.y, aimSource.z);
 
-        float sc = dataHolder.vrPlayer.vrdata_world_render.worldScale;
+        float sc = DATA_HOLDER.vrPlayer.vrdata_world_render.worldScale;
 
         // handle telescopes in seated, allow for double scoping
-        if (dataHolder.vrSettings.seated && mc.player != null && mc.level != null &&
-            TelescopeTracker.isTelescope(mc.player.getUseItem()) &&
-            TelescopeTracker.isTelescope(c == 0 ? mc.player.getMainHandItem() : mc.player.getOffhandItem()))
+        if (DATA_HOLDER.vrSettings.seated && MC.player != null && MC.level != null &&
+            TelescopeTracker.isTelescope(MC.player.getUseItem()) &&
+            TelescopeTracker.isTelescope(c == 0 ? MC.player.getMainHandItem() : MC.player.getOffhandItem()))
         {
-            poseStack.mulPoseMatrix(dataHolder.vrPlayer.vrdata_world_render.hmd.getMatrix().inverted()
+            poseStack.mulPoseMatrix(DATA_HOLDER.vrPlayer.vrdata_world_render.hmd.getMatrix().inverted()
                 .transposed().toMCMatrix());
             poseStack.mulPose(Axis.XP.rotationDegrees(90F));
             // move to the eye center, seems to be magic numbers that work for the vive at least
-            poseStack.translate((c == (dataHolder.vrSettings.reverseHands ? 1 : 0) ? 0.075F : -0.075F) * sc,
+            poseStack.translate((c == (DATA_HOLDER.vrSettings.reverseHands ? 1 : 0) ? 0.075F : -0.075F) * sc,
                 -0.025F * sc,
                 0.0325F * sc);
         } else {
-            poseStack.mulPoseMatrix(dataHolder.vrPlayer.vrdata_world_render.getController(c)
+            poseStack.mulPoseMatrix(DATA_HOLDER.vrPlayer.vrdata_world_render.getController(c)
                 .getMatrix().inverted().transposed().toMCMatrix());
         }
 
@@ -239,14 +239,14 @@ public class RenderHelper {
         boolean flag = false;
 
         if (enable) {
-            polyBlendSrcA = GlStateManager.BLEND.srcAlpha;
-            polyBlendDstA = GlStateManager.BLEND.dstAlpha;
-            polyBlendSrcRGB = GlStateManager.BLEND.srcRgb;
-            polyBlendDstRGB = GlStateManager.BLEND.dstRgb;
-            polyBlend = GL11C.glIsEnabled(GL11C.GL_BLEND);
-            polyTex = true;
-            polyLight = false;
-            polyCull = true;
+            POLY_BLEND_SRC_A = GlStateManager.BLEND.srcAlpha;
+            POLY_BLEND_DST_A = GlStateManager.BLEND.dstAlpha;
+            POLY_BLEND_SRC_RGB = GlStateManager.BLEND.srcRgb;
+            POLY_BLEND_DST_RGB = GlStateManager.BLEND.dstRgb;
+            POLY_BLEND = GL11C.glIsEnabled(GL11C.GL_BLEND);
+            POLY_TEX = true;
+            POLY_LIGHT = false;
+            POLY_CULL = true;
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
             // GlStateManager._disableLighting();
@@ -257,21 +257,21 @@ public class RenderHelper {
 //				Shaders.useProgram(Shaders.ProgramTexturedLit);
             }
         } else {
-            RenderSystem.blendFuncSeparate(polyBlendSrcRGB, polyBlendDstRGB, polyBlendSrcA,
-                polyBlendDstA);
+            RenderSystem.blendFuncSeparate(POLY_BLEND_SRC_RGB, POLY_BLEND_DST_RGB, POLY_BLEND_SRC_A,
+                POLY_BLEND_DST_A);
 
-            if (!polyBlend) {
+            if (!POLY_BLEND) {
                 RenderSystem.disableBlend();
             }
 
-            if (polyTex) {
+            if (POLY_TEX) {
             }
 
-            if (polyLight) {
+            if (POLY_LIGHT) {
                 // GlStateManager._enableLighting();
             }
 
-            if (polyCull) {
+            if (POLY_CULL) {
                 RenderSystem.enableCull();
             }
 
@@ -296,11 +296,11 @@ public class RenderHelper {
         posestack.translate(0.0F, 0.0F, -11000.0F);
         RenderSystem.applyModelViewMatrix();
 
-        double guiScale = maxGuiScale ? GuiHandler.guiScaleFactorMax : mc.getWindow().getGuiScale();
+        double guiScale = maxGuiScale ? GuiHandler.GUI_SCALE_FACTOR_MAX : MC.getWindow().getGuiScale();
 
         Matrix4f guiProjection = (new Matrix4f()).setOrtho(
-            0.0F, (float) (mc.getMainRenderTarget().width / guiScale),
-                (float) (mc.getMainRenderTarget().height / guiScale), 0.0F,
+            0.0F, (float) (MC.getMainRenderTarget().width / guiScale),
+                (float) (MC.getMainRenderTarget().height / guiScale), 0.0F,
                 1000.0F, 21000.0F);
         RenderSystem.setProjectionMatrix(guiProjection, VertexSorting.ORTHOGRAPHIC_Z);
 
@@ -321,11 +321,11 @@ public class RenderHelper {
         posestack.popPose();
         RenderSystem.applyModelViewMatrix();
 
-        if (dataHolder.vrSettings.guiMipmaps) {
+        if (DATA_HOLDER.vrSettings.guiMipmaps) {
             // update mipmaps for Gui layer
-            mc.mainRenderTarget.bindRead();
+            MC.mainRenderTarget.bindRead();
             GL30C.glGenerateMipmap(GL30C.GL_TEXTURE_2D);
-            mc.mainRenderTarget.unbindRead();
+            MC.mainRenderTarget.unbindRead();
         }
     }
 
@@ -341,7 +341,7 @@ public class RenderHelper {
         RenderSystem.disableDepthTest();
         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR, GlStateManager.DestFactor.ZERO, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
 
-        float size = 15.0F * Math.max(ClientDataHolderVR.getInstance().vrSettings.menuCrosshairScale, 1.0F / (float) mc.getWindow().getGuiScale());
+        float size = 15.0F * Math.max(ClientDataHolderVR.getInstance().vrSettings.menuCrosshairScale, 1.0F / (float) MC.getWindow().getGuiScale());
 
         guiGraphics.blitSprite(Gui.CROSSHAIR_SPRITE, (int) (mouseX - size * 0.5F + 1), (int) (mouseY - size * 0.5F + 1),
             (int) size, (int) size);
@@ -443,8 +443,8 @@ public class RenderHelper {
         float sizeY = sizeX * displayHeight / displayWidth;
 
         RenderSystem.setShader(shader);
-        mc.gameRenderer.lightTexture().turnOnLightLayer();
-        mc.gameRenderer.overlayTexture().setupOverlayColor();
+        MC.gameRenderer.lightTexture().turnOnLightLayer();
+        MC.gameRenderer.overlayTexture().setupOverlayColor();
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
 
@@ -482,7 +482,7 @@ public class RenderHelper {
             .endVertex();
         BufferUploader.drawWithShader(bufferbuilder.end());
 
-        mc.gameRenderer.lightTexture().turnOffLightLayer();
+        MC.gameRenderer.lightTexture().turnOffLightLayer();
 
         // reset lights
         if (light0Old != null && light1Old != null) {
@@ -631,9 +631,9 @@ public class RenderHelper {
                 case GL30C.GL_INVALID_FRAMEBUFFER_OPERATION -> "framebuffer is not complete";
                 default -> "unknown error";
             };
-            VRSettings.logger.error("Vivecraft: ########## GL ERROR ##########");
-            VRSettings.logger.error("Vivecraft: @ {}", errorSection);
-            VRSettings.logger.error("Vivecraft: {}: {}", error, errorString);
+            VRSettings.LOGGER.error("Vivecraft: ########## GL ERROR ##########");
+            VRSettings.LOGGER.error("Vivecraft: @ {}", errorSection);
+            VRSettings.LOGGER.error("Vivecraft: {}: {}", error, errorString);
             return errorString;
         } else {
             return "";

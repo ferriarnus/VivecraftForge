@@ -86,7 +86,7 @@ public class SettingsList extends ContainerObjectSelectionList<SettingsList.Base
     }
 
     public static BaseEntry ConfigToEntry(ConfigBuilder.ConfigValue<?> configValue, Component name) {
-        AbstractWidget widget = configValue.getWidget(ResettableEntry.valueButtonWidth, 20).get();
+        AbstractWidget widget = configValue.getWidget(ResettableEntry.VALUE_BUTTON_WIDTH, 20).get();
         return new ResettableEntry(name, widget, configValue);
     }
 
@@ -118,7 +118,7 @@ public class SettingsList extends ContainerObjectSelectionList<SettingsList.Base
             // slider button
             widget = new GuiVROptionSlider(option.returnEnumOrdinal(),
                 0, 0,
-                WidgetEntry.valueButtonWidth, 20,
+                WidgetEntry.VALUE_BUTTON_WIDTH, 20,
                 option, true);
             widget.setTooltip(tooltip);
         } else {
@@ -128,7 +128,7 @@ public class SettingsList extends ContainerObjectSelectionList<SettingsList.Base
                         dh.vrSettings.setOptionValue(option);
                         button.setMessage(Component.literal(dh.vrSettings.getButtonDisplayString(option, true)));
                     })
-                .size(WidgetEntry.valueButtonWidth, 20)
+                .size(WidgetEntry.VALUE_BUTTON_WIDTH, 20)
                 .tooltip(tooltip)
                 .build();
         }
@@ -181,10 +181,10 @@ public class SettingsList extends ContainerObjectSelectionList<SettingsList.Base
     }
 
     public static class ResettableEntry extends WidgetEntry {
+        public static final int VALUE_BUTTON_WIDTH = 125;
+
         private final Button resetButton;
         private final BooleanSupplier canReset;
-
-        public static final int valueButtonWidth = 125;
 
         public ResettableEntry(Component name, AbstractWidget valueWidget, ConfigBuilder.ConfigValue<?> configValue) {
             super(name, valueWidget);
@@ -227,7 +227,7 @@ public class SettingsList extends ContainerObjectSelectionList<SettingsList.Base
     public static class WidgetEntry extends BaseEntry {
         protected AbstractWidget valueWidget;
 
-        public static final int valueButtonWidth = 145;
+        public static final int VALUE_BUTTON_WIDTH = 145;
 
         public WidgetEntry(Component name, AbstractWidget valueWidget) {
             super(name);

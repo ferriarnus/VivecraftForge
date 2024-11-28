@@ -8,7 +8,7 @@ import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.render.RenderPass;
 
 public class RenderPassManager {
-    private static final Minecraft mc = Minecraft.getInstance();
+    private static final Minecraft MC = Minecraft.getInstance();
 
     public static RenderPassManager INSTANCE;
 
@@ -17,7 +17,7 @@ public class RenderPassManager {
     public PostChain vanillaPostEffect;
     public PostChain vanillaTransparencyChain;
     public static RenderPassType renderPassType = RenderPassType.VANILLA;
-    public static WorldRenderPass wrp;
+    public static WorldRenderPass WRP;
 
     public RenderPassManager(MainTarget vanillaRenderTarget) {
         this.vanillaRenderTarget = vanillaRenderTarget;
@@ -29,11 +29,11 @@ public class RenderPassManager {
      * @param wrp WorldRenderPass to set
      */
     public static void setWorldRenderPass(WorldRenderPass wrp) {
-        RenderPassManager.wrp = wrp;
+        RenderPassManager.WRP = wrp;
         renderPassType = RenderPassType.WORLD_ONLY;
-        mc.mainRenderTarget = wrp.target;
-        if (mc.gameRenderer != null) {
-            mc.gameRenderer.postEffect = wrp.postEffect;
+        MC.mainRenderTarget = wrp.target;
+        if (MC.gameRenderer != null) {
+            MC.gameRenderer.postEffect = wrp.postEffect;
         }
     }
 
@@ -42,9 +42,9 @@ public class RenderPassManager {
      */
     public static void setGUIRenderPass() {
         ClientDataHolderVR.getInstance().currentPass = RenderPass.GUI;
-        RenderPassManager.wrp = null;
+        RenderPassManager.WRP = null;
         renderPassType = RenderPassType.GUI_ONLY;
-        mc.mainRenderTarget = GuiHandler.guiFramebuffer;
+        MC.mainRenderTarget = GuiHandler.GUI_FRAMEBUFFER;
     }
 
     /**
@@ -52,11 +52,11 @@ public class RenderPassManager {
      */
     public static void setVanillaRenderPass() {
         ClientDataHolderVR.getInstance().currentPass = null;
-        RenderPassManager.wrp = null;
+        RenderPassManager.WRP = null;
         renderPassType = RenderPassType.VANILLA;
-        mc.mainRenderTarget = INSTANCE.vanillaRenderTarget;
-        if (mc.gameRenderer != null) {
-            mc.gameRenderer.postEffect = INSTANCE.vanillaPostEffect;
+        MC.mainRenderTarget = INSTANCE.vanillaRenderTarget;
+        if (MC.gameRenderer != null) {
+            MC.gameRenderer.postEffect = INSTANCE.vanillaPostEffect;
         }
     }
 }

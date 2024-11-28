@@ -14,14 +14,14 @@ public class BookEditScreenVRMixin {
 
     @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/BookEditScreen;updateButtonVisibility()V"))
     private void vivecraft$showOverlay(CallbackInfo ci) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             KeyboardHandler.setOverlayShowing(true);
         }
     }
 
     @Inject(method = "saveChanges", at = @At("HEAD"))
     private void vivecraft$closeOverlay(CallbackInfo ci) {
-        if (VRState.vrRunning && ClientDataHolderVR.getInstance().vrSettings.autoCloseKeyboard) {
+        if (VRState.VR_RUNNING && ClientDataHolderVR.getInstance().vrSettings.autoCloseKeyboard) {
             KeyboardHandler.setOverlayShowing(false);
         }
     }

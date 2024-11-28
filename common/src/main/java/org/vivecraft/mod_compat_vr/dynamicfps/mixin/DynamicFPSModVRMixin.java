@@ -19,7 +19,7 @@ public class DynamicFPSModVRMixin {
      */
     @Inject(method = {"checkForRender()Z", "shouldShowLevels()Z"}, at = @At("HEAD"), remap = false, cancellable = true)
     private static void vivecraft$alwaysRenderVR(CallbackInfoReturnable<Boolean> cir) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             cir.setReturnValue(true);
         }
     }
@@ -31,6 +31,6 @@ public class DynamicFPSModVRMixin {
     @ModifyVariable(method = {"checkForStateChanges0()V", "checkForStateChanges()V"}, at = @At(value = "LOAD", target = "Ldynamic_fps/impl/DynamicFPSMod;state:Ldynamic_fps/impl/PowerState;"), remap = false)
     private static PowerState vivecraft$alwaysFocused(PowerState value) {
         // always focused in VR
-        return VRState.vrRunning ? PowerState.FOCUSED : value;
+        return VRState.VR_RUNNING ? PowerState.FOCUSED : value;
     }
 }

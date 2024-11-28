@@ -22,19 +22,19 @@ import java.util.stream.Collectors;
 
 public class UpdateChecker {
 
-    public static boolean hasUpdate = false;
+    public static boolean HAS_UPDATE = false;
 
-    public static String changelog = "";
+    public static String CHANGELOG = "";
 
-    public static String newestVersion = "";
+    public static String NEWEST_VERSION = "";
 
     public static boolean checkForUpdates() {
-        VRSettings.logger.info("Vivecraft: Checking for Updates");
+        VRSettings.LOGGER.info("Vivecraft: Checking for Updates");
 
         char updateType;
         if (Xplat.isDedicatedServer()) {
             // server
-            updateType = ServerConfig.checkForUpdateType.get().charAt(0);
+            updateType = ServerConfig.CHECK_FOR_UPDATE_TYPE.get().charAt(0);
         } else {
             // client
             updateType = switch (ClientDataHolderVR.getInstance().vrSettings.updateType) {
@@ -54,7 +54,7 @@ public class UpdateChecker {
             conn.connect();
 
             if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                VRSettings.logger.error("Vivecraft: Error '{}' fetching updates", conn.getResponseCode());
+                VRSettings.LOGGER.error("Vivecraft: Error '{}' fetching updates", conn.getResponseCode());
                 return false;
             }
 
@@ -88,22 +88,22 @@ public class UpdateChecker {
 
             for (Version v : versions) {
                 if (v.isVersionType(updateType) && current.compareTo(v) > 0) {
-                    changelog += "§a" + v.fullVersion + "§r" + ": \n" + v.changelog + "\n\n";
-                    if (newestVersion.isEmpty()) {
-                        newestVersion = v.fullVersion;
+                    CHANGELOG += "§a" + v.fullVersion + "§r" + ": \n" + v.changelog + "\n\n";
+                    if (NEWEST_VERSION.isEmpty()) {
+                        NEWEST_VERSION = v.fullVersion;
                     }
-                    hasUpdate = true;
+                    HAS_UPDATE = true;
                 }
             }
             // no carriage returns please
-            changelog = changelog.replaceAll("\\r", "");
-            if (hasUpdate) {
-                VRSettings.logger.info("Vivecraft update found: {}", newestVersion);
+            CHANGELOG = CHANGELOG.replaceAll("\\r", "");
+            if (HAS_UPDATE) {
+                VRSettings.LOGGER.info("Vivecraft update found: {}", NEWEST_VERSION);
             }
         } catch (IOException e) {
-            VRSettings.logger.error("Vivecraft: fetching available vivecraft updates: ", e);
+            VRSettings.LOGGER.error("Vivecraft: fetching available vivecraft updates: ", e);
         }
-        return hasUpdate;
+        return HAS_UPDATE;
     }
 
     private static String inputStreamToString(InputStream inputStream) {

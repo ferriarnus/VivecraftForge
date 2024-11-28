@@ -42,7 +42,7 @@ public abstract class AbstractClientPlayerMixin extends LivingEntityMixin {
         Level instance, ParticleOptions particleData, double x, double y, double z, double xSpeed, double ySpeed,
         double zSpeed, Operation<Void> original)
     {
-        if ((Object) this == Minecraft.getInstance().player && VRState.vrRunning) {
+        if ((Object) this == Minecraft.getInstance().player && VRState.VR_RUNNING) {
             // local player
             Vec3 pos = RenderHelper.getControllerRenderPos(this.getUsedItemHand() == InteractionHand.MAIN_HAND ? 0 : 1);
             Vec3 dir = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().hmd.getDirection();

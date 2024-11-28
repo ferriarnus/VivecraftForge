@@ -71,7 +71,7 @@ public abstract class ItemInHandRendererVRMixin {
         PoseStack poseStack, MultiBufferSource buffer, int combinedLight, float equippedProgress, float swingProgress,
         HumanoidArm side, CallbackInfo ci)
     {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             vivecraft$vrPlayerArm(poseStack, buffer, combinedLight, swingProgress, side);
             ci.cancel();
         }
@@ -83,7 +83,7 @@ public abstract class ItemInHandRendererVRMixin {
         ItemStack itemStack, float equippedProgress, PoseStack poseStack, MultiBufferSource buffer, int combinedLight,
         CallbackInfo ci)
     {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             this.vivecraft$vrRenderArmWithItem(player, partialTick, hand, swingProgress, itemStack, poseStack, buffer, combinedLight);
             ci.cancel();
         }
@@ -163,7 +163,7 @@ public abstract class ItemInHandRendererVRMixin {
                     ItemDisplayContext.FIRST_PERSON_RIGHT_HAND : ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
             }
 
-            ClientDataHolderVR.isfphand = true;
+            ClientDataHolderVR.IS_FP_HAND = true;
 
             if (transformType == VivecraftItemRendering.VivecraftItemTransformType.Map) {
                 RenderSystem.disableCull();
@@ -200,7 +200,7 @@ public abstract class ItemInHandRendererVRMixin {
                 this.renderItem(player, itemStack, itemDisplayContext, !mainHand && useLeftHandModelinLeftHand, poseStack, buffer, combinedLight);
             }
 
-            ClientDataHolderVR.isfphand = false;
+            ClientDataHolderVR.IS_FP_HAND = false;
             poseStack.popPose();
         }
 

@@ -29,7 +29,7 @@ public class MovementTutorialStepInstanceVRMixin {
 
     @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/toasts/TutorialToast;<init>(Lnet/minecraft/client/gui/components/toasts/TutorialToast$Icons;Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/Component;Z)V", ordinal = 0), index = 1)
     private Component vivecraft$alterMovementTitle(Component title) {
-        if (!VRState.vrRunning || ClientDataHolderVR.getInstance().vrSettings.seated) {
+        if (!VRState.VR_RUNNING || ClientDataHolderVR.getInstance().vrSettings.seated) {
             return title;
         }
         // find the currently used movement binding
@@ -97,7 +97,7 @@ public class MovementTutorialStepInstanceVRMixin {
 
     @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/toasts/TutorialToast;<init>(Lnet/minecraft/client/gui/components/toasts/TutorialToast$Icons;Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/Component;Z)V", ordinal = 0), index = 2)
     private Component vivecraft$alterMovementDescription(Component description) {
-        if (!VRState.vrRunning || ClientDataHolderVR.getInstance().vrSettings.seated) {
+        if (!VRState.VR_RUNNING || ClientDataHolderVR.getInstance().vrSettings.seated) {
             return description;
         }
 
@@ -109,7 +109,7 @@ public class MovementTutorialStepInstanceVRMixin {
 
     @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/toasts/TutorialToast;<init>(Lnet/minecraft/client/gui/components/toasts/TutorialToast$Icons;Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/Component;Z)V", ordinal = 1), index = 2)
     private Component vivecraft$alterLookDescription(Component title) {
-        if (!VRState.vrRunning || ClientDataHolderVR.getInstance().vrSettings.seated) {
+        if (!VRState.VR_RUNNING || ClientDataHolderVR.getInstance().vrSettings.seated) {
             return title;
         } else {
             return Component.translatable("vivecraft.toasts.point_controller", Component.translatable(ClientDataHolderVR.getInstance().vrSettings.reverseHands ? "vivecraft.toasts.point_controller.left" : "vivecraft.toasts.point_controller.right").withStyle(ChatFormatting.BOLD));

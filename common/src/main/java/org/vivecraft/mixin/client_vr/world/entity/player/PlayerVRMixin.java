@@ -13,7 +13,7 @@ public class PlayerVRMixin {
 
     @WrapOperation(method = "maybeBackOffFromEdge", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/AABB;move(DDD)Lnet/minecraft/world/phys/AABB;"))
     private AABB vivecraft$moveSidewaysExtendDown(AABB instance, double x, double y, double z, Operation<AABB> original) {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             return original.call(instance, x, y, z);
         } else {
             // this is to fix an issue with a maxStepUp size of 1 and trapdoors

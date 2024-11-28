@@ -27,68 +27,68 @@ public abstract class WindowVRMixin implements WindowExtension {
     // TODO: this doesn't disable sodium extras adaptive sync
     @ModifyVariable(method = "updateVsync", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private boolean vivecraft$overwriteVsync(boolean vsync) {
-        return VRState.vrRunning ? false : vsync;
+        return VRState.VR_RUNNING ? false : vsync;
     }
 
     @Inject(method = "getWidth", at = @At("HEAD"), cancellable = true)
     private void vivecraft$getVivecraftWidth(CallbackInfoReturnable<Integer> cir) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             cir.setReturnValue(Minecraft.getInstance().getMainRenderTarget().viewWidth);
         }
     }
 
     @Inject(method = "getHeight", at = @At("HEAD"), cancellable = true)
     private void vivecraft$getVivecraftHeight(CallbackInfoReturnable<Integer> cir) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             cir.setReturnValue(Minecraft.getInstance().getMainRenderTarget().viewHeight);
         }
     }
 
     @Inject(method = "getScreenWidth", at = @At("HEAD"), cancellable = true)
     private void vivecraft$getVivecraftScreenWidth(CallbackInfoReturnable<Integer> cir) {
-        if (VRState.vrRunning) {
-            cir.setReturnValue(GuiHandler.guiWidth);
+        if (VRState.VR_RUNNING) {
+            cir.setReturnValue(GuiHandler.GUI_WIDTH);
         }
     }
 
     @Inject(method = "getScreenHeight", at = @At("HEAD"), cancellable = true)
     private void vivecraft$getVivecraftScreenHeight(CallbackInfoReturnable<Integer> cir) {
-        if (VRState.vrRunning) {
-            cir.setReturnValue(GuiHandler.guiHeight);
+        if (VRState.VR_RUNNING) {
+            cir.setReturnValue(GuiHandler.GUI_HEIGHT);
         }
     }
 
 
     @Inject(method = "getGuiScaledHeight", at = @At("HEAD"), cancellable = true)
     private void vivecraft$getScaledHeight(CallbackInfoReturnable<Integer> cir) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             cir.setReturnValue(
                 Minecraft.getInstance().screen == null && ClientDataHolderVR.getInstance().vrSettings.hudMaxScale ?
-                    GuiHandler.scaledHeightMax : GuiHandler.scaledHeight);
+                    GuiHandler.SCALED_HEIGHT_MAX : GuiHandler.SCALED_HEIGHT);
         }
     }
 
     @Inject(method = "getGuiScaledWidth", at = @At("HEAD"), cancellable = true)
     private void vivecraft$getScaledWidth(CallbackInfoReturnable<Integer> cir) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             cir.setReturnValue(
                 Minecraft.getInstance().screen == null && ClientDataHolderVR.getInstance().vrSettings.hudMaxScale ?
-                    GuiHandler.scaledWidthMax : GuiHandler.scaledWidth);
+                    GuiHandler.SCALED_WIDTH_MAX : GuiHandler.SCALED_WIDTH);
         }
     }
 
     @Inject(method = "getGuiScale", at = @At("HEAD"), cancellable = true)
     private void vivecraft$getScaleFactor(CallbackInfoReturnable<Double> cir) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             cir.setReturnValue(
                 Minecraft.getInstance().screen == null && ClientDataHolderVR.getInstance().vrSettings.hudMaxScale ?
-                    (double) GuiHandler.guiScaleFactorMax : (double) GuiHandler.guiScaleFactor);
+                    (double) GuiHandler.GUI_SCALE_FACTOR_MAX : (double) GuiHandler.GUI_SCALE_FACTOR);
         }
     }
 
     @Inject(method = "onResize", at = @At("HEAD"))
     private void vivecraft$resizeFrameBuffers(CallbackInfo ci) {
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             ClientDataHolderVR.getInstance().vrRenderer.resizeFrameBuffers("Main Window Resized");
         }
     }

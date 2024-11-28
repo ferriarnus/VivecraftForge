@@ -13,15 +13,15 @@ import java.util.ArrayList;
 
 public class MirrorNotification {
 
-    private static final Minecraft mc = Minecraft.getInstance();
+    private static final Minecraft MC = Minecraft.getInstance();
 
-    private static long mirrorNotifyStart;
+    private static long MIRROR_NOTIFY_START;
 
-    private static long mirrorNotifyLen;
+    private static long MIRROR_NOTIFY_LEN;
 
-    private static boolean mirrorNotifyClear;
+    private static boolean MIRROR_NOTIFY_CLEAR;
 
-    private static String mirrorNotifyText;
+    private static String MIRROR_NOTIFY_TEXT;
 
     /**
      * shows notification text on the desktop window
@@ -30,19 +30,19 @@ public class MirrorNotification {
      * @param lengthMs how many milliseconds the text should be shown
      */
     public static void notify(String text, boolean clear, int lengthMs) {
-        mirrorNotifyStart = System.currentTimeMillis();
-        mirrorNotifyText = text;
-        mirrorNotifyClear = clear;
-        mirrorNotifyLen = lengthMs;
+        MIRROR_NOTIFY_START = System.currentTimeMillis();
+        MIRROR_NOTIFY_TEXT = text;
+        MIRROR_NOTIFY_CLEAR = clear;
+        MIRROR_NOTIFY_LEN = lengthMs;
     }
 
     /**
      * draws the notification text
      */
     public static void render() {
-        if (System.currentTimeMillis() < mirrorNotifyStart + mirrorNotifyLen) {
-            int screenX = ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenWidth();
-            int screenY = ((WindowExtension) (Object) mc.getWindow()).vivecraft$getActualScreenHeight();
+        if (System.currentTimeMillis() < MIRROR_NOTIFY_START + MIRROR_NOTIFY_LEN) {
+            int screenX = ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenWidth();
+            int screenY = ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenHeight();
 
             RenderSystem.viewport(0, 0, screenX, screenY);
             Matrix4f projection = new Matrix4f().setOrtho(0.0F, screenX,
@@ -56,10 +56,10 @@ public class MirrorNotification {
 
             RenderSystem.setShaderFogStart(Float.MAX_VALUE);
 
-            GuiGraphics guiGraphics = new GuiGraphics(mc, mc.renderBuffers().bufferSource());
+            GuiGraphics guiGraphics = new GuiGraphics(MC, MC.renderBuffers().bufferSource());
             guiGraphics.pose().scale(3, 3, 3);
 
-            if (mirrorNotifyClear) {
+            if (MIRROR_NOTIFY_CLEAR) {
                 RenderSystem.clearColor(0, 0, 0, 0);
                 RenderSystem.clear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
             } else {
@@ -69,15 +69,15 @@ public class MirrorNotification {
             final int TEXT_WORDWRAP_LEN = screenX / 22;
             ArrayList<String> wrapped = new ArrayList<>();
 
-            if (mirrorNotifyText != null) {
-                TextUtils.wordWrap(mirrorNotifyText, TEXT_WORDWRAP_LEN, wrapped);
+            if (MIRROR_NOTIFY_TEXT != null) {
+                TextUtils.wordWrap(MIRROR_NOTIFY_TEXT, TEXT_WORDWRAP_LEN, wrapped);
             }
 
             int column = 1;
             final int COLUMN_GAP = 12;
 
             for (String line : wrapped) {
-                guiGraphics.drawString(mc.font, line, 1, column, 0xFFFFFF);
+                guiGraphics.drawString(MC.font, line, 1, column, 0xFFFFFF);
                 column += COLUMN_GAP;
             }
             guiGraphics.flush();

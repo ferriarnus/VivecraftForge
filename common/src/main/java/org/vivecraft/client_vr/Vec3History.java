@@ -7,18 +7,18 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 
 public class Vec3History {
-    private static final int _capacity = 450;
-    private final LinkedList<Entry> _data = new LinkedList<>();
+    private static final int CAPACITY = 450;
+    private final LinkedList<Entry> data = new LinkedList<>();
 
     /**
      * adds a new entry with the given Vec3
      * @param in Vec3 to add
      */
     public void add(Vec3 in) {
-        this._data.add(new Entry(in));
+        this.data.add(new Entry(in));
 
-        if (this._data.size() > _capacity) {
-            this._data.removeFirst();
+        if (this.data.size() > CAPACITY) {
+            this.data.removeFirst();
         }
     }
 
@@ -26,14 +26,14 @@ public class Vec3History {
      * clears all data
      */
     public void clear() {
-        this._data.clear();
+        this.data.clear();
     }
 
     /**
      * @return the newest Vec3
      */
     public Vec3 latest() {
-        return (this._data.getLast()).data;
+        return (this.data.getLast()).vec;
     }
 
     /**
@@ -43,7 +43,7 @@ public class Vec3History {
      */
     public double totalMovement(double seconds) {
         long now = Util.getMillis();
-        ListIterator<Entry> iterator = this._data.listIterator(this._data.size());
+        ListIterator<Entry> iterator = this.data.listIterator(this.data.size());
         Entry last = null;
         double distance = 0.0D;
 
@@ -57,7 +57,7 @@ public class Vec3History {
                 if (last == null) {
                     last = current;
                 } else {
-                    distance += last.data.distanceTo(current.data);
+                    distance += last.vec.distanceTo(current.vec);
                 }
             }
         }
@@ -72,7 +72,7 @@ public class Vec3History {
      */
     public Vec3 netMovement(double seconds) {
         long now = Util.getMillis();
-        ListIterator<Entry> iterator = this._data.listIterator(this._data.size());
+        ListIterator<Entry> iterator = this.data.listIterator(this.data.size());
         Entry last = null;
         Entry first = null;
 
@@ -90,7 +90,7 @@ public class Vec3History {
             }
         }
 
-        return last != null && first != null ? last.data.subtract(first.data) : new Vec3(0.0D, 0.0D, 0.0D);
+        return last != null && first != null ? last.vec.subtract(first.vec) : new Vec3(0.0D, 0.0D, 0.0D);
     }
 
     /**
@@ -100,7 +100,7 @@ public class Vec3History {
      */
     public double averageSpeed(double seconds) {
         long now = Util.getMillis();
-        ListIterator<Entry> iterator = this._data.listIterator(this._data.size());
+        ListIterator<Entry> iterator = this.data.listIterator(this.data.size());
         double speedTotal = 0.0D;
         Entry last = null;
         int count = 0;
@@ -117,7 +117,7 @@ public class Vec3History {
             } else {
                 count++;
                 double timeDelta = 0.001D * (last.ts - current.ts);
-                double positionDelta = last.data.subtract(current.data).length();
+                double positionDelta = last.vec.subtract(current.vec).length();
                 speedTotal += positionDelta / timeDelta;
             }
         }
@@ -132,7 +132,7 @@ public class Vec3History {
      */
     public Vec3 averagePosition(double seconds) {
         long now = Util.getMillis();
-        ListIterator<Entry> iterator = this._data.listIterator(this._data.size());
+        ListIterator<Entry> iterator = this.data.listIterator(this.data.size());
         Vec3 vec3 = new Vec3(0.0D, 0.0D, 0.0D);
         int count = 0;
 
@@ -143,7 +143,7 @@ public class Vec3History {
                 break;
             }
 
-            vec3 = vec3.add(current.data);
+            vec3 = vec3.add(current.vec);
             count++;
         }
 
@@ -153,12 +153,9 @@ public class Vec3History {
     /**
      * Entry holding a position and timestamp
      */
-    private static class Entry {
-        public long ts = Util.getMillis();
-        public Vec3 data;
-
-        public Entry(Vec3 in) {
-            this.data = in;
+    private record Entry(Vec3 vec, long ts) {
+        public Entry(Vec3 vec) {
+            this(vec, Util.getMillis());
         }
     }
 }

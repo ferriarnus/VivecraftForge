@@ -112,7 +112,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     @Unique
     private void vivecraft$addLayerClone(RenderLayer<T, M> renderLayer, LivingEntityRenderer<T, M> target) {
         try {
-            VRSettings.logger.warn("Vivecraft: Copying layer: {} with Object.copy, this could cause issues", renderLayer.getClass());
+            VRSettings.LOGGER.warn("Vivecraft: Copying layer: {} with Object.copy, this could cause issues", renderLayer.getClass());
             RenderLayer<T, M> newLayer = (RenderLayer<T, M>) ((RenderLayerExtension) renderLayer).clone();
             newLayer.renderer = target;
             target.addLayer(newLayer);

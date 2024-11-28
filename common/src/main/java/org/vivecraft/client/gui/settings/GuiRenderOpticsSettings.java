@@ -102,7 +102,7 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
     protected void loadDefaults() {
         super.loadDefaults();
         this.minecraft.options.fov().set(70);
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             this.dataHolder.vrRenderer.reinitFrameBuffers("Defaults Loaded");
         }
     }
@@ -111,7 +111,7 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
     protected void actionPerformed(AbstractWidget widget) {
         if (widget instanceof GuiVROption guivroption) {
             if (guivroption.getId() == VRSettings.VrOptions.MIRROR_DISPLAY.ordinal() || guivroption.getId() == VRSettings.VrOptions.FSAA.ordinal() || guivroption.getId() == VRSettings.VrOptions.STENCIL_ON.ordinal()) {
-                if (VRState.vrInitialized) {
+                if (VRState.VR_INITIALIZED) {
                     if (guivroption.getId() == VRSettings.VrOptions.MIRROR_DISPLAY.ordinal() && ShadersHelper.isShaderActive()) {
                         this.dataHolder.vrRenderer.resizeFrameBuffers("Render Setting Changed");
                     } else {
@@ -132,7 +132,7 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
         if (this.vrSettings.renderScaleFactor != this.prevRenderScaleFactor || this.vrSettings.handCameraResScale != this.prevHandCameraResScale) {
             this.prevRenderScaleFactor = this.vrSettings.renderScaleFactor;
             this.prevHandCameraResScale = this.vrSettings.handCameraResScale;
-            if (VRState.vrInitialized) {
+            if (VRState.VR_INITIALIZED) {
                 this.dataHolder.vrRenderer.resizeFrameBuffers("Render Scale Changed: VR scale: %.1fx, Camera scale: %.1fx".formatted(this.vrSettings.renderScaleFactor, this.vrSettings.handCameraResScale));
             }
         }

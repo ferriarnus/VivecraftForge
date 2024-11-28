@@ -31,39 +31,39 @@ import java.util.Map;
 
 public class ClientNetworking {
 
-    public static boolean displayedChatMessage = false;
-    public static boolean displayedChatWarning = false;
-    public static boolean serverWantsData = false;
-    public static boolean serverAllowsClimbey = false;
-    public static boolean serverSupportsDirectTeleport = false;
-    public static boolean serverAllowsCrawling = false;
-    public static boolean serverAllowsVrSwitching = false;
+    public static boolean DISPLAYED_CHAT_MESSAGE = false;
+    public static boolean DISPLAYED_CHAT_WARNING = false;
+    public static boolean SERVER_WANTS_DATA = false;
+    public static boolean SERVER_SUPPORTS_DIRECT_TELEPORT = false;
+    public static boolean SERVER_ALLOWS_CLIMBEY = false;
+    public static boolean SERVER_ALLOWS_CRAWLING = false;
+    public static boolean SERVER_ALLOWS_VR_SWITCHING = false;
     // assume a legacy server by default, to not send invalid packets
     // -1 == legacy server
-    public static int usedNetworkVersion = -1;
-    private static float worldScallast = 0.0F;
-    private static float heightlast = 0.0F;
-    private static float capturedYaw;
-    private static float capturedPitch;
-    private static boolean overrideActive;
+    public static int USED_NETWORK_VERSION = -1;
+    private static float WORLDSCALE_LAST = 0.0F;
+    private static float HEIGHT_LAST = 0.0F;
+    private static float CAPTURED_YAW;
+    private static float CAPTURED_PITCH;
+    private static boolean OVERRIDE_ACTIVE;
 
-    public static boolean needsReset = true;
+    public static boolean NEEDS_RESET = true;
 
     public static void resetServerSettings() {
-        worldScallast = 0.0F;
-        heightlast = 0.0F;
-        serverAllowsClimbey = false;
-        serverWantsData = false;
-        serverSupportsDirectTeleport = false;
-        serverAllowsCrawling = false;
-        serverAllowsVrSwitching = false;
-        usedNetworkVersion = -1;
+        WORLDSCALE_LAST = 0.0F;
+        HEIGHT_LAST = 0.0F;
+        SERVER_ALLOWS_CLIMBEY = false;
+        SERVER_WANTS_DATA = false;
+        SERVER_SUPPORTS_DIRECT_TELEPORT = false;
+        SERVER_ALLOWS_CRAWLING = false;
+        SERVER_ALLOWS_VR_SWITCHING = false;
+        USED_NETWORK_VERSION = -1;
 
         // clear VR player data
         VRPlayersClient.clear();
         // clear teleport
         VRServerPerms.INSTANCE.setTeleportSupported(false);
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             ClientDataHolderVR.getInstance().vrPlayer.setTeleportOverride(false);
         }
         // clear server overrides
@@ -75,43 +75,43 @@ public class ClientNetworking {
         Minecraft.getInstance().getConnection().send(createServerPacket(
             new VersionPayloadC2S(
                 CommonDataHolder.getInstance().versionIdentifier,
-                VRState.vrRunning,
+                VRState.VR_RUNNING,
                 CommonNetworkHelper.MAX_SUPPORTED_NETWORK_VERSION,
                 CommonNetworkHelper.MIN_SUPPORTED_NETWORK_VERSION)));
     }
 
     public static void sendVRPlayerPositions(VRPlayer vrPlayer) {
         var connection = Minecraft.getInstance().getConnection();
-        if (!serverWantsData || connection == null) {
+        if (!SERVER_WANTS_DATA || connection == null) {
             return;
         }
 
         float worldScale = ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_post.worldScale;
 
-        if (worldScale != worldScallast) {
+        if (worldScale != WORLDSCALE_LAST) {
             connection.send(createServerPacket(new WorldScalePayloadC2S(worldScale)));
 
-            worldScallast = worldScale;
+            WORLDSCALE_LAST = worldScale;
         }
 
         float userHeight = AutoCalibration.getPlayerHeight();
 
-        if (userHeight != heightlast) {
-            connection.send(createServerPacket(new HeightPayloadC2S(userHeight / AutoCalibration.defaultHeight)));
+        if (userHeight != HEIGHT_LAST) {
+            connection.send(createServerPacket(new HeightPayloadC2S(userHeight / AutoCalibration.DEFAULT_HEIGHT)));
 
-            heightlast = userHeight;
+            HEIGHT_LAST = userHeight;
         }
 
         var vrPlayerState = VrPlayerState.create(vrPlayer);
 
-        if (usedNetworkVersion >= 0) {
+        if (USED_NETWORK_VERSION >= 0) {
             connection.send(createServerPacket(new VRPlayerStatePayloadC2S(vrPlayerState)));
         } else {
             sendLegacyPackets(connection, vrPlayerState);
         }
         VRPlayersClient.getInstance()
             .update(Minecraft.getInstance().player.getGameProfile().getId(), vrPlayerState, worldScale,
-                userHeight / AutoCalibration.defaultHeight, true);
+                userHeight / AutoCalibration.DEFAULT_HEIGHT, true);
     }
 
     public static Packet<?> createServerPacket(VivecraftPayloadC2S payload) {
@@ -161,7 +161,7 @@ public class ClientNetworking {
     }
 
     public static void sendActiveHand(byte c) {
-        if (serverWantsData) {
+        if (SERVER_WANTS_DATA) {
             if (Minecraft.getInstance().getConnection() != null) {
                 Minecraft.getInstance().getConnection().send(createServerPacket(new ActiveHandPayloadC2S(c)));
             }
@@ -175,21 +175,21 @@ public class ClientNetworking {
     }
 
     public static void overrideLook(Player player, Vec3 view) {
-        if (serverWantsData) return; // shouldn't be needed, don't tease the anti-cheat.
+        if (SERVER_WANTS_DATA) return; // shouldn't be needed, don't tease the anti-cheat.
 
-        capturedPitch = player.getXRot();
-        capturedYaw = player.getYRot();
+        CAPTURED_PITCH = player.getXRot();
+        CAPTURED_YAW = player.getYRot();
         float pitch = (float) Math.toDegrees(Math.asin(-view.y / view.length()));
         float yaw = (float) Math.toDegrees(Math.atan2(-view.x, view.z));
         ((LocalPlayer) player).connection.send(new ServerboundMovePlayerPacket.Rot(yaw, pitch, player.onGround()));
-        overrideActive = true;
+        OVERRIDE_ACTIVE = true;
     }
 
     public static void restoreLook(Player player) {
-        if (!serverWantsData) {
-            if (overrideActive) {
-                ((LocalPlayer) player).connection.send(new ServerboundMovePlayerPacket.Rot(capturedYaw, capturedPitch, player.onGround()));
-                overrideActive = false;
+        if (!SERVER_WANTS_DATA) {
+            if (OVERRIDE_ACTIVE) {
+                ((LocalPlayer) player).connection.send(new ServerboundMovePlayerPacket.Rot(CAPTURED_YAW, CAPTURED_PITCH, player.onGround()));
+                OVERRIDE_ACTIVE = false;
             }
         }
     }
@@ -200,22 +200,22 @@ public class ClientNetworking {
         switch (s2cPayload.payloadId()) {
             case VERSION -> {
                 VRServerPerms.INSTANCE.setTeleportSupported(true);
-                if (VRState.vrInitialized) {
+                if (VRState.VR_INITIALIZED) {
                     dataholder.vrPlayer.teleportWarning = false;
                     dataholder.vrPlayer.vrSwitchWarning = true;
                 }
-                if (!ClientNetworking.displayedChatMessage &&
+                if (!ClientNetworking.DISPLAYED_CHAT_MESSAGE &&
                     (dataholder.vrSettings.showServerPluginMessage == VRSettings.ChatServerPluginMessage.ALWAYS ||
                         (dataholder.vrSettings.showServerPluginMessage ==
                             VRSettings.ChatServerPluginMessage.SERVER_ONLY && !Minecraft.getInstance().isLocalServer()
                         )
                     ))
                 {
-                    ClientNetworking.displayedChatMessage = true;
+                    ClientNetworking.DISPLAYED_CHAT_MESSAGE = true;
                     mc.gui.getChat().addMessage(Component.translatable("vivecraft.messages.serverplugin",
                         ((VersionPayloadS2C) s2cPayload).version()));
                 }
-                if (VRState.vrEnabled && dataholder.vrSettings.manualCalibration == -1.0F && !dataholder.vrSettings.seated) {
+                if (VRState.VR_ENABLED && dataholder.vrSettings.manualCalibration == -1.0F && !dataholder.vrSettings.seated) {
                     mc.gui.getChat().addMessage(Component.translatable("vivecraft.messages.calibrateheight"));
                 }
             }
@@ -225,10 +225,10 @@ public class ClientNetworking {
                     VRPlayersClient.getInstance().disableVR(packet.playerID());
                 }
             }
-            case REQUESTDATA -> ClientNetworking.serverWantsData = true;
+            case REQUESTDATA -> ClientNetworking.SERVER_WANTS_DATA = true;
             case CLIMBING -> {
                 ClimbingPayloadS2C packet = (ClimbingPayloadS2C) s2cPayload;
-                ClientNetworking.serverAllowsClimbey = packet.allowed();
+                ClientNetworking.SERVER_ALLOWS_CLIMBEY = packet.allowed();
                 dataholder.climbTracker.serverBlockmode = packet.blockmode();
                 dataholder.climbTracker.blocklist.clear();
 
@@ -243,7 +243,7 @@ public class ClientNetworking {
                     }
                 }
             }
-            case TELEPORT -> ClientNetworking.serverSupportsDirectTeleport = true;
+            case TELEPORT -> ClientNetworking.SERVER_SUPPORTS_DIRECT_TELEPORT = true;
             case UBERPACKET -> {
                 UberPacketPayloadS2C packet = (UberPacketPayloadS2C) s2cPayload;
                 VRPlayersClient.getInstance().update(packet.playerID(), packet.state(), packet.worldScale(), packet.heightScale());
@@ -275,20 +275,20 @@ public class ClientNetworking {
                                 }
                             }
 
-                            VRSettings.logger.info("Vivecraft: Server setting override: {}={}", override.getKey(), override.getValue());
+                            VRSettings.LOGGER.info("Vivecraft: Server setting override: {}={}", override.getKey(), override.getValue());
                         } catch (Exception exception) {
-                            VRSettings.logger.error("Vivecraft: error parsing server setting override: ", exception);
+                            VRSettings.LOGGER.error("Vivecraft: error parsing server setting override: ", exception);
                         }
                     }
                 }
             }
-            case CRAWL -> ClientNetworking.serverAllowsCrawling = true;
+            case CRAWL -> ClientNetworking.SERVER_ALLOWS_CRAWLING = true;
             case NETWORK_VERSION ->
-                ClientNetworking.usedNetworkVersion = ((NetworkVersionPayloadS2C) s2cPayload).version();
+                ClientNetworking.USED_NETWORK_VERSION = ((NetworkVersionPayloadS2C) s2cPayload).version();
             case VR_SWITCHING -> {
-                ClientNetworking.serverAllowsVrSwitching = ((VRSwitchingPayloadS2C) s2cPayload).allowed();
-                if (VRState.vrInitialized) {
-                    if (!ClientNetworking.serverAllowsVrSwitching) {
+                ClientNetworking.SERVER_ALLOWS_VR_SWITCHING = ((VRSwitchingPayloadS2C) s2cPayload).allowed();
+                if (VRState.VR_INITIALIZED) {
+                    if (!ClientNetworking.SERVER_ALLOWS_VR_SWITCHING) {
                         Minecraft.getInstance().gui.getChat().addMessage(Component.translatable("vivecraft.messages.novrhotswitching"));
                     }
                     dataholder.vrPlayer.vrSwitchWarning = false;

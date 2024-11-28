@@ -38,11 +38,11 @@ public abstract class ClientPacketListenerVRMixin extends ClientCommonPacketList
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void vivecraft$init(CallbackInfo ci) {
-        if (ClientNetworking.needsReset) {
+        if (ClientNetworking.NEEDS_RESET) {
             ClientNetworking.resetServerSettings();
-            ClientNetworking.displayedChatMessage = false;
-            ClientNetworking.displayedChatWarning = false;
-            ClientNetworking.needsReset = false;
+            ClientNetworking.DISPLAYED_CHAT_MESSAGE = false;
+            ClientNetworking.DISPLAYED_CHAT_WARNING = false;
+            ClientNetworking.NEEDS_RESET = false;
         }
     }
 
@@ -54,7 +54,7 @@ public abstract class ClientPacketListenerVRMixin extends ClientCommonPacketList
         // request server data
         ClientNetworking.sendVersionInfo();
 
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             // set the timer, even if vr is currently not running
             ClientDataHolderVR.getInstance().vrPlayer.chatWarningTimer = 200;
             ClientDataHolderVR.getInstance().vrPlayer.teleportWarning = true;
@@ -70,7 +70,7 @@ public abstract class ClientPacketListenerVRMixin extends ClientCommonPacketList
         // request server data
         ClientNetworking.sendVersionInfo();
 
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             // set the timer, even if vr is currently not running
             ClientDataHolderVR.getInstance().vrPlayer.chatWarningTimer = 200;
             ClientDataHolderVR.getInstance().vrPlayer.teleportWarning = true;
@@ -81,9 +81,9 @@ public abstract class ClientPacketListenerVRMixin extends ClientCommonPacketList
     @Inject(method = "close", at = @At("TAIL"))
     private void vivecraft$cleanup(CallbackInfo ci) {
         ClientNetworking.resetServerSettings();
-        ClientNetworking.displayedChatMessage = false;
-        ClientNetworking.displayedChatWarning = false;
-        ClientNetworking.needsReset = true;
+        ClientNetworking.DISPLAYED_CHAT_MESSAGE = false;
+        ClientNetworking.DISPLAYED_CHAT_WARNING = false;
+        ClientNetworking.NEEDS_RESET = true;
     }
 
     @Inject(method = "sendChat", at = @At("TAIL"))
@@ -98,7 +98,7 @@ public abstract class ClientPacketListenerVRMixin extends ClientCommonPacketList
 
     @Inject(method = "handlePlayerChat", at = @At("TAIL"))
     private void vivecraft$chatHapticsPlayer(ClientboundPlayerChatPacket packet, CallbackInfo ci) {
-        if (VRState.vrRunning && (this.minecraft.player == null || this.vivecraft$lastMsg == null ||
+        if (VRState.VR_RUNNING && (this.minecraft.player == null || this.vivecraft$lastMsg == null ||
             packet.sender() == this.minecraft.player.getUUID()
         ))
         {
@@ -109,7 +109,7 @@ public abstract class ClientPacketListenerVRMixin extends ClientCommonPacketList
 
     @Inject(method = "handleSystemChat", at = @At("TAIL"))
     private void vivecraft$chatHapticsSystem(ClientboundSystemChatPacket packet, CallbackInfo ci) {
-        if (VRState.vrRunning && (this.minecraft.player == null || this.vivecraft$lastMsg == null ||
+        if (VRState.VR_RUNNING && (this.minecraft.player == null || this.vivecraft$lastMsg == null ||
             packet.content().getString().contains(this.vivecraft$lastMsg)
         ))
         {
@@ -144,7 +144,7 @@ public abstract class ClientPacketListenerVRMixin extends ClientCommonPacketList
 
     @Inject(method = "handleOpenScreen", at = @At("HEAD"))
     private void vivecraft$markScreenActive(CallbackInfo ci) {
-        GuiHandler.guiAppearOverBlockActive = true;
+        GuiHandler.GUI_APPEAR_OVER_BLOCK_ACTIVE = true;
     }
 
     @Inject(method = "handleCustomPayload", at = @At("TAIL"), cancellable = true)

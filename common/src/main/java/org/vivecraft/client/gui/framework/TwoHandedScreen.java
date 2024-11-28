@@ -35,10 +35,10 @@ public abstract class TwoHandedScreen extends Screen {
             this.reinit = false;
         }
 
-        double x1 = (double) this.cursorX1 * (double) this.width / (double) GuiHandler.guiWidth;
-        double y1 = (double) this.cursorY1 * (double) this.height / (double) GuiHandler.guiHeight;
-        double x2 = (double) this.cursorX2 * (double) this.width / (double) GuiHandler.guiWidth;
-        double y2 = (double) this.cursorY2 * (double) this.height / (double) GuiHandler.guiHeight;
+        double x1 = (double) this.cursorX1 * (double) this.width / (double) GuiHandler.GUI_WIDTH;
+        double y1 = (double) this.cursorY1 * (double) this.height / (double) GuiHandler.GUI_HEIGHT;
+        double x2 = (double) this.cursorX2 * (double) this.width / (double) GuiHandler.GUI_WIDTH;
+        double y2 = (double) this.cursorY2 * (double) this.height / (double) GuiHandler.GUI_HEIGHT;
 
         AbstractWidget widget1 = null;
         AbstractWidget widget2 = null;
@@ -83,7 +83,7 @@ public abstract class TwoHandedScreen extends Screen {
     }
 
     public boolean processCursor(Vec3 Pos_room, Matrix4f Rotation_room, boolean mainCursor) {
-        Vec2 tex = GuiHandler.getTexCoordsForCursor(Pos_room, Rotation_room, GuiHandler.guiScale, this.dh.vrPlayer.vrdata_room_pre.getController(mainCursor ? 1 : 0));
+        Vec2 tex = GuiHandler.getTexCoordsForCursor(Pos_room, Rotation_room, GuiHandler.GUI_SCALE, this.dh.vrPlayer.vrdata_room_pre.getController(mainCursor ? 1 : 0));
 
         // main hand
         float u = tex.x;
@@ -92,8 +92,8 @@ public abstract class TwoHandedScreen extends Screen {
         float lastX = mainCursor ? this.cursorX1 : this.cursorX2;
         float lastY = mainCursor ? this.cursorY1 : this.cursorY2;
 
-        float newX = (int) (u * GuiHandler.guiWidth);
-        float newY = (int) (v * GuiHandler.guiHeight);
+        float newX = (int) (u * GuiHandler.GUI_WIDTH);
+        float newY = (int) (v * GuiHandler.GUI_HEIGHT);
 
         boolean onScreen;
 

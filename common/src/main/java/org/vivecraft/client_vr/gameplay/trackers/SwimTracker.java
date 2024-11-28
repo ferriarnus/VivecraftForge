@@ -6,11 +6,12 @@ import net.minecraft.world.phys.Vec3;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 
 public class SwimTracker extends Tracker {
+    private static final double FRICTION = 0.9F;
+    private static final double RISE_SPEED = 0.005F;
+    private static final double SWIM_SPEED = 1.3F;
+
     private Vec3 motion = Vec3.ZERO;
     private double lastDist;
-    private static final double friction = 0.9F;
-    private static final double riseSpeed = 0.005F;
-    private static final double swimSpeed = 1.3F;
 
     public SwimTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -59,7 +60,7 @@ public class SwimTracker extends Tracker {
         double distDelta = this.lastDist - distance;
 
         if (distDelta > 0.0D) {
-            Vec3 velocity = moveDir.scale(distDelta * swimSpeed * dirFactor);
+            Vec3 velocity = moveDir.scale(distDelta * SWIM_SPEED * dirFactor);
             this.motion = this.motion.add(velocity.scale(0.15D));
         }
 
@@ -67,6 +68,6 @@ public class SwimTracker extends Tracker {
         player.setSwimming(this.motion.length() > 0.3D);
         player.setSprinting(this.motion.length() > 1.0D);
         player.push(this.motion.x, this.motion.y, this.motion.z);
-        this.motion = this.motion.scale(friction);
+        this.motion = this.motion.scale(FRICTION);
     }
 }

@@ -10,33 +10,33 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class QuaternionfHistory {
-    private static final int _capacity = 450;
-    private final LinkedList<Entry> _data = new LinkedList<>();
+    private static final int CAPACITY = 450;
+    private final LinkedList<Entry> data = new LinkedList<>();
 
     /**
      * adds a new entry with the given quaternion
      * @param in quaternion to add
      */
     public void add(Quaternionf in) {
-        this._data.add(new Entry(in));
+        this.data.add(new Entry(in));
 
-        if (this._data.size() > _capacity) {
-            this._data.removeFirst();
+        if (this.data.size() > CAPACITY) {
+            this.data.removeFirst();
         }
     }
 
     /**
-     * clears all data
+     * clears all quat
      */
     public void clear() {
-        this._data.clear();
+        this.data.clear();
     }
 
     /**
      * @return the newest Quaternion
      */
     public Quaternionf latest() {
-        return this._data.getLast().data;
+        return this.data.getLast().quat;
     }
 
     /**
@@ -46,7 +46,7 @@ public class QuaternionfHistory {
      */
     public Quaternionfc averageRotation(double seconds) {
         long now = Util.getMillis();
-        ListIterator<Entry> iterator = this._data.listIterator(this._data.size());
+        ListIterator<Entry> iterator = this.data.listIterator(this.data.size());
         List<Quaternionf> list = new LinkedList<>();
 
         while (iterator.hasPrevious()) {
@@ -55,7 +55,7 @@ public class QuaternionfHistory {
             if (now - entry.ts > seconds * 1000.0D) {
                 break;
             } else {
-                list.add(entry.data);
+                list.add(entry.quat);
             }
         }
 
@@ -71,12 +71,9 @@ public class QuaternionfHistory {
     /**
      * Entry holding a quaternion and timestamp
      */
-    private static class Entry {
-        public long ts = Util.getMillis();
-        public Quaternionf data;
-
-        public Entry(Quaternionf in) {
-            this.data = in;
+    private record Entry(Quaternionf quat, long ts) {
+        public Entry(Quaternionf quat) {
+            this(quat, Util.getMillis());
         }
     }
 }

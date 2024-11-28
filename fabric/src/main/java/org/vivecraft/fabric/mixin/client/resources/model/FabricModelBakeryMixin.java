@@ -19,11 +19,11 @@ public abstract class FabricModelBakeryMixin {
 
     @Inject(method = "<init>", at = @At(value = "CONSTANT", args = "stringValue=special"))
     private void loadModels(CallbackInfo ci) {
-        this.loadTopLevel(TelescopeTracker.scopeModel);
-        this.loadTopLevel(ClimbTracker.clawsModel);
-        this.loadTopLevel(ClientDataHolderVR.thirdPersonCameraModel);
-        this.loadTopLevel(ClientDataHolderVR.thirdPersonCameraDisplayModel);
-        this.loadTopLevel(CameraTracker.cameraModel);
-        this.loadTopLevel(CameraTracker.cameraDisplayModel);
+        this.loadTopLevel(TelescopeTracker.SCOPE_MODEL);
+        this.loadTopLevel(ClimbTracker.CLAWS_MODEL);
+        this.loadTopLevel(ClientDataHolderVR.THIRD_PERSON_CAMERA_MODEL);
+        this.loadTopLevel(ClientDataHolderVR.THIRD_PERSON_CAMERA_DISPLAY_MODEL);
+        this.loadTopLevel(CameraTracker.CAMERA_MODEL);
+        this.loadTopLevel(CameraTracker.CAMERA_DISPLAY_MODEL);
     }
 }

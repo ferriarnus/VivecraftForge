@@ -37,14 +37,14 @@ public class GuiRenderingSettings extends GuiVROptionsBase {
     @Override
     protected void actionPerformed(AbstractWidget widget) {
         if (widget instanceof GuiVROption button) {
-            if (VRState.vrInitialized && (
+            if (VRState.VR_INITIALIZED && (
                 button.getId() == VRSettings.VrOptions.DOUBLE_GUI_RESOLUTION.ordinal() ||
                 button.getId() == VRSettings.VrOptions.GUI_SCALE.ordinal()
             ))
             {
                 this.dataHolder.vrRenderer.resizeFrameBuffers("GUI Setting Changed");
                 this.reinit = true;
-            } else if (VRState.vrInitialized && button.getId() == VRSettings.VrOptions.GUI_MIPMAPS.ordinal()) {
+            } else if (VRState.VR_INITIALIZED && button.getId() == VRSettings.VrOptions.GUI_MIPMAPS.ordinal()) {
                 this.dataHolder.vrRenderer.reinitFrameBuffers("GUI Mipmpams Changed");
                 this.reinit = true;
             }

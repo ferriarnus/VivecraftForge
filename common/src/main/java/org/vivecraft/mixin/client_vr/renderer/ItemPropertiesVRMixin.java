@@ -17,7 +17,7 @@ public class ItemPropertiesVRMixin {
     private static void vivecraft$noHornUseAnim(
         CallbackInfoReturnable<Float> cir, @Local(argsOnly = true) LivingEntity entity)
     {
-        if (VRState.vrRunning && entity == Minecraft.getInstance().player) {
+        if (VRState.VR_RUNNING && entity == Minecraft.getInstance().player) {
             cir.setReturnValue(0.0F);
         }
     }

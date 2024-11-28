@@ -100,7 +100,7 @@ public class GuiMainVRSettings extends GuiVROptionsBase {
     @Override
     protected void loadDefaults() {
         super.loadDefaults();
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             MCVR.get().seatedRot = 0.0F;
             MCVR.get().clearOffset();
         }
@@ -117,7 +117,7 @@ public class GuiMainVRSettings extends GuiVROptionsBase {
     }
 
     protected void resetOrigin() {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             MCVR.get().resetPosition();
             this.vrSettings.saveOptions();
             this.minecraft.setScreen(null);

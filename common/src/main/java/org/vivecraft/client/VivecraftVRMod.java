@@ -10,19 +10,19 @@ import java.util.*;
 
 public class VivecraftVRMod {
 
-    private static final Minecraft mc = Minecraft.getInstance();
+    private static final Minecraft MC = Minecraft.getInstance();
 
-    public static VivecraftVRMod INSTANCE = new VivecraftVRMod();
+    public static final VivecraftVRMod INSTANCE = new VivecraftVRMod();
 
-    Set<KeyMapping> allKeyBindingSet;
+    private Set<KeyMapping> allKeyBindingSet;
 
     // key binds that are settable by the user
-    Set<KeyMapping> userKeyBindingSet;
+    private Set<KeyMapping> userKeyBindingSet;
 
     // key binds that are needed internally, but are not required to be set by the user
-    Set<KeyMapping> hiddenKeyBindingSet;
+    private Set<KeyMapping> hiddenKeyBindingSet;
 
-    protected Set<KeyMapping> vanillaBindingSet;
+    private Set<KeyMapping> vanillaBindingSet;
 
     public final HandedKeyBinding keyClimbeyGrab = new HandedKeyBinding("vivecraft.key.climbeyGrab", -1, "vivecraft.key.category.climbey");
     public final HandedKeyBinding keyClimbeyJump = new HandedKeyBinding("vivecraft.key.climbeyJump", -1, "vivecraft.key.category.climbey");
@@ -103,17 +103,17 @@ public class VivecraftVRMod {
             this.userKeyBindingSet.add(this.keyQuickCommand11);
             this.userKeyBindingSet.add(this.keyQuickCommand12);
 
-            this.hiddenKeyBindingSet.add(GuiHandler.keyLeftClick);
-            this.hiddenKeyBindingSet.add(GuiHandler.keyRightClick);
-            this.hiddenKeyBindingSet.add(GuiHandler.keyMiddleClick);
-            this.hiddenKeyBindingSet.add(GuiHandler.keyShift);
-            this.hiddenKeyBindingSet.add(GuiHandler.keyCtrl);
-            this.hiddenKeyBindingSet.add(GuiHandler.keyAlt);
-            this.hiddenKeyBindingSet.add(GuiHandler.keyScrollUp);
-            this.hiddenKeyBindingSet.add(GuiHandler.keyScrollDown);
-            this.hiddenKeyBindingSet.add(GuiHandler.keyScrollAxis);
-            this.hiddenKeyBindingSet.add(GuiHandler.keyKeyboardClick);
-            this.hiddenKeyBindingSet.add(GuiHandler.keyKeyboardShift);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_LEFT_CLICK);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_RIGHT_CLICK);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_MIDDLE_CLICK);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_SHIFT);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_CTRL);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_ALT);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_SCROLL_UP);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_SCROLL_DOWN);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_SCROLL_AXIS);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_KEYBOARD_CLICK);
+            this.hiddenKeyBindingSet.add(GuiHandler.KEY_KEYBOARD_SHIFT);
             this.hiddenKeyBindingSet.add(this.keyClimbeyGrab);
             this.hiddenKeyBindingSet.add(this.keyClimbeyJump);
             this.hiddenKeyBindingSet.add(this.keyMenuButton);
@@ -199,7 +199,7 @@ public class VivecraftVRMod {
      * @return true if it's a vivecraft key
      */
     public boolean isSafeBinding(KeyMapping keyMapping) {
-        return this.getAllKeyBindings().contains(keyMapping) || keyMapping == mc.options.keyChat || keyMapping == mc.options.keyInventory;
+        return this.getAllKeyBindings().contains(keyMapping) || keyMapping == MC.options.keyChat || keyMapping == MC.options.keyInventory;
     }
 
     /**
@@ -208,6 +208,6 @@ public class VivecraftVRMod {
      * @return true if it's from another mod
      */
     public boolean isModBinding(KeyMapping keyMapping) {
-        return !this.vanillaBindingSet.contains(keyMapping) && keyMapping != mc.options.keyUse;
+        return !this.vanillaBindingSet.contains(keyMapping) && keyMapping != MC.options.keyUse;
     }
 }

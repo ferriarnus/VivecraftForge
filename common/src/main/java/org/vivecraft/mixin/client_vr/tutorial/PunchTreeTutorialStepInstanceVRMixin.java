@@ -12,7 +12,7 @@ import org.vivecraft.client_vr.VRState;
 public class PunchTreeTutorialStepInstanceVRMixin {
     @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/toasts/TutorialToast;<init>(Lnet/minecraft/client/gui/components/toasts/TutorialToast$Icons;Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/Component;Z)V"), index = 2)
     private Component vivecraft$alterDescription(Component description) {
-        if (!VRState.vrRunning || ClientDataHolderVR.getInstance().vrSettings.seated) {
+        if (!VRState.VR_RUNNING || ClientDataHolderVR.getInstance().vrSettings.seated) {
             return description;
         } else {
             return Component.translatable("tutorial.find_tree.description");

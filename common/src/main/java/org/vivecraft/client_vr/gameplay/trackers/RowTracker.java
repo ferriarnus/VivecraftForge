@@ -9,13 +9,14 @@ import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.common.utils.math.Quaternion;
 
 public class RowTracker extends Tracker {
+    private static final double TRANSMISSION_EFFICIENCY = 0.9D;
+
     public double[] forces = new double[]{0.0D, 0.0D};
     public float LOar;
     public float ROar;
     public float FOar;
 
     private final Vec3[] lastUWPs = new Vec3[2];
-    private static final double transmissionEfficiency = 0.9D;
 
     public RowTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -96,7 +97,7 @@ public class RowTracker extends Tracker {
                     Vec3 forward = boatRot.multiply(new Vec3(0.0D, 0.0D, 1.0D));
 
                     //scalar projection onto forward vector
-                    double force = forceVector.dot(forward) * transmissionEfficiency / 5.0D;
+                    double force = forceVector.dot(forward) * TRANSMISSION_EFFICIENCY / 5.0D;
 
                     if ((force < 0.0D && this.forces[paddle] > 0.0D) || (force > 0.0D && this.forces[paddle] < 0.0D)) {
                         this.forces[paddle] = 0.0D;

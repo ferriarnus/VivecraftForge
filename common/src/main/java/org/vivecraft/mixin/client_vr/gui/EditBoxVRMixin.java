@@ -48,7 +48,7 @@ public abstract class EditBoxVRMixin extends AbstractWidget {
         GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci,
         @Local String content, @Local(ordinal = 4) int xPos, @Local(ordinal = 5) int yPos)
     {
-        if (VRState.vrRunning && content.isEmpty() && !ClientDataHolderVR.getInstance().vrSettings.seated && !KeyboardHandler.Showing) {
+        if (VRState.VR_RUNNING && content.isEmpty() && !ClientDataHolderVR.getInstance().vrSettings.seated && !KeyboardHandler.SHOWING) {
             if (this.hint == null || this.isFocused()) {
                 // limit text to field size
                 String fullString = I18n.get("vivecraft.message.openKeyboard");
@@ -61,7 +61,7 @@ public abstract class EditBoxVRMixin extends AbstractWidget {
 
     @Inject(method = "setFocused", at = @At("HEAD"))
     private void vivecraft$autoOpenKeyboard(boolean focused, CallbackInfo ci) {
-        if (VRState.vrRunning && focused && !(Minecraft.getInstance().screen instanceof InBedChatScreen)) {
+        if (VRState.VR_RUNNING && focused && !(Minecraft.getInstance().screen instanceof InBedChatScreen)) {
             if (ClientDataHolderVR.getInstance().vrSettings.autoOpenKeyboard == VRSettings.AutoOpenKeyboard.ON ||
                 (Minecraft.getInstance().screen instanceof ChatScreen &&
                     ClientDataHolderVR.getInstance().vrSettings.autoOpenKeyboard == VRSettings.AutoOpenKeyboard.CHAT
@@ -74,7 +74,7 @@ public abstract class EditBoxVRMixin extends AbstractWidget {
 
     @Inject(method = "onClick", at = @At(value = "HEAD"))
     private void vivecraft$openKeyboard(CallbackInfo ci) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             KeyboardHandler.setOverlayShowing(true);
         }
     }

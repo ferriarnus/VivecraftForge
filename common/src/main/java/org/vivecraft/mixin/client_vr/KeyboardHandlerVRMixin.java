@@ -32,7 +32,7 @@ public class KeyboardHandlerVRMixin {
     @Inject(method = "keyPress", at = @At(value = "FIELD", target = "Lnet/minecraft/client/KeyboardHandler;debugCrashKeyTime:J", ordinal = 0), cancellable = true)
     private void vivecraft$handleVivecraftKeys(long windowPointer, int key, int scanCode, int action, int modifiers, CallbackInfo ci) {
         if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_PRESS) {
-            if (org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler.Showing) {
+            if (org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler.SHOWING) {
                 org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler.setOverlayShowing(false);
 
                 // close chat with the keyboard
@@ -57,7 +57,7 @@ public class KeyboardHandlerVRMixin {
     private void vivecraft$markScreenshot(
         File gameDirectory, RenderTarget buffer, Consumer<Component> messageConsumer, Operation<Void> original)
     {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             original.call(gameDirectory, buffer, messageConsumer);
         } else {
             ClientDataHolderVR.getInstance().grabScreenShot = true;

@@ -133,7 +133,7 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
 
     @Inject(method = "onResourceManagerReload", at = @At("TAIL"))
     private void vivecraft$reinitVR(ResourceManager resourceManager, CallbackInfo ci) {
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             ClientDataHolderVR.getInstance().vrRenderer.reinitFrameBuffers("Resource Reload");
         }
     }
@@ -258,7 +258,7 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
     {
         if (RenderPassType.isVanilla()) return;
 
-        leftMenu.set(MethodHolder.isInMenuRoom() || this.minecraft.screen != null || KeyboardHandler.Showing);
+        leftMenu.set(MethodHolder.isInMenuRoom() || this.minecraft.screen != null || KeyboardHandler.SHOWING);
         rightMenu.set(leftMenu.get() || (ClientDataHolderVR.getInstance().interactTracker.hotbar >= 0 &&
             ClientDataHolderVR.getInstance().vrSettings.vrTouchHotbar
         ));
@@ -321,7 +321,7 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
 
     @Inject(method = "levelEvent", at = @At("HEAD"))
     private void vivecraft$shakeOnSound(int type, BlockPos pos, int data, CallbackInfo ci) {
-        boolean playerNearAndVR = VRState.vrRunning && this.minecraft.player != null &&
+        boolean playerNearAndVR = VRState.VR_RUNNING && this.minecraft.player != null &&
             this.minecraft.player.isAlive() && this.minecraft.player.blockPosition().distSqr(pos) < 25.0D;
         if (playerNearAndVR) {
             switch (type) {
@@ -352,7 +352,7 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
 
     @Inject(method = {"initOutline", "initTransparency"}, at = @At("HEAD"))
     private void vivecraft$restorePostChain(CallbackInfo ci) {
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             vivecraft$restoreVanillaPostChains();
             ClientDataHolderVR.getInstance().vrRenderer.reinitFrameBuffers("Outline/Transparency shaders Reloaded");
         }
@@ -414,7 +414,7 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
 
     @Unique
     private void vivecraft$setShaderGroup() {
-        this.transparencyChain = RenderPassManager.wrp.transparencyChain;
+        this.transparencyChain = RenderPassManager.WRP.transparencyChain;
 
         if (this.transparencyChain != null) {
             this.translucentTarget = this.transparencyChain.getTempTarget("translucent");
@@ -436,7 +436,7 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
             this.vivecraft$alphaSortVRUnoccludedFramebuffer = null;
         }
 
-        this.entityEffect = RenderPassManager.wrp.outlineChain;
+        this.entityEffect = RenderPassManager.WRP.outlineChain;
 
         if (this.entityEffect != null) {
             this.entityTarget = this.entityEffect.getTempTarget("final");

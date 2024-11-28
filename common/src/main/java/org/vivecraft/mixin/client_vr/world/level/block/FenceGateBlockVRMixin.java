@@ -21,7 +21,7 @@ public class FenceGateBlockVRMixin {
         CallbackInfoReturnable<InteractionResult> cir, @Local(argsOnly = true) BlockPos pos,
         @Local boolean opening)
     {
-        if (VRState.vrRunning && !opening && Minecraft.getInstance().player != null &&
+        if (VRState.VR_RUNNING && !opening && Minecraft.getInstance().player != null &&
             Minecraft.getInstance().player.isAlive() &&
             Minecraft.getInstance().player.blockPosition().distSqr(pos) < 25.0D)
         {
@@ -33,7 +33,7 @@ public class FenceGateBlockVRMixin {
     private void vivecraft$hapticFeedbackOnClose2(
         CallbackInfo ci, @Local(argsOnly = true, ordinal = 0) BlockPos pos, @Local(ordinal = 1) boolean opening)
     {
-        if (VRState.vrRunning && !opening && Minecraft.getInstance().player != null &&
+        if (VRState.VR_RUNNING && !opening && Minecraft.getInstance().player != null &&
             Minecraft.getInstance().player.isAlive() &&
             Minecraft.getInstance().player.blockPosition().distSqr(pos) < 25.0D)
         {

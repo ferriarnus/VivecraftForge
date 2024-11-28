@@ -12,12 +12,12 @@ public final class ClientAPIImpl implements VivecraftClientAPI {
 
     @Override
     public boolean isVrInitialized() {
-        return VRState.vrInitialized;
+        return VRState.VR_INITIALIZED;
     }
 
     @Override
     public boolean isVrActive() {
-        return VRState.vrRunning;
+        return VRState.VR_RUNNING;
     }
 
     @Override

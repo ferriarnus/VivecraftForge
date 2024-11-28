@@ -33,7 +33,7 @@ public class MouseHandlerVRMixin {
 
     @Inject(method = "turnPlayer", at = @At("HEAD"), cancellable = true)
     private void vivecraft$noTurnStanding(CallbackInfo ci) {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             return;
         }
 
@@ -51,7 +51,7 @@ public class MouseHandlerVRMixin {
     // cancel after tutorial call
     @Inject(method = "turnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/tutorial/Tutorial;onMouse(DD)V", shift = At.Shift.AFTER), cancellable = true)
     private void vivecraft$noTurnSeated(CallbackInfo ci) {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             return;
         }
 
@@ -60,7 +60,7 @@ public class MouseHandlerVRMixin {
 
     @Inject(method = "grabMouse", at = @At("HEAD"), cancellable = true)
     private void vivecraft$noMouseGrab(CallbackInfo ci) {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             return;
         }
 
@@ -72,7 +72,7 @@ public class MouseHandlerVRMixin {
 
     @Inject(method = "releaseMouse", at = @At(value = "HEAD"), cancellable = true)
     private void vivecraft$noMouseReleaseMovement(CallbackInfo ci) {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             return;
         }
 
@@ -85,14 +85,14 @@ public class MouseHandlerVRMixin {
     // we change the screen size different from window size, so need to modify the mouse position on grab/release
     @ModifyArg(method = {"grabMouse", "releaseMouse"}, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/InputConstants;grabOrReleaseMouse(JIDD)V"), index = 2)
     private double vivecraft$modifyXCenter(double x) {
-        return VRState.vrRunning
+        return VRState.VR_RUNNING
                ? (double) ((WindowExtension) (Object) this.minecraft.getWindow()).vivecraft$getActualScreenWidth() / 2
                : x;
     }
 
     @ModifyArg(method = {"grabMouse", "releaseMouse"}, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/InputConstants;grabOrReleaseMouse(JIDD)V"), index = 3)
     private double vivecraft$modifyYCenter(double y) {
-        return VRState.vrRunning
+        return VRState.VR_RUNNING
                ? (double) ((WindowExtension) (Object) this.minecraft.getWindow()).vivecraft$getActualScreenHeight() / 2
                : y;
     }
@@ -100,16 +100,16 @@ public class MouseHandlerVRMixin {
     // we change the screen size different from window size, so adapt move events to the emulated size
     @ModifyVariable(method = "onMove", at = @At(value = "HEAD"), ordinal = 0, argsOnly = true)
     private double vivecraft$modifyX(double x) {
-        if (VRState.vrRunning) {
-            x *= GuiHandler.guiWidth / (double) ((WindowExtension) (Object) this.minecraft.getWindow()).vivecraft$getActualScreenWidth();
+        if (VRState.VR_RUNNING) {
+            x *= GuiHandler.GUI_WIDTH / (double) ((WindowExtension) (Object) this.minecraft.getWindow()).vivecraft$getActualScreenWidth();
         }
         return x;
     }
 
     @ModifyVariable(method = "onMove", at = @At(value = "HEAD"), ordinal = 1, argsOnly = true)
     private double vivecraft$modifyY(double y) {
-        if (VRState.vrRunning) {
-            y *= (double) GuiHandler.guiHeight / (double) ((WindowExtension) (Object) this.minecraft.getWindow()).vivecraft$getActualScreenHeight();
+        if (VRState.VR_RUNNING) {
+            y *= (double) GuiHandler.GUI_HEIGHT / (double) ((WindowExtension) (Object) this.minecraft.getWindow()).vivecraft$getActualScreenHeight();
         }
         return y;
     }

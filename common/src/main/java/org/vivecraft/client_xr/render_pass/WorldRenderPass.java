@@ -9,14 +9,14 @@ import java.io.IOException;
 
 public class WorldRenderPass implements AutoCloseable {
 
-    private static final Minecraft mc = Minecraft.getInstance();
+    private static final Minecraft MC = Minecraft.getInstance();
 
-    public static WorldRenderPass stereoXR;
-    public static WorldRenderPass center;
-    public static WorldRenderPass mixedReality;
-    public static WorldRenderPass leftTelescope;
-    public static WorldRenderPass rightTelescope;
-    public static WorldRenderPass camera;
+    public static WorldRenderPass STEREO_XR;
+    public static WorldRenderPass CENTER;
+    public static WorldRenderPass MIXED_REALITY;
+    public static WorldRenderPass LEFT_TELESCOPE;
+    public static WorldRenderPass RIGHT_TELESCOPE;
+    public static WorldRenderPass CAMERA;
 
 
     public final RenderTarget target;
@@ -46,7 +46,7 @@ public class WorldRenderPass implements AutoCloseable {
      * @throws IOException when an error occurs during shader loading
      */
     public static PostChain createPostChain(ResourceLocation resourceLocation, RenderTarget target) throws IOException {
-        PostChain postchain = new PostChain(mc.getTextureManager(), mc.getResourceManager(), target, resourceLocation);
+        PostChain postchain = new PostChain(MC.getTextureManager(), MC.getResourceManager(), target, resourceLocation);
         postchain.resize(target.viewWidth, target.viewHeight);
         return postchain;
     }

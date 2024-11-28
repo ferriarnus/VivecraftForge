@@ -12,7 +12,8 @@ public class TrackpadSwipeSampler {
     private static final int RIGHT = 1;
     private static final int DOWN = 2;
     private static final int LEFT = 3;
-    private static final float threshold = 0.5F;
+    private static final float THRESHOLD = 0.5F;
+
     private final Vector2f[] buffer = new Vector2f[5];
     private int index;
     private long count;
@@ -52,23 +53,23 @@ public class TrackpadSwipeSampler {
             this.accumulator.x += this.buffer[nextIndex].x - this.buffer[this.index].x;
             this.accumulator.y += this.buffer[nextIndex].y - this.buffer[this.index].y;
 
-            if (this.accumulator.x >= threshold) {
-                this.accumulator.x -= threshold;
+            if (this.accumulator.x >= THRESHOLD) {
+                this.accumulator.x -= THRESHOLD;
                 this.swiped[RIGHT]++;
             }
 
-            if (this.accumulator.x <= -threshold) {
-                this.accumulator.x += threshold;
+            if (this.accumulator.x <= -THRESHOLD) {
+                this.accumulator.x += THRESHOLD;
                 this.swiped[LEFT]++;
             }
 
-            if (this.accumulator.y >= threshold) {
-                this.accumulator.y -= threshold;
+            if (this.accumulator.y >= THRESHOLD) {
+                this.accumulator.y -= THRESHOLD;
                 this.swiped[UP]++;
             }
 
-            if (this.accumulator.y <= -threshold) {
-                this.accumulator.y += threshold;
+            if (this.accumulator.y <= -THRESHOLD) {
+                this.accumulator.y += THRESHOLD;
                 this.swiped[DOWN]++;
             }
         } else {

@@ -3,27 +3,21 @@ package org.vivecraft.client_vr.utils.external;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
-import com.sun.jna.ptr.DoubleByReference;
-import com.sun.jna.ptr.FloatByReference;
 import com.sun.jna.ptr.IntByReference;
 import org.vivecraft.client_vr.settings.VRSettings;
 
 public class jinfinadeck implements Library {
     public static final String INFINADECK_LIBRARY_NAME = "InfinadeckAPI.dll";
     public static final NativeLibrary INFINADECK_NATIVE_LIB = NativeLibrary.getInstance(INFINADECK_LIBRARY_NAME);
-    static float yaw;
-    static float yawOffset;
-    static double power;
-    static int direction;
-    static boolean ismoving;
-    static IntByReference y = new IntByReference();
-    static IntByReference m = new IntByReference();
-    static IntByReference is = new IntByReference();
-    static DoubleByReference pow = new DoubleByReference();
-    static FloatByReference fl = new FloatByReference();
-    static float mag = 0.15F;
-    static float bmag = 0.1F;
-    static float maxpower = 2.0F;
+    private static final float MAG = 0.15F;
+    private static final float B_MAG = 0.1F;
+    private static final float MAX_POWER = 2.0F;
+
+    private static float YAW;
+    private static float YAW_OFFSET;
+    private static double POWER;
+    private static int DIRECTION;
+    private static boolean IS_MOVING;
 
     public static native int InitInternal(IntByReference var0, boolean var1);
 
@@ -57,18 +51,18 @@ public class jinfinadeck implements Library {
             if (CheckConnection()) {
             }
 
-            yaw = (float) GetFloorSpeedAngle();
-            power = GetFloorSpeedMagnitude();
-            direction = 1;
-            ismoving = GetTreadmillRunState();
-            yaw *= 57.296F;
+            YAW = (float) GetFloorSpeedAngle();
+            POWER = GetFloorSpeedMagnitude();
+            DIRECTION = 1;
+            IS_MOVING = GetTreadmillRunState();
+            YAW *= 57.296F;
         } catch (Exception exception) {
-            VRSettings.logger.error("Vivecraft: Infinadeck Error:", exception);
+            VRSettings.LOGGER.error("Vivecraft: Infinadeck Error:", exception);
         }
     }
 
     public static float getYaw() {
-        return yaw - yawOffset;
+        return YAW - YAW_OFFSET;
     }
 
     public static boolean isMoving() {
@@ -76,15 +70,15 @@ public class jinfinadeck implements Library {
     }
 
     public static void resetYaw(float offsetDegrees) {
-        yawOffset = offsetDegrees + yaw;
+        YAW_OFFSET = offsetDegrees + YAW;
     }
 
     public static float walkDirection() {
-        return direction;
+        return DIRECTION;
     }
 
     public static float getSpeed() {
-        return (float) (power / maxpower * (walkDirection() == 1.0F ? mag : bmag));
+        return (float) (POWER / MAX_POWER * (walkDirection() == 1.0F ? MAG : B_MAG));
     }
 
     static {

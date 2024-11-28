@@ -39,7 +39,7 @@ public class JumpTracker extends Tracker {
      * @return if the given {@code player} has jump boots equipped
      */
     public static boolean hasClimbeyJumpEquipped(Player player) {
-        return ClientNetworking.serverAllowsClimbey && isBoots(player.getItemBySlot(EquipmentSlot.FEET));
+        return ClientNetworking.SERVER_ALLOWS_CLIMBEY && isBoots(player.getItemBySlot(EquipmentSlot.FEET));
     }
 
     /**

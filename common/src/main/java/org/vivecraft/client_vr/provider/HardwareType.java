@@ -14,7 +14,7 @@ public enum HardwareType {
     public final List<String> manufacturers;
     public final boolean hasTouchpad;
     public final boolean hasStick;
-    private static final Map<String, HardwareType> map = new HashMap<>();
+    private static final Map<String, HardwareType> MAP = new HashMap<>();
 
     HardwareType(boolean hasTouchpad, boolean hasStick, String... manufacturers) {
         this.hasTouchpad = hasTouchpad;
@@ -23,14 +23,14 @@ public enum HardwareType {
     }
 
     public static HardwareType fromManufacturer(String name) {
-        return map.getOrDefault(name, VIVE);
+        return MAP.getOrDefault(name, VIVE);
     }
 
     static {
         for (HardwareType hardwaretype : values()) {
             for (String s : hardwaretype.manufacturers) {
-                assert !map.containsKey(s) : "Duplicate manufacturer: " + s;
-                map.put(s, hardwaretype);
+                assert !MAP.containsKey(s) : "Duplicate manufacturer: " + s;
+                MAP.put(s, hardwaretype);
             }
         }
     }

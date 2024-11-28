@@ -52,7 +52,7 @@ public class KeyboardInputVRMixin extends Input {
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/KeyboardInput;calculateImpulse(ZZ)F", ordinal = 0))
     private void vivecraft$noMovementWhenClimbing(CallbackInfo ci, @Share("climbing") LocalBooleanRef climbing) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             climbing.set(!Minecraft.getInstance().player.isInWater() &&
                 ClientDataHolderVR.getInstance().climbTracker.isClimbeyClimb() &&
                 ClientDataHolderVR.getInstance().climbTracker.isGrabbingLadder());
@@ -66,7 +66,7 @@ public class KeyboardInputVRMixin extends Input {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void vivecraft$analogInput(CallbackInfo ci, @Share("climbing") LocalBooleanRef climbing) {
-        if (!VRState.vrRunning) {
+        if (!VRState.VR_RUNNING) {
             return;
         }
 
@@ -82,7 +82,7 @@ public class KeyboardInputVRMixin extends Input {
         float forwardAxis = 0.0F;
 
         if (!climbing.get() && !dataHolder.vrSettings.seated && Minecraft.getInstance().screen == null &&
-            !KeyboardHandler.Showing)
+            !KeyboardHandler.SHOWING)
         {
             // override everything
             Vector2 moveStrafe = dataHolder.vr.getInputAction(VivecraftVRMod.INSTANCE.keyFreeMoveStrafe).getAxis2DUseTracked();

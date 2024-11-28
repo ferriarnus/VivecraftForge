@@ -13,6 +13,6 @@ public class AbstractContainerScreenVRMixin {
     @ModifyExpressionValue(method = "mouseDragged", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;isQuickCrafting:Z"))
     private boolean vivecraft$noShiftQuickCraft(boolean isQuickCrafting) {
         // not sure exactly why we do that, but there probably was a reason for it
-        return isQuickCrafting && (!VRState.vrRunning || !Screen.hasShiftDown());
+        return isQuickCrafting && (!VRState.VR_RUNNING || !Screen.hasShiftDown());
     }
 }

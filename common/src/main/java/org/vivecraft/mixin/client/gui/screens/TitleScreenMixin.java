@@ -44,13 +44,13 @@ public abstract class TitleScreenMixin extends Screen {
 
     @Unique
     private void vivecraft$addVRModeButton() {
-        this.vivecraft$vrModeButton = new Button.Builder(Component.translatable("vivecraft.gui.vr", VRState.vrEnabled ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF), (button) -> {
-            VRState.vrEnabled = !VRState.vrEnabled;
-            ClientDataHolderVR.getInstance().vrSettings.vrEnabled = VRState.vrEnabled;
+        this.vivecraft$vrModeButton = new Button.Builder(Component.translatable("vivecraft.gui.vr", VRState.VR_ENABLED ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF), (button) -> {
+            VRState.VR_ENABLED = !VRState.VR_ENABLED;
+            ClientDataHolderVR.getInstance().vrSettings.vrEnabled = VRState.VR_ENABLED;
             ClientDataHolderVR.getInstance().vrSettings.saveOptions();
 
             button.setMessage(Component.translatable("vivecraft.gui.vr",
-                VRState.vrEnabled ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF));
+                VRState.VR_ENABLED ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF));
         })
             .size(56, 20)
             .pos(this.width / 2 + 104, this.height / 4 + 72)
@@ -64,7 +64,7 @@ public abstract class TitleScreenMixin extends Screen {
             .pos(this.width / 2 + 104, this.height / 4 + 96)
             .build();
 
-        this.vivecraft$updateButton.visible = UpdateChecker.hasUpdate;
+        this.vivecraft$updateButton.visible = UpdateChecker.HAS_UPDATE;
 
         this.addRenderableWidget(this.vivecraft$updateButton);
     }
@@ -73,13 +73,13 @@ public abstract class TitleScreenMixin extends Screen {
     private void vivecraft$renderToolTip(
         GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci)
     {
-        this.vivecraft$updateButton.visible = UpdateChecker.hasUpdate;
+        this.vivecraft$updateButton.visible = UpdateChecker.HAS_UPDATE;
 
         if (this.vivecraft$vrModeButton.visible && this.vivecraft$vrModeButton.isMouseOver(mouseX, mouseY)) {
             guiGraphics.renderTooltip(this.font, this.font.split(Component.translatable("vivecraft.options.VR_ENABLED.tooltip"),
                 Math.max(this.width / 2 - 43, 170)), mouseX, mouseY);
         }
-        if (VRState.vrInitialized && !VRState.vrRunning) {
+        if (VRState.VR_INITIALIZED && !VRState.VR_RUNNING) {
             Component hotswitchMessage = Component.translatable("vivecraft.messages.vrhotswitchinginfo");
             guiGraphics.renderTooltip(this.font, this.font.split(hotswitchMessage, 280), this.width / 2 - 140 - 12, 17);
         }
@@ -87,7 +87,7 @@ public abstract class TitleScreenMixin extends Screen {
 
     @ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/PanoramaRenderer;render(FF)V"), index = 1)
     private float vivecraft$maybeNoPanorama(float alpha) {
-        return VRState.vrRunning && (ClientDataHolderVR.getInstance().menuWorldRenderer.isReady() ||
+        return VRState.VR_RUNNING && (ClientDataHolderVR.getInstance().menuWorldRenderer.isReady() ||
             ClientDataHolderVR.getInstance().vrSettings.menuWorldFallbackPanorama
         ) ? 0.0F : alpha;
     }

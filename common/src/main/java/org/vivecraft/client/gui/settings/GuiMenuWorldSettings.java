@@ -14,7 +14,7 @@ public class GuiMenuWorldSettings extends GuiVROptionsBase {
                     this.dataHolder.menuWorldRenderer.destroy();
                     this.dataHolder.menuWorldRenderer.prepare();
                 } catch (Exception exception) {
-                    VRSettings.logger.error("Vivecraft: error refreshing menuworld: ", exception);
+                    VRSettings.LOGGER.error("Vivecraft: error refreshing menuworld: ", exception);
                 }
             }
             return true;
@@ -26,7 +26,7 @@ public class GuiMenuWorldSettings extends GuiVROptionsBase {
                     this.dataHolder.menuWorldRenderer.destroy();
                     this.dataHolder.menuWorldRenderer.init();
                 } catch (Exception exception) {
-                    VRSettings.logger.error("Vivecraft: error loading new menuworld: ", exception);
+                    VRSettings.LOGGER.error("Vivecraft: error loading new menuworld: ", exception);
                 }
             }
             return true;

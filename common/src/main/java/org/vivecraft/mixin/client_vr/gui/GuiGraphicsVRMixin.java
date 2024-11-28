@@ -14,7 +14,7 @@ public class GuiGraphicsVRMixin {
 
     @Inject(method = "innerBlit(Lnet/minecraft/resources/ResourceLocation;IIIIIFFFFFFFF)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;enableBlend()V", remap = false, shift = At.Shift.AFTER))
     private void vivecraft$changeAlphaBlend(CallbackInfo ci) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             // this one already has blending so just change the alpha blend function
             RenderSystem.blendFuncSeparate(
                 GlStateManager.BLEND.srcRgb,
@@ -26,7 +26,7 @@ public class GuiGraphicsVRMixin {
 
     @Inject(method = "innerBlit(Lnet/minecraft/resources/ResourceLocation;IIIIIFFFF)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;setShader(Ljava/util/function/Supplier;)V", remap = false, shift = At.Shift.AFTER))
     private void vivecraft$addBlend(CallbackInfo ci) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             // enable blending and only change the alpha blending
             RenderSystem.enableBlend();
             RenderSystem.blendFuncSeparate(
@@ -39,7 +39,7 @@ public class GuiGraphicsVRMixin {
 
     @Inject(method = "innerBlit(Lnet/minecraft/resources/ResourceLocation;IIIIIFFFF)V", at = @At("TAIL"))
     private void vivecraft$stopBlend(CallbackInfo ci) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             RenderSystem.disableBlend();
         }
     }

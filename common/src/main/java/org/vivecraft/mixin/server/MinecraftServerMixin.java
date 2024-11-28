@@ -33,7 +33,7 @@ public class MinecraftServerMixin implements MinecraftServerExt {
         if (Xplat.isDedicatedServer()) {
             // we need to manually shut this down, because the ShutdownHook sometimes fails to trigger
             ServerNetworking.LOGGER.info("Vivecraft: shutting down vivecraft scheduler");
-            ServerUtil.scheduler.shutdownNow();
+            ServerUtil.SCHEDULER.shutdownNow();
         }
     }
 }

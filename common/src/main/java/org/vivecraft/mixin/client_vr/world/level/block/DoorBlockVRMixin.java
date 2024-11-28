@@ -19,7 +19,7 @@ public class DoorBlockVRMixin {
     private void vivecraft$hapticFeedbackOnClose(
         Entity source, Level level, BlockPos pos, boolean isOpening, CallbackInfo ci)
     {
-        if (VRState.vrRunning && !isOpening && Minecraft.getInstance().player != null &&
+        if (VRState.VR_RUNNING && !isOpening && Minecraft.getInstance().player != null &&
             Minecraft.getInstance().player.isAlive() &&
             Minecraft.getInstance().player.blockPosition().distSqr(pos) < 25.0D)
         {

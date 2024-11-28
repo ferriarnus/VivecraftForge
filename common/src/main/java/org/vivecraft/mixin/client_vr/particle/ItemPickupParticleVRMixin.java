@@ -30,7 +30,7 @@ public class ItemPickupParticleVRMixin {
         double delta, double start, double end, Operation<Double> original,
         @Share("controllerPos") LocalRef<Vec3> controllerPos)
     {
-        if (VRState.vrRunning && this.target == Minecraft.getInstance().player) {
+        if (VRState.VR_RUNNING && this.target == Minecraft.getInstance().player) {
             controllerPos.set(RenderHelper.getControllerRenderPos(0));
             return controllerPos.get().x;
         } else {

@@ -7,6 +7,9 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 
 public class VRMovementStyle {
+
+    private static final ResourceLocation BEAM_PNG = new ResourceLocation("textures/entity/endercrystal/endercrystal_beam.png");
+
     public String name;
     public boolean cameraSlide;
     public boolean airSparkles;
@@ -29,7 +32,6 @@ public class VRMovementStyle {
     public float endTeleportingSoundVolume;
     public boolean teleportOnRelease;
     public boolean arcAiming;
-    private static final ResourceLocation beamPng = new ResourceLocation("textures/entity/endercrystal/endercrystal_beam.png");
 
     public VRMovementStyle() {
         this.setStyle("Arc");
@@ -64,7 +66,7 @@ public class VRMovementStyle {
             this.beamVStrips = 16;
             this.renderVerticalStrip = true;
             this.textureScrollSpeed = 3.0F;
-            this.texture = beamPng;
+            this.texture = BEAM_PNG;
             this.startTeleportingSound = null;
             this.endTeleportingSoundVolume = 0.8F;
             this.endTeleportingSound = SoundEvents.ENDERMAN_TELEPORT;
@@ -85,7 +87,7 @@ public class VRMovementStyle {
             this.renderVerticalStrip = true;
             this.beamVStrips = 16;
             this.textureScrollSpeed = 3.0F;
-            this.texture = beamPng;
+            this.texture = BEAM_PNG;
             this.startTeleportingSound = null;
             this.endTeleportingSoundVolume = 0.8F;
             this.endTeleportingSound = SoundEvents.ENDERMAN_TELEPORT;
@@ -106,7 +108,7 @@ public class VRMovementStyle {
             this.renderVerticalStrip = false;
             this.beamVStrips = 2;
             this.textureScrollSpeed = 7.0F;
-            this.texture = beamPng;
+            this.texture = BEAM_PNG;
             this.startTeleportingSoundVolume = 0.5F;
             this.endTeleportingSoundVolume = 0.5F;
             this.startTeleportingSound = null;
@@ -127,7 +129,7 @@ public class VRMovementStyle {
             this.beamVStrips = 1;
             this.renderVerticalStrip = true;
             this.textureScrollSpeed = 3.0F;
-            this.texture = beamPng;
+            this.texture = BEAM_PNG;
             this.startTeleportingSound = null;
             this.endTeleportingSoundVolume = 0.7F;
             this.endTeleportingSound = null;

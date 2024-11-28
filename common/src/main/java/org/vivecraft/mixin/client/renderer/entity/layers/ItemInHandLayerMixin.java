@@ -23,11 +23,11 @@ public abstract class ItemInHandLayerMixin {
     private ItemStack vivecraft$climbClawsOverride(
         ItemStack itemStack, @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true) HumanoidArm arm)
     {
-        if (ClientNetworking.serverAllowsClimbey && entity instanceof Player && !ClimbTracker.isClaws(itemStack)) {
+        if (ClientNetworking.SERVER_ALLOWS_CLIMBEY && entity instanceof Player && !ClimbTracker.isClaws(itemStack)) {
             ItemStack otherStack = arm == entity.getMainArm() ? entity.getOffhandItem() : entity.getMainHandItem();
             if (ClimbTracker.isClaws(otherStack)) {
                 ClimbTracker tracker = ClientDataHolderVR.getInstance().climbTracker;
-                if (entity instanceof LocalPlayer player && VRState.vrRunning && tracker.isActive(player) && ClimbTracker.hasClimbeyClimbEquipped(player)) {
+                if (entity instanceof LocalPlayer player && VRState.VR_RUNNING && tracker.isActive(player) && ClimbTracker.hasClimbeyClimbEquipped(player)) {
                     return otherStack;
                 } else if (entity instanceof RemotePlayer player && VRPlayersClient.getInstance().isVRPlayer(player) && !VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID()).seated) {
                     return otherStack;

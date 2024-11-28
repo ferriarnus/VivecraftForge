@@ -21,7 +21,7 @@ public class NoSodiumLevelRendererVRMixin {
 
     @Inject(method = "setupRender", at = @At("HEAD"))
     private void vivecraft$alwaysUpdateCull(CallbackInfo ci) {
-        if (VRState.vrRunning) {
+        if (VRState.VR_RUNNING) {
             // if VR is on, always update the frustum, to fix flickering chunks between eyes
             this.sectionOcclusionGraph.invalidate();
             ((SectionOcclusionGraphAccessor) this.sectionOcclusionGraph).getNeedsFrustumUpdate().set(true);

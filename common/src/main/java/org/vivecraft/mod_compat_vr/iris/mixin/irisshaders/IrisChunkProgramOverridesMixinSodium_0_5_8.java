@@ -65,13 +65,13 @@ public class IrisChunkProgramOverridesMixinSodium_0_5_8 implements IrisChunkProg
         Object sodiumTerrainPipeline, Object chunkVertexType,
         Method createShadersMethod) throws InvocationTargetException, IllegalAccessException
     {
-        if (VRState.vrInitialized) {
-            WorldRenderPass current = RenderPassManager.wrp;
+        if (VRState.VR_INITIALIZED) {
+            WorldRenderPass current = RenderPassManager.WRP;
             RenderPass currentPass = ClientDataHolderVR.getInstance().currentPass;
 
             RenderPassManager.renderPassType = RenderPassType.WORLD_ONLY;
             for (RenderPass renderPass : RenderPass.values()) {
-                VRSettings.logger.info("Vivecraft: Creating VR sodium shaders for RenderPass {}", renderPass);
+                VRSettings.LOGGER.info("Vivecraft: Creating VR sodium shaders for RenderPass {}", renderPass);
 
                 WorldRenderingPipeline worldPipeline = (WorldRenderingPipeline) ((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$getVRPipeline(renderPass);
                 // GUI and unused renderPasses don't have a pipeline
@@ -88,7 +88,7 @@ public class IrisChunkProgramOverridesMixinSodium_0_5_8 implements IrisChunkProg
             }
 
             RenderPassManager.setVanillaRenderPass();
-            VRSettings.logger.info("Vivecraft: Creating sodium shaders for vanilla RenderPass");
+            VRSettings.LOGGER.info("Vivecraft: Creating sodium shaders for vanilla RenderPass");
             createShadersMethod.invoke(this, ((WorldRenderingPipeline) ((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$getVanillaPipeline()).getSodiumTerrainPipeline(), chunkVertexType);
             if (current != null) {
                 RenderPassManager.setWorldRenderPass(current);
@@ -110,7 +110,7 @@ public class IrisChunkProgramOverridesMixinSodium_0_5_8 implements IrisChunkProg
 
     @Inject(method = "deleteShaders", at = @At("HEAD"), remap = false)
     private void vivecraft$deleteVRPipelineShaders(CallbackInfo ci) {
-        if (VRState.vrInitialized) {
+        if (VRState.VR_INITIALIZED) {
             for (EnumMap<IrisTerrainPass, GlProgram<IrisChunkShaderInterface>> map : this.vivecraft$pipelinePrograms.values()) {
                 for (GlProgram<?> program : map.values()) {
                     if (program != null) {
