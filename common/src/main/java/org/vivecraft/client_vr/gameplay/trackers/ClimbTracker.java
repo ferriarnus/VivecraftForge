@@ -10,9 +10,8 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.LadderBlock;
-import net.minecraft.world.level.block.VineBlock;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -50,12 +49,6 @@ public class ClimbTracker extends Tracker {
     private final AABB[] latchBox = new AABB[2];
     private final boolean[] inBlock = new boolean[2];
 
-    /**
-     * 2: Ladder facing north
-     * 3: Ladder facing south
-     * 4: Ladder facing west
-     * 5: Ladder facing east
-     */
     private final Direction[] grabDirection = new Direction[2];
     private final AABB northBB = new AABB(0.1D, 0.0D, 0.9D, 0.9D, 1.0D, 1.1D);
     private final AABB southBB = new AABB(0.1D, 0.0D, -0.1D, 0.9D, 1.0D, 0.1D);
@@ -223,6 +216,7 @@ public class ClimbTracker extends Tracker {
                 AABB controllerBB = new AABB(controllerPos[c], controllerPosNear);
                 ladder = true;
                 boolean ok = block instanceof LadderBlock ||
+                    isClimbableTrapdoor(this.mc.level, blockPos, blockState) ||
                     block instanceof VineBlock ||
                     blockState.is(BlockTags.VIVECRAFT_CLIMBABLE);
 
@@ -231,7 +225,11 @@ public class ClimbTracker extends Tracker {
                     BlockState blockState2 = this.mc.level.getBlockState(blockPos2);
                     Block block2 = blockState2.getBlock();
 
-                    if (block2 instanceof LadderBlock || block2 instanceof VineBlock || blockState2.is(BlockTags.VIVECRAFT_CLIMBABLE)) {
+                    if (block2 instanceof LadderBlock ||
+                        isClimbableTrapdoor(this.mc.level, blockPos2, blockState2) ||
+                        block2 instanceof VineBlock ||
+                        blockState2.is(BlockTags.VIVECRAFT_CLIMBABLE))
+                    {
                         blockPos = blockPos2;
                         blockState = blockState2;
                         block = block2;
@@ -250,13 +248,11 @@ public class ClimbTracker extends Tracker {
                 if (ok) {
                     List<AABB> BBs = new ArrayList<>();
 
-                    if (block instanceof LadderBlock) {
-                        switch (blockState.getValue(LadderBlock.FACING)) {
-                            case DOWN -> ok = false; //Marilyn??
+                    if (block instanceof LadderBlock || block instanceof HorizontalDirectionalBlock) {
+                        switch (blockState.getValue(HorizontalDirectionalBlock.FACING)) {
                             case EAST -> BBs.add(this.eastBB);
                             case NORTH -> BBs.add(this.northBB);
                             case SOUTH -> BBs.add(this.southBB);
-                            case UP -> BBs.add(this.upBB); //Where the shit did you find a jungle gym?
                             case WEST -> BBs.add(this.westBB);
                             default -> ok = false;
                         }
@@ -616,6 +612,23 @@ public class ClimbTracker extends Tracker {
             this.dh.vrPlayer.snapRoomOriginToPlayerEntity(player, false, false);
             this.mc.player.causeFoodExhaustion(0.3F);
         }
+    }
+
+    /**
+     * checks if the given {@code blockState} is a climbable trapdoor, they are climbable when they are open and have a ladder below them
+     * copied from {@link net.minecraft.world.entity.LivingEntity#trapdoorUsableAsLadder(BlockPos, BlockState)}
+     * @param level level the {@code blockState} is from
+     * @param blockPos position of the {@code blockState}
+     * @param blockState BlockState to check
+     * @return if the block is a climbable trapdoor
+     */
+    private boolean isClimbableTrapdoor(Level level, BlockPos blockPos, BlockState blockState) {
+        if (blockState.getBlock() instanceof TrapDoorBlock && blockState.getValue(TrapDoorBlock.OPEN)) {
+            BlockState blockStateBelow = level.getBlockState(blockPos.below());
+            return blockStateBelow.is(Blocks.LADDER) &&
+                blockStateBelow.getValue(LadderBlock.FACING) == blockState.getValue(TrapDoorBlock.FACING);
+        }
+        return false;
     }
 
     private boolean allowed(BlockState bs) {
