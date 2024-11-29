@@ -2182,7 +2182,8 @@ public class VRSettings {
                 () -> VRSettings.this.worldScale);
             registerSetting(VrOptions.THIRDPERSON_ITEMTRANSFORMS, "thirdPersonItems",
                 () -> VRSettings.this.thirdPersonItems);
-            registerSetting(VrOptions.THIRDPERSON_ITEMTRANSFORMS_CUSTOM, "thirdPersonItemsCustom", () -> thirdPersonItemsCustom);
+            registerSetting(VrOptions.THIRDPERSON_ITEMTRANSFORMS_CUSTOM, "thirdPersonItemsCustom",
+                () -> VRSettings.this.thirdPersonItemsCustom);
         }
 
         private void registerSetting(VrOptions option, String networkName, Supplier<Object> originalValue) {
