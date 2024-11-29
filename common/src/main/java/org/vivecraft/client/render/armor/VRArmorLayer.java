@@ -12,12 +12,12 @@ import net.minecraft.world.entity.LivingEntity;
 public class VRArmorLayer<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>> extends HumanoidArmorLayer<T, M, A> {
 
     // split arms model
-    public static LayerDefinition VRArmorDef_arms_inner;
-    public static LayerDefinition VRArmorDef_arms_outer;
+    public static LayerDefinition VR_ARMOR_DEF_ARMS_INNER;
+    public static LayerDefinition VR_ARMOR_DEF_ARMS_OUTER;
 
     // split arms/legs model
-    public static LayerDefinition VRArmorDef_arms_legs_inner;
-    public static LayerDefinition VRArmorDef_arms_legs_outer;
+    public static LayerDefinition VR_ARMOR_DEF_ARMS_LEGS_INNER;
+    public static LayerDefinition VR_ARMOR_DEF_ARMS_LEGS_OUTER;
 
     static {
         // need to make these not final, because they change depending on settings
@@ -26,15 +26,15 @@ public class VRArmorLayer<T extends LivingEntity, M extends HumanoidModel<T>, A 
 
     public static void createLayers() {
         // split arms model
-        VRArmorDef_arms_inner = LayerDefinition.create(
+        VR_ARMOR_DEF_ARMS_INNER = LayerDefinition.create(
             VRArmorModel_WithArms.createBodyLayer(new CubeDeformation(0.5F)), 64, 32);
-        VRArmorDef_arms_outer = LayerDefinition.create(
+        VR_ARMOR_DEF_ARMS_OUTER = LayerDefinition.create(
             VRArmorModel_WithArms.createBodyLayer(new CubeDeformation(1.0F)), 64, 32);
 
         // split arms/legs model
-        VRArmorDef_arms_legs_inner = LayerDefinition.create(
+        VR_ARMOR_DEF_ARMS_LEGS_INNER = LayerDefinition.create(
             VRArmorModel_WithArmsLegs.createBodyLayer(new CubeDeformation(0.5F)), 64, 32);
-        VRArmorDef_arms_legs_outer = LayerDefinition.create(
+        VR_ARMOR_DEF_ARMS_LEGS_OUTER = LayerDefinition.create(
             VRArmorModel_WithArmsLegs.createBodyLayer(new CubeDeformation(1.0F)), 64, 32);
     }
 

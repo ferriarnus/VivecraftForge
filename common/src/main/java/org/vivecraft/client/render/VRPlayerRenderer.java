@@ -87,13 +87,13 @@ public class VRPlayerRenderer extends PlayerRenderer {
             // add split armor layer
             if (type == ModelType.SPLIT_ARMS) {
                 this.addLayer(new VRArmorLayer<>(this,
-                    new VRArmorModel_WithArms<>(VRArmorLayer.VRArmorDef_arms_inner.bakeRoot()),
-                    new VRArmorModel_WithArms<>(VRArmorLayer.VRArmorDef_arms_outer.bakeRoot()),
+                    new VRArmorModel_WithArms<>(VRArmorLayer.VR_ARMOR_DEF_ARMS_INNER.bakeRoot()),
+                    new VRArmorModel_WithArms<>(VRArmorLayer.VR_ARMOR_DEF_ARMS_OUTER.bakeRoot()),
                     context.getModelManager()));
             } else {
                 this.addLayer(new VRArmorLayer<>(this,
-                    new VRArmorModel_WithArmsLegs<>(VRArmorLayer.VRArmorDef_arms_legs_inner.bakeRoot()),
-                    new VRArmorModel_WithArmsLegs<>(VRArmorLayer.VRArmorDef_arms_legs_outer.bakeRoot()),
+                    new VRArmorModel_WithArmsLegs<>(VRArmorLayer.VR_ARMOR_DEF_ARMS_LEGS_INNER.bakeRoot()),
+                    new VRArmorModel_WithArmsLegs<>(VRArmorLayer.VR_ARMOR_DEF_ARMS_LEGS_OUTER.bakeRoot()),
                     context.getModelManager()));
             }
         }

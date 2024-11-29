@@ -37,8 +37,8 @@ public class VRPlayersClient {
     private final Map<UUID, RotInfo> vivePlayersReceived = Collections.synchronizedMap(new HashMap<>());
     private final Map<UUID, Integer> donors = new HashMap<>();
 
-    private static long localPlayerRotInfoFrameIndex = -1;
-    private static RotInfo localPlayerRotInfo;
+    private static long LOCAL_PLAYER_ROT_INFO_FRAME_INDEX = -1;
+    private static RotInfo LOCAL_PLAYER_ROT_INFO;
 
     private final Random rand = new Random();
     public boolean debug = false;
@@ -56,9 +56,9 @@ public class VRPlayersClient {
             INSTANCE.vivePlayers.clear();
             INSTANCE.vivePlayersLast.clear();
             INSTANCE.vivePlayersReceived.clear();
-            localPlayerRotInfo = null;
-            localPlayerRotInfoFrameIndex = -1;
         }
+        LOCAL_PLAYER_ROT_INFO = null;
+        LOCAL_PLAYER_ROT_INFO_FRAME_INDEX = -1;
     }
 
     private VRPlayersClient() {
@@ -317,10 +317,10 @@ public class VRPlayersClient {
      * @return up to date RotInfo
      */
     public static RotInfo getMainPlayerRotInfo(LivingEntity player, float partialTick) {
-        if (localPlayerRotInfo != null &&
-            ClientDataHolderVR.getInstance().frameIndex == localPlayerRotInfoFrameIndex)
+        if (LOCAL_PLAYER_ROT_INFO != null &&
+            ClientDataHolderVR.getInstance().frameIndex == LOCAL_PLAYER_ROT_INFO_FRAME_INDEX)
         {
-            return localPlayerRotInfo;
+            return LOCAL_PLAYER_ROT_INFO;
         }
 
         RotInfo rotInfo = new RotInfo();
@@ -334,8 +334,8 @@ public class VRPlayersClient {
         rotInfo.heightScale = AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT;
         rotInfo.worldScale = ClientDataHolderVR.getInstance().vrPlayer.worldScale;
 
-        localPlayerRotInfoFrameIndex = ClientDataHolderVR.getInstance().frameIndex;
-        localPlayerRotInfo = rotInfo;
+        LOCAL_PLAYER_ROT_INFO_FRAME_INDEX = ClientDataHolderVR.getInstance().frameIndex;
+        LOCAL_PLAYER_ROT_INFO = rotInfo;
 
         rotInfo.leftArmQuat = data.getController(MCVR.OFFHAND_CONTROLLER).getMatrix()
             .getNormalizedRotation(new Quaternionf());
