@@ -16,7 +16,7 @@ public class RenderPassManager {
     public PostChain vanillaOutlineChain;
     public PostChain vanillaPostEffect;
     public PostChain vanillaTransparencyChain;
-    public static RenderPassType renderPassType = RenderPassType.VANILLA;
+    public static RenderPassType RENDER_PASS_TYPE = RenderPassType.VANILLA;
     public static WorldRenderPass WRP;
 
     public RenderPassManager(MainTarget vanillaRenderTarget) {
@@ -30,7 +30,7 @@ public class RenderPassManager {
      */
     public static void setWorldRenderPass(WorldRenderPass wrp) {
         RenderPassManager.WRP = wrp;
-        renderPassType = RenderPassType.WORLD_ONLY;
+        RENDER_PASS_TYPE = RenderPassType.WORLD_ONLY;
         MC.mainRenderTarget = wrp.target;
         if (MC.gameRenderer != null) {
             MC.gameRenderer.postEffect = wrp.postEffect;
@@ -43,7 +43,7 @@ public class RenderPassManager {
     public static void setGUIRenderPass() {
         ClientDataHolderVR.getInstance().currentPass = RenderPass.GUI;
         RenderPassManager.WRP = null;
-        renderPassType = RenderPassType.GUI_ONLY;
+        RENDER_PASS_TYPE = RenderPassType.GUI_ONLY;
         MC.mainRenderTarget = GuiHandler.GUI_FRAMEBUFFER;
     }
 
@@ -53,7 +53,7 @@ public class RenderPassManager {
     public static void setVanillaRenderPass() {
         ClientDataHolderVR.getInstance().currentPass = null;
         RenderPassManager.WRP = null;
-        renderPassType = RenderPassType.VANILLA;
+        RENDER_PASS_TYPE = RenderPassType.VANILLA;
         MC.mainRenderTarget = INSTANCE.vanillaRenderTarget;
         if (MC.gameRenderer != null) {
             MC.gameRenderer.postEffect = INSTANCE.vanillaPostEffect;

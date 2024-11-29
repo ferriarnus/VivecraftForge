@@ -69,7 +69,7 @@ public class IrisChunkProgramOverridesMixinSodium_0_5_8 implements IrisChunkProg
             WorldRenderPass current = RenderPassManager.WRP;
             RenderPass currentPass = ClientDataHolderVR.getInstance().currentPass;
 
-            RenderPassManager.renderPassType = RenderPassType.WORLD_ONLY;
+            RenderPassManager.RENDER_PASS_TYPE = RenderPassType.WORLD_ONLY;
             for (RenderPass renderPass : RenderPass.values()) {
                 VRSettings.LOGGER.info("Vivecraft: Creating VR sodium shaders for RenderPass {}", renderPass);
 

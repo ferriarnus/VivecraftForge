@@ -21,7 +21,7 @@ import org.vivecraft.client_xr.render_pass.RenderPassType;
 public class IrisShadowMatricesMixin {
 
     @Unique
-    private static Vec3 vivecraft$firstPos;
+    private static Vec3 vivecraft$FIRST_PASS_POS;
 
     // offset camera pos, to be in the equal grid as the first pass, but with correct offset
     @ModifyVariable(method = "snapModelViewToGrid", at = @At(value = "STORE", ordinal = 0), ordinal = 1, remap = false)
@@ -31,9 +31,9 @@ public class IrisShadowMatricesMixin {
         if (!RenderPassType.isVanilla()) {
             curPos.set(RenderHelper.getSmoothCameraPosition(ClientDataHolderVR.getInstance().currentPass, ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld()));
             if (ClientDataHolderVR.getInstance().isFirstPass) {
-                vivecraft$firstPos = curPos.get();
+                vivecraft$FIRST_PASS_POS = curPos.get();
             }
-            return (float) (vivecraft$firstPos.x % shadowIntervalSize - (vivecraft$firstPos.x - curPos.get().x));
+            return (float) (vivecraft$FIRST_PASS_POS.x % shadowIntervalSize - (vivecraft$FIRST_PASS_POS.x - curPos.get().x));
         } else {
             return xOffset;
         }
@@ -44,7 +44,7 @@ public class IrisShadowMatricesMixin {
         float yOffset, @Local(argsOnly = true) float shadowIntervalSize, @Share("curPos") LocalRef<Vec3> curPos)
     {
         if (!RenderPassType.isVanilla()) {
-            return (float) (vivecraft$firstPos.y % shadowIntervalSize - (vivecraft$firstPos.y - curPos.get().y));
+            return (float) (vivecraft$FIRST_PASS_POS.y % shadowIntervalSize - (vivecraft$FIRST_PASS_POS.y - curPos.get().y));
         } else {
             return yOffset;
         }
@@ -55,7 +55,7 @@ public class IrisShadowMatricesMixin {
         float zOffset, @Local(argsOnly = true) float shadowIntervalSize, @Share("curPos") LocalRef<Vec3> curPos)
     {
         if (!RenderPassType.isVanilla()) {
-            return (float) (vivecraft$firstPos.z % shadowIntervalSize - (vivecraft$firstPos.z - curPos.get().z));
+            return (float) (vivecraft$FIRST_PASS_POS.z % shadowIntervalSize - (vivecraft$FIRST_PASS_POS.z - curPos.get().z));
         } else {
             return zOffset;
         }

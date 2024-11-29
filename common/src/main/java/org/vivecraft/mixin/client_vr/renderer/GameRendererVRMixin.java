@@ -66,7 +66,7 @@ public abstract class GameRendererVRMixin
     @Unique
     private static final ClientDataHolderVR vivecraft$DATA_HOLDER = ClientDataHolderVR.getInstance();
     @Unique
-    private static final float vivecraft$minClipDistance = 0.02F;
+    private static final float vivecraft$MIN_CLIP_DISTANCE = 0.02F;
     @Unique
     private Vec3 vivecraft$crossVec;
     @Unique
@@ -230,7 +230,7 @@ public abstract class GameRendererVRMixin
     private Matrix4f vivecraft$customProjectionMatrix(
         Matrix4f instance, float fovy, float aspect, float zNear, float zFar, Operation<Matrix4f> original) {
         if (VRState.VR_RUNNING) {
-            zNear = vivecraft$minClipDistance;
+            zNear = vivecraft$MIN_CLIP_DISTANCE;
             if (MethodHolder.isInMenuRoom()) {
                 // use 16 Chunks as minimum, to have no issues with clipping in the menuworld
                 zFar = Math.max(zFar, 1024.0F);
@@ -611,7 +611,7 @@ public abstract class GameRendererVRMixin
             Vec3 cameraPos = RenderHelper.getSmoothCameraPosition(vivecraft$DATA_HOLDER.currentPass,
                 vivecraft$DATA_HOLDER.vrPlayer.vrdata_world_render);
             Triple<Float, BlockState, BlockPos> triple = VREffectsHelper.getNearOpaqueBlock(cameraPos,
-                vivecraft$minClipDistance);
+                vivecraft$MIN_CLIP_DISTANCE);
 
             if (triple != null &&
                 !Xevents.renderBlockOverlay(this.minecraft.player, new PoseStack(), triple.getMiddle(),
@@ -648,7 +648,7 @@ public abstract class GameRendererVRMixin
     @Override
     @Unique
     public float vivecraft$getMinClipDistance() {
-        return vivecraft$minClipDistance;
+        return vivecraft$MIN_CLIP_DISTANCE;
     }
 
     @Override
