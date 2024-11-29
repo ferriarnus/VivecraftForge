@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Vec3i;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
@@ -177,54 +176,6 @@ public class RenderHelper {
         }
 
         poseStack.scale(sc, sc, sc);
-    }
-
-    public static void renderDebugAxes(int r, int g, int b, float radius) {
-        setupPolyRendering(true);
-        RenderSystem.setShaderTexture(0, new ResourceLocation("vivecraft:textures/white.png"));
-        renderCircle(new Vec3(0.0D, 0.0D, 0.0D), radius, 32, r, g, b, 255, 0);
-        renderCircle(new Vec3(0.0D, 0.01D, 0.0D), radius * 0.75F, 32, r, g, b, 255, 0);
-        renderCircle(new Vec3(0.0D, 0.02D, 0.0D), radius * 0.25F, 32, r, g, b, 255, 0);
-        renderCircle(new Vec3(0.0D, 0.0D, 0.15D), radius * 0.5F, 32, r, g, b, 255, 2);
-        setupPolyRendering(false);
-    }
-
-    /**
-     * renders a circle at the given position
-     * @param pos position ot render the circle at
-     * @param radius size of the circle
-     * @param edges edge count of the circle
-     * @param r g b a: color of the circle
-     * @param side direction the circle faces, 0/1: y-axis, 2/3: z-axis, 4/5: x-axis
-     */
-    public static void renderCircle(Vec3 pos, float radius, int edges, int r, int g, int b, int a, int side) {
-        BufferBuilder bufferBuilder = Tesselator.getInstance().getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-
-        // put middle vertex
-        bufferBuilder.vertex(pos.x, pos.y, pos.z).color(r, g, b, a).endVertex();
-
-        // put outer vertices
-        for (int i = 0; i < edges + 1; i++) {
-            float startAngle = (float) i / (float) edges * Mth.TWO_PI;
-            if (side == 0 || side == 1) { //y
-                float x = (float) pos.x + (float) Math.cos(startAngle) * radius;
-                float y = (float) pos.y;
-                float z = (float) pos.z + (float) Math.sin(startAngle) * radius;
-                bufferBuilder.vertex(x, y, z).color(r, g, b, a).endVertex();
-            } else if (side == 2 || side == 3) { //z
-                float x = (float) pos.x + (float) Math.cos(startAngle) * radius;
-                float y = (float) pos.y + (float) Math.sin(startAngle) * radius;
-                float z = (float) pos.z;
-                bufferBuilder.vertex(x, y, z).color(r, g, b, a).endVertex();
-            } else if (side == 4 || side == 5) { //x
-                float x = (float) pos.x;
-                float y = (float) pos.y + (float) Math.cos(startAngle) * radius;
-                float z = (float) pos.z + (float) Math.sin(startAngle) * radius;
-                bufferBuilder.vertex(x, y, z).color(r, g, b, a).endVertex();
-            }
-        }
-        BufferUploader.drawWithShader(bufferBuilder.end());
     }
 
     /**

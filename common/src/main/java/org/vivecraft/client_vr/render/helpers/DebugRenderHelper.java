@@ -25,10 +25,15 @@ public class DebugRenderHelper {
     private static final ClientDataHolderVR DATA_HOLDER = ClientDataHolderVR.getInstance();
     private static final Minecraft MC = Minecraft.getInstance();
 
-    private static final Vector3f RED = new Vector3f(1F,0F,0F);
-    private static final Vector3f GREEN = new Vector3f(0F,1F,0F);
-    private static final Vector3f BLUE = new Vector3f(0F,0F,1F);
+    private static final Vector3fc RED = new Vector3f(1F,0F,0F);
+    private static final Vector3fc GREEN = new Vector3f(0F,1F,0F);
+    private static final Vector3fc BLUE = new Vector3f(0F,0F,1F);
 
+    /**
+     * renders debug stuff
+     * @param poseStack PoseStack to use for positioning
+     * @param partialTick current partial tick
+     */
     public static void renderDebug(PoseStack poseStack, float partialTick) {
         if (DATA_HOLDER.vrSettings.renderDeviceAxes) {
             renderDeviceAxes(poseStack, DATA_HOLDER.vrPlayer.vrdata_world_render);
@@ -38,6 +43,11 @@ public class DebugRenderHelper {
         }
     }
 
+    /**
+     * renders all available remote devices from all players
+     * @param poseStack PoseStack to use for positioning
+     * @param partialTick current partial tick
+     */
     public static void renderPlayerAxes(PoseStack poseStack, float partialTick) {
         if (MC.player != null) {
             BufferBuilder bufferbuilder = null;
@@ -76,6 +86,11 @@ public class DebugRenderHelper {
         }
     }
 
+    /**
+     * renders all available device axes using the provided VRData
+     * @param poseStack PoseStack to use for positioning
+     * @param data VRData to get the devices from
+     */
     public static void renderDeviceAxes(PoseStack poseStack, VRData data) {
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
 
@@ -111,8 +126,34 @@ public class DebugRenderHelper {
         BufferUploader.drawWithShader(bufferbuilder.end());
     }
 
+    /**
+     * renders forward, upo and right axes using the {@code poseStack} position and orientation
+     * @param poseStack PoseStack to use for positioning
+     */
+    public static void renderLocalAxes(PoseStack poseStack) {
+        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        bufferbuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+
+        Vector3f position = new Vector3f();
+
+        addLine(poseStack, bufferbuilder, position, MathUtils.BACK, BLUE);
+        addLine(poseStack, bufferbuilder, position, MathUtils.UP, GREEN);
+        addLine(poseStack, bufferbuilder, position, MathUtils.RIGHT, RED);
+
+        BufferUploader.drawWithShader(bufferbuilder.end());
+    }
+
+    /**
+     * adds device axes to the {@code bufferBuilder} for the given VRDevicePose
+     * @param poseStack PoseStack to use for positioning
+     * @param bufferBuilder BufferBuilder to use, needs to be in DEBUG_LINE_STRIP and POSITION_COLOR mode
+     * @param data VRData to get camera position from
+     * @param pose VRDevicePose to ge the orientation and position from.
+     */
     private static void addAxes(
-        PoseStack poseStack, BufferBuilder bufferbuilder, VRData data, VRData.VRDevicePose pose)
+        PoseStack poseStack, BufferBuilder bufferBuilder, VRData data, VRData.VRDevicePose pose)
     {
         Vector3f position = pose.getPosition()
             .subtract(RenderHelper.getSmoothCameraPosition(DATA_HOLDER.currentPass, data)).toVector3f();
@@ -120,13 +161,22 @@ public class DebugRenderHelper {
         Vector3f up = pose.getCustomVector(MathUtils.UP).mul(0.25F);
         Vector3f right = pose.getCustomVector(MathUtils.RIGHT).mul(0.25F);
 
-        addLine(poseStack, bufferbuilder, position, forward, BLUE);
-        addLine(poseStack, bufferbuilder, position, up, GREEN);
-        addLine(poseStack, bufferbuilder, position, right, RED);
+        addLine(poseStack, bufferBuilder, position, forward, BLUE);
+        addLine(poseStack, bufferBuilder, position, up, GREEN);
+        addLine(poseStack, bufferBuilder, position, right, RED);
     }
 
+    /**
+     * adds device axes to the {@code bufferBuilder} for the given VRDevicePose
+     * @param poseStack PoseStack to use for positioning
+     * @param bufferBuilder BufferBuilder to use, needs to be in DEBUG_LINE_STRIP and POSITION_COLOR mode
+     * @param playerPos player position, relative to the camera
+     * @param devicePos device position, relative to the player
+     * @param dir device forward direction
+     * @param rot device rotation
+     */
     private static void addAxes(
-        PoseStack poseStack, BufferBuilder bufferbuilder, Vector3fc playerPos, Vector3fc devicePos, Vector3fc dir,
+        PoseStack poseStack, BufferBuilder bufferBuilder, Vector3fc playerPos, Vector3fc devicePos, Vector3fc dir,
         Quaternionfc rot)
     {
         Vector3f position = playerPos.add(devicePos, new Vector3f());
@@ -135,20 +185,32 @@ public class DebugRenderHelper {
         Vector3f up = rot.transform(MathUtils.UP, new Vector3f()).mul(0.25F);
         Vector3f right = rot.transform(MathUtils.RIGHT, new Vector3f()).mul(0.25F);
 
-        addLine(poseStack, bufferbuilder, position, forward, BLUE);
-        addLine(poseStack, bufferbuilder, position, up, GREEN);
-        addLine(poseStack, bufferbuilder, position, right, RED);
+        addLine(poseStack, bufferBuilder, position, forward, BLUE);
+        addLine(poseStack, bufferBuilder, position, up, GREEN);
+        addLine(poseStack, bufferBuilder, position, right, RED);
     }
 
-    private static void addLine(PoseStack poseStack, BufferBuilder bufferbuilder, Vector3f position, Vector3f dir, Vector3f color) {
-        bufferbuilder.vertex(poseStack.last().pose(), position.x, position.y, position.z)
-            .color(color.x, color.y, color.z, 0.0F).endVertex();
-        bufferbuilder.vertex(poseStack.last().pose(), position.x, position.y, position.z)
-            .color(color.x, color.y, color.z, 1.0F).endVertex();
-        bufferbuilder.vertex(poseStack.last().pose(), position.x + dir.x, position.y + dir.y, position.z + dir.z)
-            .color(color.x, color.y, color.z, 1.0F).endVertex();
-        bufferbuilder.vertex(poseStack.last().pose(), position.x + dir.x, position.y + dir.y, position.z + dir.z)
-            .color(color.x, color.y, color.z, 0.0F).endVertex();
+    /**
+     * adds a line from {@code position} in direction {@code dir}, with the given {@code color}
+     * @param poseStack PoseStack to use for positioning
+     * @param bufferBuilder BufferBuilder to use, needs to be in DEBUG_LINE_STRIP and POSITION_COLOR mode
+     * @param position line start position
+     * @param dir line end, relative to {@code position}
+     * @param color line color
+     */
+    private static void addLine(
+        PoseStack poseStack, BufferBuilder bufferBuilder, Vector3fc position, Vector3fc dir, Vector3fc color)
+    {
+        bufferBuilder.vertex(poseStack.last().pose(), position.x(), position.y(), position.z())
+            .color(color.x(), color.y(), color.z(), 0.0F).endVertex();
+        bufferBuilder.vertex(poseStack.last().pose(), position.x(), position.y(), position.z())
+            .color(color.x(), color.y(), color.z(), 1.0F).endVertex();
+        bufferBuilder.vertex(poseStack.last().pose(), position.x() + dir.x(), position.y() + dir.y(),
+                position.z() + dir.z())
+            .color(color.x(), color.y(), color.z(), 1.0F).endVertex();
+        bufferBuilder.vertex(poseStack.last().pose(), position.x() + dir.x(), position.y() + dir.y(),
+                position.z() + dir.z())
+            .color(color.x(), color.y(), color.z(), 0.0F).endVertex();
     }
 
 }

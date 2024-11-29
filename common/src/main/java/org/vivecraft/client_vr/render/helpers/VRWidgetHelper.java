@@ -1,12 +1,8 @@
 package org.vivecraft.client_vr.render.helpers;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
-import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
@@ -131,9 +127,7 @@ public class VRWidgetHelper {
 
         // show orientation
         if (DEBUG) {
-            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-            RenderHelper.renderDebugAxes(0, 0, 0, 0.08F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            DebugRenderHelper.renderLocalAxes(poseStack);
         }
 
         // apply model offset
