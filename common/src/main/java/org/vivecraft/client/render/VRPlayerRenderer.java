@@ -21,6 +21,7 @@ import org.vivecraft.client.utils.ScaleHelper;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.render.RenderPass;
+import org.vivecraft.client_vr.settings.VRSettings;
 
 import java.util.UUID;
 
@@ -167,7 +168,7 @@ public class VRPlayerRenderer extends PlayerRenderer {
             ClientDataHolderVR.getInstance().grabScreenShot)
         {
             // player hands block the camera, so disable them for the screenshot
-            hideHands();
+            hideHands(true);
         }
         if (player == Minecraft.getInstance().player &&
             ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
@@ -177,25 +178,30 @@ public class VRPlayerRenderer extends PlayerRenderer {
             this.getModel().head.visible = false;
             this.getModel().hat.visible = false;
 
-            // hide arms when using the VR arms
-            if (!ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms) {
-                hideHands();
+            // hide model arms when not using them
+            if (ClientDataHolderVR.getInstance().vrSettings.modelArmsMode !=
+                VRSettings.ModelArmsMode.COMPLETE)
+            {
+                // keep the shouders when in shoulder mode
+                hideHands(ClientDataHolderVR.getInstance().vrSettings.modelArmsMode ==
+                    VRSettings.ModelArmsMode.OFF);
             } else if (this.getModel() instanceof VRPlayerModel<?> vrModel) {
                 if (ClientDataHolderVR.getInstance().menuHandOff) {
-                    vrModel.hideHand(player, InteractionHand.OFF_HAND);
+                    vrModel.hideHand(player, InteractionHand.OFF_HAND, false);
                 }
                 if (ClientDataHolderVR.getInstance().menuHandMain) {
-                    vrModel.hideHand(player, InteractionHand.MAIN_HAND);
+                    vrModel.hideHand(player, InteractionHand.MAIN_HAND, false);
                 }
             }
         }
     }
 
-    private void hideHands() {
+    private void hideHands(boolean completeArm) {
         if (this.getModel() instanceof VRPlayerModel<?> vrModel) {
-            vrModel.hideLeftHand();
-            vrModel.hideRightHand();
+            vrModel.hideLeftArm(completeArm);
+            vrModel.hideRightArm(completeArm);
         } else {
+            // this is just for the case someone replaces the model
             getModel().leftArm.visible = false;
             getModel().rightArm.visible = false;
             getModel().leftSleeve.visible = false;

@@ -12,7 +12,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
 import net.minecraft.client.gui.screens.inventory.BookEditScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.phys.*;
 import org.joml.Matrix4f;
@@ -529,7 +528,7 @@ public class GuiHandler {
                 } else {
                     // attach to controller
                     boolean modelArms = GUI_POS_PLAYER_MODEL != Vec3.ZERO && DH.vrSettings.shouldRenderSelf &&
-                        DH.vrSettings.shouldRenderModelArms;
+                        DH.vrSettings.modelArmsMode == VRSettings.ModelArmsMode.COMPLETE;
                     if (modelArms) {
                         guirot = new Matrix4f().set3x3(GUI_ROTATION_PLAYER_MODEL);
                         guipos = GUI_POS_PLAYER_MODEL;

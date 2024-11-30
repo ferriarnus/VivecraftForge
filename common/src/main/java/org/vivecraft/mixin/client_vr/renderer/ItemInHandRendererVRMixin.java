@@ -34,6 +34,7 @@ import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.render.VRArmRenderer;
 import org.vivecraft.client_vr.render.VivecraftItemRendering;
 import org.vivecraft.client_vr.render.helpers.VREffectsHelper;
+import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 
 @Mixin(value = ItemInHandRenderer.class, priority = 999)
@@ -121,7 +122,7 @@ public abstract class ItemInHandRendererVRMixin {
 
         if (RenderPass.isFirstPerson(dh.currentPass) &&
             ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
-            ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
+            ClientDataHolderVR.getInstance().vrSettings.modelArmsMode == VRSettings.ModelArmsMode.COMPLETE)
         {
             renderArm = false;
         }

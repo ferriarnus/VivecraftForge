@@ -165,11 +165,11 @@ public class NullVR extends MCVR {
             // point head in cursor direction
             if (this.dh.vrSettings.seated) {
                 this.hmdRotation.set3x3(this.handRotation[0]);
-            }
 
-            if (GuiHandler.GUI_ROTATION_ROOM != null) {
-                // look at screen, so that it's centered
-                this.hmdRotation.set3x3(GuiHandler.GUI_ROTATION_ROOM);
+                if (GuiHandler.GUI_ROTATION_ROOM != null) {
+                    // look at screen, so that it's centered
+                    this.hmdRotation.set3x3(GuiHandler.GUI_ROTATION_ROOM);
+                }
             }
             this.mc.getProfiler().popPush("hmdSampling");
             this.hmdSampling();

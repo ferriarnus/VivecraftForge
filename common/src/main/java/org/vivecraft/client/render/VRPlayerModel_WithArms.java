@@ -23,6 +23,7 @@ import org.vivecraft.client.utils.ClientUtils;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
+import org.vivecraft.client_vr.settings.VRSettings;
 
 public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerModel<T> implements HandModel {
     public static final int LOWER_EXTENSION = 2;
@@ -171,7 +172,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             }
 
             if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
-                ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
+                ClientDataHolderVR.getInstance().vrSettings.modelArmsMode != VRSettings.ModelArmsMode.OFF)
             {
                 // undo lay rotation
                 this.tempM.rotateLocalX(this.xRot);
@@ -209,7 +210,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             offHand.z += this.tempV.z;
 
             if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
-                ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
+                ClientDataHolderVR.getInstance().vrSettings.modelArmsMode != VRSettings.ModelArmsMode.OFF)
             {
                 GuiHandler.GUI_POS_PLAYER_MODEL = Vec3.ZERO;
             }
@@ -402,15 +403,23 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
     }
 
     @Override
-    public void hideLeftHand() {
+    public void hideLeftArm(boolean completeArm) {
         this.leftHand.visible = false;
         this.leftHandSleeve.visible = false;
+        if (completeArm) {
+            // hide shoulder as well
+            super.hideLeftArm(false);
+        }
     }
 
     @Override
-    public void hideRightHand() {
+    public void hideRightArm(boolean onlyHand) {
         this.rightHand.visible = false;
         this.rightHandSleeve.visible = false;
+        if (onlyHand) {
+            // hide shoulder as well
+            super.hideRightArm(false);
+        }
     }
 
     @Override

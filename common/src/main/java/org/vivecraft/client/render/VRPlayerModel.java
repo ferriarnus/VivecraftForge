@@ -23,6 +23,7 @@ import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.render.RenderPass;
+import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 
@@ -347,7 +348,7 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
                 }
 
                 if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
-                    ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms)
+                    ClientDataHolderVR.getInstance().vrSettings.modelArmsMode != VRSettings.ModelArmsMode.OFF)
                 {
                     GuiHandler.GUI_ROTATION_PLAYER_MODEL.set3x3(this.tempM);
                     // ModelParts are rotated 90°
@@ -453,29 +454,29 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         return this.bodyRot;
     }
 
-    public void hideHand(LivingEntity player, InteractionHand hand) {
+    public void hideHand(LivingEntity player, InteractionHand hand, boolean completeArm) {
         VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
         if (rotInfo != null && rotInfo.reverse) {
             if (hand == InteractionHand.MAIN_HAND) {
-                this.hideLeftHand();
+                this.hideLeftArm(completeArm);
             } else {
-                this.hideRightHand();
+                this.hideRightArm(completeArm);
             }
         } else {
             if (hand == InteractionHand.MAIN_HAND) {
-                this.hideRightHand();
+                this.hideRightArm(completeArm);
             } else {
-                this.hideLeftHand();
+                this.hideLeftArm(completeArm);
             }
         }
     }
 
-    public void hideLeftHand() {
+    public void hideLeftArm(boolean completeArm) {
         this.leftArm.visible = false;
         this.leftSleeve.visible = false;
     }
 
-    public void hideRightHand() {
+    public void hideRightArm(boolean onlyHand) {
         this.rightArm.visible = false;
         this.rightSleeve.visible = false;
     }

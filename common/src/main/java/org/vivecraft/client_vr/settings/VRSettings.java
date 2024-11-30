@@ -171,6 +171,12 @@ public class VRSettings {
         SPLIT_ARMS_LEGS
     }
 
+    public enum ModelArmsMode implements OptionEnum<ModelArmsMode> {
+        OFF,
+        SHOULDERS,
+        COMPLETE
+    }
+
     @SettingField
     public int version = UNKNOWN_VERSION;
 
@@ -369,24 +375,24 @@ public class VRSettings {
     public boolean displayMirrorUseScreenshotCamera = false;
     @SettingField(VrOptions.SHOW_PLAYER_MODEL)
     public boolean shouldRenderSelf = false;
+    @SettingField(VrOptions.PLAYER_MODEL_TYPE)
+    public PlayerModelType playerModelType = PlayerModelType.VANILLA;
     @SettingField(VrOptions.SHOW_PLAYER_MODEL_ARMS)
-    public boolean shouldRenderModelArms = false;
+    public ModelArmsMode modelArmsMode = ModelArmsMode.COMPLETE;
+    @SettingField(VrOptions.PLAYER_LIMBS_CONNECTED)
+    public boolean playerLimbsConnected = true;
+    @SettingField(VrOptions.PLAYER_LIMBS_LIMIT)
+    public boolean playerLimbsLimit = false;
+    @SettingField(VrOptions.PLAYER_WALK_ANIM)
+    public boolean playerWalkAnim = true;
+    @SettingField(VrOptions.PLAYER_ARM_ANIM)
+    public boolean playerArmAnim = true;
     @SettingField(VrOptions.PLAYER_MODEL_ARMS_SCALE)
     public float playerModelArmsScale = 0.5F;
     @SettingField(VrOptions.PLAYER_MODEL_BODY_SCALE)
     public float playerModelBodyScale = 1.0F;
     @SettingField(VrOptions.PLAYER_MODEL_LEGS_SCALE)
     public float playerModelLegScale = 1.0F;
-    @SettingField(VrOptions.PLAYER_MODEL_TYPE)
-    public PlayerModelType playerModelType = PlayerModelType.SPLIT_ARMS;
-    @SettingField(VrOptions.PLAYER_LIMBS_CONNECTED)
-    public boolean playerLimbsConnected = true;
-    @SettingField(VrOptions.PLAYER_LIMBS_LIMIT)
-    public boolean playerLimbsLimit = true;
-    @SettingField(VrOptions.PLAYER_WALK_ANIM)
-    public boolean playerWalkAnim = true;
-    @SettingField(VrOptions.PLAYER_ARM_ANIM)
-    public boolean playerArmAnim = true;
     @SettingField(VrOptions.MENU_WORLD_SELECTION)
     public MenuWorld menuWorldSelection = MenuWorld.BOTH;
     @SettingField(VrOptions.MENU_WORLD_FALLBACK)

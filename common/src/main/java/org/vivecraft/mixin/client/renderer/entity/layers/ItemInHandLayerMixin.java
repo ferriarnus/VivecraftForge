@@ -13,7 +13,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -26,6 +25,7 @@ import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.trackers.ClimbTracker;
 import org.vivecraft.client_vr.render.RenderPass;
+import org.vivecraft.client_vr.settings.VRSettings;
 
 @Mixin(ItemInHandLayer.class)
 public abstract class ItemInHandLayerMixin extends RenderLayer {
@@ -49,7 +49,7 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
         if (entity == Minecraft.getInstance().player && VRState.VR_RUNNING &&
             RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass) &&
             // don't cancel climbing claws, unless menu hand
-            (!ClientDataHolderVR.getInstance().vrSettings.shouldRenderModelArms ||
+            (ClientDataHolderVR.getInstance().vrSettings.modelArmsMode != VRSettings.ModelArmsMode.COMPLETE ||
                 ClientDataHolderVR.getInstance().isMenuHand(arm) ||
                 !(ClientDataHolderVR.getInstance().climbTracker.isActive(Minecraft.getInstance().player) &&
                     ClimbTracker.hasClimbeyClimbEquipped(Minecraft.getInstance().player)
