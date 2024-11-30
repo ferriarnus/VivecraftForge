@@ -157,8 +157,8 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
                 positionConnectedLimb(player, mainShoulder, mainHand, this.rotInfo.rightArmPos,
                     this.rotInfo.rightArmQuat, -offset, this.rotInfo.rightElbowPos, true, this.mainArm);
             } else {
-                positionSplitLimb(player, mainShoulder, mainHand, this.rotInfo.rightArmPos, this.rotInfo.rightArmRot,
-                    this.rotInfo.rightArmQuat, 0F, -offset, this.rotInfo.rightElbowPos, true, this.mainArm);
+                positionSplitLimb(player, mainShoulder, mainHand, this.rotInfo.rightArmPos, this.rotInfo.rightArmQuat,
+                    0F, -offset, this.rotInfo.rightElbowPos, true, this.mainArm);
             }
 
             // offhand
@@ -166,8 +166,8 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
                 positionConnectedLimb(player, offShoulder, offHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat,
                     offset, this.rotInfo.leftElbowPos, true, this.mainArm.getOpposite());
             } else {
-                positionSplitLimb(player, offShoulder, offHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmRot,
-                    this.rotInfo.leftArmQuat, 0F, offset, this.rotInfo.leftElbowPos, true, this.mainArm.getOpposite());
+                positionSplitLimb(player, offShoulder, offHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat, 0F,
+                    offset, this.rotInfo.leftElbowPos, true, this.mainArm.getOpposite());
             }
 
             if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
@@ -248,9 +248,8 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
      * @param arm arm this is positioning, to check if the swing animation should be applied
      */
     protected void positionSplitLimb(
-        LivingEntity player, ModelPart upper, ModelPart lower, Vector3fc lowerPos, Vector3fc lowerDir,
-        Quaternionfc lowerRot, float lowerXRot, float lowerXOffset, Vector3fc jointPos, boolean jointDown,
-        HumanoidArm arm)
+        LivingEntity player, ModelPart upper, ModelPart lower, Vector3fc lowerPos, Quaternionfc lowerRot,
+        float lowerXRot, float lowerXOffset, Vector3fc jointPos, boolean jointDown, HumanoidArm arm)
     {
         // place lower directly at the lower point
         ModelUtils.worldToModel(player, lowerPos, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV);
@@ -416,11 +415,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
     @Override
     protected ModelPart getArm(HumanoidArm side) {
-        //if (this.rotInfo != null && this.rotInfo.reverse) {
-            return side == HumanoidArm.RIGHT ? this.rightHand : this.leftHand;
-        /*} else {
-            return side == HumanoidArm.LEFT ? this.leftHand : this.rightHand;
-        }*/
+        return side == HumanoidArm.RIGHT ? this.rightHand : this.leftHand;
     }
 
     @Override

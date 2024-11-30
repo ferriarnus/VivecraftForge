@@ -87,7 +87,7 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
         float xRot, @Local(argsOnly = true) AbstractClientPlayer player,
         @Local(ordinal = 2, argsOnly = true) float partialTick, @Share("xRot") LocalFloatRef xRotation)
     {
-        if (getParentModel() instanceof VRPlayerModel<AbstractClientPlayer> vrModel) {
+        if (getParentModel() instanceof VRPlayerModel<AbstractClientPlayer>) {
             // rotate the cape with the body
             // cancel out crouch
             if (player.isCrouching()) {

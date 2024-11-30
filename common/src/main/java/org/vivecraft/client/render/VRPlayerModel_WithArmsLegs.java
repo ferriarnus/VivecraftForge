@@ -165,8 +165,8 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
                     null);
             } else {
                 this.footQuat.transform(MathUtils.BACK, this.footDir);
-                positionSplitLimb(player, this.leftLeg, this.leftFoot, this.footPos, this.footDir, this.footQuat,
-                    -Mth.HALF_PI, 0F, kneePos, false, null);
+                positionSplitLimb(player, this.leftLeg, this.leftFoot, this.footPos, this.footQuat, -Mth.HALF_PI, 0F,
+                    kneePos, false, null);
             }
 
             // right leg
@@ -197,8 +197,8 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
                     false, null);
             } else {
                 this.footQuat.transform(MathUtils.BACK, this.footDir);
-                positionSplitLimb(player, this.rightLeg, this.rightFoot, this.footPos, this.footDir, this.footQuat,
-                    -Mth.HALF_PI, 0F, kneePos, false, null);
+                positionSplitLimb(player, this.rightLeg, this.rightFoot, this.footPos, this.footQuat, -Mth.HALF_PI, 0F,
+                    kneePos, false, null);
             }
         }
 
