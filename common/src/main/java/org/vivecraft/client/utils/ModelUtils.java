@@ -212,14 +212,13 @@ public class ModelUtils {
     }
 
     /**
-     * rotates the ModelPart {@code part} to point at the given player local world space point
+     * sets the matrix {@code tempM} so that the ModelPart {@code part} points at the given player local world space point
      * @param player player this position is from
-     * @param part ModelPart to rotate
+     * @param part ModelPart to use as the pivot point
      * @param target target point the {@code part} should face, player local in world space
      * @param targetRot target rotation the {@code part} should respect
      * @param rotInfo players data
      * @param bodyYaw players Y rotation
-     * @param applyScale if the woldScale/entity scale should be applied
      * @param useWorldScale when set will apply the worldScale, instead of entity scale
      * @param tempVDir Vector3f object to work with, contains the direction after the call, in model space
      * @param tempVUp second Vector3f object to work with, contains the up direction after the call
@@ -227,13 +226,13 @@ public class ModelUtils {
      */
     public static void pointModelAtLocal(
         LivingEntity player, ModelPart part, Vector3fc target, Quaternionfc targetRot, VRPlayersClient.RotInfo rotInfo,
-        float bodyYaw, boolean applyScale, boolean useWorldScale, Vector3f tempVDir, Vector3f tempVUp, Matrix3f tempM)
+        float bodyYaw, boolean useWorldScale, Vector3f tempVDir, Vector3f tempVUp, Matrix3f tempM)
     {
         // convert target to model
         worldToModel(player, target, rotInfo, bodyYaw, useWorldScale, tempVDir);
 
         // calculate direction
-        tempVDir.sub(part.x, part.y, part.z, tempVDir);
+        tempVDir.sub(part.x, part.y, part.z);
 
         // get the up vector the ModelPart should face
         targetRot.transform(MathUtils.RIGHT, tempVUp);
@@ -246,8 +245,8 @@ public class ModelUtils {
     }
 
     /**
-     * rotates the ModelPart {@code part} to point at the given model space point, while facing forward
-     * @param part ModelPart to rotate
+     * sets the matrix {@code tempM} so that the ModelPart {@code part} points at the given model space point, while facing forward
+     * @param part ModelPart to use as the pivot point
      * @param targetX x coordinate of the target point the {@code part} should face, in model space
      * @param targetY y coordinate of the target point the {@code part} should face, in model space
      * @param targetZ z coordinate of the target point the {@code part} should face, in model space
@@ -270,8 +269,8 @@ public class ModelUtils {
     }
 
     /**
-     * rotates the ModelPart {@code part} to point at the given model space point, while facing forward
-     * @param part ModelPart to rotate
+     * sets the matrix {@code tempM} so that the ModelPart {@code part} points at the given model space point, while facing forward
+     * @param part ModelPart to use as the pivot point
      * @param targetX x coordinate of the target point the {@code part} should face, in model space
      * @param targetY y coordinate of the target point the {@code part} should face, in model space
      * @param targetZ z coordinate of the target point the {@code part} should face, in model space
@@ -287,21 +286,6 @@ public class ModelUtils {
 
         // rotate model
         pointAtModel(tempVDir, up, tempM);
-    }
-
-    /**
-     * rotates the given Matrix3f to point in the {@code dir} world direction
-     * @param bodyYaw players Y rotation
-     * @param dir     direction Vector the matrix should look at
-     * @param upDir   up direction for the look matrix
-     * @param tempM   Matrix3f object to work with, contains the rotation after the call
-     */
-    public static void pointAt(float bodyYaw, Vector3fc dir, Vector3fc upDir, Matrix3f tempM) {
-        tempM.setLookAlong(dir, upDir).transpose();
-        // undo body yaw
-        tempM.rotateLocalY(bodyYaw + Mth.PI);
-        // ModelParts are rotated 90°
-        tempM.rotateX(Mth.HALF_PI);
     }
 
     /**

@@ -186,7 +186,7 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             // body/arm position with waist tracker
             // if there is a waist tracker, align the body to that
             ModelUtils.pointModelAtLocal(player, this.body, this.rotInfo.waistPos, this.rotInfo.waistQuat, this.rotInfo,
-                this.bodyYaw, true, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
+                this.bodyYaw, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
 
             // offset arms
             this.tempM.transform(sideOffset, 2F, 0F, this.tempV2);
@@ -296,9 +296,20 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
 
                 // main hand
                 ModelUtils.pointModelAtLocal(player, mainHand, this.rotInfo.rightArmPos, this.rotInfo.rightArmQuat,
-                    this.rotInfo, this.bodyYaw, true, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
+                    this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
 
-                this.tempM.rotateZ(-offset * Math.min(10F / this.tempV.length(), 1F));
+                float controllerDist = this.tempV.length();
+
+                if (!ClientDataHolderVR.getInstance().vrSettings.playerLimbsLimit && controllerDist > 10F) {
+                    this.tempV.normalize().mul(controllerDist - 10F);
+                    mainHand.x += this.tempV.x;
+                    mainHand.y += this.tempV.y;
+                    mainHand.z += this.tempV.z;
+                    this.tempM.rotateZ(-offset);
+                } else {
+                    // reduce correction angle with distance
+                    this.tempM.rotateZ(-offset * Math.min(10F / controllerDist, 1F));
+                }
 
                 if (ClientDataHolderVR.getInstance().vrSettings.playerArmAnim && this.attackArm == this.mainArm) {
                     ModelUtils.swingAnimation(this.attackArm, this.attackTime, this.isMainPlayer, this.tempM,
@@ -312,9 +323,20 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
 
                 // offhand
                 ModelUtils.pointModelAtLocal(player, offHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat,
-                    this.rotInfo, this.bodyYaw, true, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
+                    this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
 
-                this.tempM.rotateZ(offset * Math.min(10F / this.tempV.length(), 1F));
+                controllerDist = this.tempV.length();
+
+                if (!ClientDataHolderVR.getInstance().vrSettings.playerLimbsLimit && controllerDist > 10F) {
+                    this.tempV.normalize().mul(controllerDist - 10F);
+                    offHand.x += this.tempV.x;
+                    offHand.y += this.tempV.y;
+                    offHand.z += this.tempV.z;
+                    this.tempM.rotateZ(offset);
+                } else {
+                    // reduce correction angle with distance
+                    this.tempM.rotateZ(offset * Math.min(10F / controllerDist, 1F));
+                }
 
                 if (ClientDataHolderVR.getInstance().vrSettings.playerArmAnim && this.attackArm != this.mainArm) {
                     ModelUtils.swingAnimation(this.attackArm, this.attackTime, this.isMainPlayer, this.tempM,
@@ -357,13 +379,13 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
                 }
 
                 ModelUtils.pointModelAtLocal(player, this.rightLeg, this.rotInfo.rightFootPos,
-                    this.rotInfo.rightFootQuat, this.rotInfo, this.bodyYaw, true, this.isMainPlayer, this.tempV,
+                    this.rotInfo.rightFootQuat, this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV,
                     this.tempV2, this.tempM);
                 this.tempM.rotateLocalX(limbRotation - this.xRot);
                 ModelUtils.setRotation(this.rightLeg, this.tempM, this.tempV);
 
                 ModelUtils.pointModelAtLocal(player, this.leftLeg, this.rotInfo.leftFootPos, this.rotInfo.leftFootQuat,
-                    this.rotInfo, this.bodyYaw, true, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
+                    this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
                 this.tempM.rotateLocalX(-limbRotation - this.xRot);
                 ModelUtils.setRotation(this.leftLeg, this.tempM, this.tempV);
             }

@@ -539,7 +539,7 @@
   "vivecraft.options.PLAYER_MODEL_LEGS_SCALE.tooltip": "Skaliert die dicke der Spieler Modell Beine, in der 1. Person ansicht.",
   "vivecraft.options.PLAYER_MODEL_TYPE.tooltip": "Der Modell Typ für alle VR Spieler:\n Vanilla: Fügt keine körperteile hinzu und animiert einfach das Vanilla Spieler Modell.\n Geteilte Arme: Teilt die Arme in zwei Teile, so dass sie sich biegen/separieren können.\n Geteilte Arme/Beine: Gleich wie 'Geteilte Arme', nur auch für die Beine.",
   "vivecraft.options.PLAYER_LIMBS_CONNECTED.tooltip": "Wenn dies aktiv ist, werden die teile der Arme/Beine verbunden, um einen Ellbogen/Knie zu simulieren.",
-  "vivecraft.options.PLAYER_LIMBS_LIMIT.tooltip": "Wenn dies aktiv ist, wird die verbundene Armlänge limitiert, und bleiben verbunden.\nWenn dies deaktiviert ist, können sich Arme/Beine trennen, wenn die benötigte Länge länger als die Modelllänge ist.",
+  "vivecraft.options.PLAYER_LIMBS_LIMIT.tooltip": "Wenn dies aktiv ist, ist die Arm/Bein länge limitiert und sie bleiben verbunden.\nWenn dies deaktiviert ist, können sich Arme/Beine trennen, wenn die benötigte Länge länger als die Modelllänge ist.",
   "vivecraft.options.PLAYER_WALK_ANIM.tooltip": "Ob die Vanilla geh Animation über die Fußtracker gelegt werden soll.",
   "vivecraft.options.PLAYER_ARM_ANIM.tooltip": "Schwingt den Spieler Arm beim Angreifen, Gegenstand benutzen oder Interagieren.",
   "vivecraft.options.RENDER_DEBUG_TRACKERS.tooltip": "Zeigt die rohen Trackerpositionen, mit Bezeichnung.",
