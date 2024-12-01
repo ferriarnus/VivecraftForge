@@ -26,6 +26,7 @@ import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.trackers.ClimbTracker;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
+import org.vivecraft.mod_compat_vr.ShadersHelper;
 
 @Mixin(ItemInHandLayer.class)
 public abstract class ItemInHandLayerMixin extends RenderLayer {
@@ -46,7 +47,7 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
 
     @Inject(method = "renderArmWithItem", at = @At("HEAD"), cancellable = true)
     private void vivecraft$noItemsInFirstPerson(CallbackInfo ci, @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true) HumanoidArm arm) {
-        if (entity == Minecraft.getInstance().player && VRState.VR_RUNNING &&
+        if (entity == Minecraft.getInstance().player && VRState.VR_RUNNING && !ShadersHelper.isRenderingShadows() &&
             RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass) &&
             // don't cancel climbing claws, unless menu hand
             (ClientDataHolderVR.getInstance().vrSettings.modelArmsMode != VRSettings.ModelArmsMode.COMPLETE ||
@@ -89,7 +90,7 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
 
     @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ArmedModel;translateToHand(Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;)V", shift = At.Shift.AFTER))
     private void vivecraft$firstPersonItemScale(CallbackInfo ci, @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true) PoseStack poseStack) {
-        if (entity == Minecraft.getInstance().player && VRState.VR_RUNNING &&
+        if (entity == Minecraft.getInstance().player && VRState.VR_RUNNING && !ShadersHelper.isRenderingShadows() &&
             RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass)) {
             // make the item scale equal in all directions
             if (getParentModel() instanceof VRPlayerModel_WithArms<?>) {

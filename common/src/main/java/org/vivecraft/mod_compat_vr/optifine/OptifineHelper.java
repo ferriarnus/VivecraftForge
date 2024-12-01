@@ -50,6 +50,7 @@ public class OptifineHelper {
     private static Method Shaders_EndEntities;
     private static Method Shaders_SetCameraShadow;
     private static Field Shaders_DFB;
+    private static Field Shaders_isShadowPass;
 
     private static Method ShadersFramebuffer_BindFramebuffer;
 
@@ -88,6 +89,15 @@ public class OptifineHelper {
             return (boolean) Config_IsShaders.invoke(Config);
         } catch (InvocationTargetException | IllegalAccessException e) {
             logError(e, "IsShaders");
+            return false;
+        }
+    }
+
+    public static boolean isRenderingShadows() {
+        try {
+            return (boolean) Shaders_isShadowPass.get(Shaders);
+        } catch (IllegalAccessException e) {
+            logError(e, "isShadowPass");
             return false;
         }
     }
@@ -451,6 +461,7 @@ public class OptifineHelper {
             Shaders_BeginEntities = Shaders.getMethod("beginEntities");
             Shaders_EndEntities = Shaders.getMethod("endEntities");
             Shaders_SetCameraShadow = Shaders.getMethod("setCameraShadow", PoseStack.class, Camera.class, float.class);
+            Shaders_isShadowPass = Shaders.getField("isShadowPass");
 
             Class<?> ShadersFramebuffer = Class.forName("net.optifine.shaders.ShadersFramebuffer");
             ShadersFramebuffer_BindFramebuffer = ShadersFramebuffer.getMethod("bindFramebuffer");

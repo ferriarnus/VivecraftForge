@@ -32,6 +32,14 @@ public class ShadersHelper {
     }
 
     /**
+     * @return if shaders are active, and the shadow pass is currently rendered
+     */
+    public static boolean isRenderingShadows() {
+        return (IrisHelper.isLoaded() && IrisHelper.isShaderActive() && IrisHelper.isRenderingShadows()) ||
+            (OptifineHelper.isOptifineLoaded() && OptifineHelper.isShaderActive() && OptifineHelper.isRenderingShadows());
+    }
+
+    /**
      * reloads shaders, if the shader implementation needs it
      */
     public static void maybeReloadShaders() {

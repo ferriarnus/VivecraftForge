@@ -22,6 +22,7 @@ import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
+import org.vivecraft.mod_compat_vr.ShadersHelper;
 
 import java.util.UUID;
 
@@ -170,7 +171,7 @@ public class VRPlayerRenderer extends PlayerRenderer {
             // player hands block the camera, so disable them for the screenshot
             hideHands(true);
         }
-        if (player == Minecraft.getInstance().player &&
+        if (player == Minecraft.getInstance().player && !ShadersHelper.isRenderingShadows() &&
             ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
             RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass))
         {

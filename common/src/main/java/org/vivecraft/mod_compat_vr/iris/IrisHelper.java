@@ -50,6 +50,13 @@ public class IrisHelper {
     }
 
     /**
+     * @return if a shaderpack is in use
+     */
+    public static boolean isRenderingShadows() {
+        return IrisApi.getInstance().isRenderingShadowPass();
+    }
+
+    /**
      * enabled or disables shaders
      * @param enabled if shaders should be on or off
      */
