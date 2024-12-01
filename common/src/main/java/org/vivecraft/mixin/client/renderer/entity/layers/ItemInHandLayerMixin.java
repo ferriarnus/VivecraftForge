@@ -70,7 +70,7 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
         {
             VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(entity.getUUID());
             if (rotInfo != null) {
-                boolean mainHand = arm == (rotInfo.reverse ? HumanoidArm.LEFT : HumanoidArm.RIGHT);
+                boolean mainHand = arm == (rotInfo.leftHanded ? HumanoidArm.LEFT : HumanoidArm.RIGHT);
                 ItemStack otherStack = mainHand ? entity.getOffhandItem() : entity.getMainHandItem();
                 if (ClimbTracker.isClaws(otherStack)) {
                     if (entity instanceof LocalPlayer player && VRState.VR_RUNNING &&

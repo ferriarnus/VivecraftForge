@@ -86,13 +86,13 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             return; //how
         }
 
-        this.mainArm = this.rotInfo.reverse ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
+        this.mainArm = this.rotInfo.leftHanded ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
 
         if (this.attackTime > 0F) {
             // we ignore the vanilla main arm setting
             this.attackArm = player.swingingArm == InteractionHand.MAIN_HAND ?
                 HumanoidArm.RIGHT : HumanoidArm.LEFT;
-            if (this.rotInfo.reverse) {
+            if (this.rotInfo.leftHanded) {
                 this.attackArm = this.attackArm.getOpposite();
             }
         } else {
@@ -289,17 +289,17 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         // arms/legs only when standing
         if (!this.rotInfo.seated || this.isMainPlayer) {
             if (this.getClass() == VRPlayerModel.class &&
-                this.rotInfo.leftArmPos.distanceSquared(this.rotInfo.rightArmPos) > 0.0F)
+                this.rotInfo.offHandPos.distanceSquared(this.rotInfo.mainHandPos) > 0.0F)
             {
-                ModelPart offHand = this.rotInfo.reverse ? this.rightArm : this.leftArm;
-                ModelPart mainHand = this.rotInfo.reverse ? this.leftArm : this.rightArm;
+                ModelPart offHand = this.rotInfo.leftHanded ? this.rightArm : this.leftArm;
+                ModelPart mainHand = this.rotInfo.leftHanded ? this.leftArm : this.rightArm;
 
                 // rotation offset, since the rotation point isn't in the center.
                 // this rotates the arm 0.5 or 1 pixels at full arm distance, so that the hand matches up with the center
                 float offset = (this.slim ? Mth.PI * 0.016F : Mth.PI * 0.032F) * this.armScale;
 
                 // main hand
-                ModelUtils.pointModelAtLocal(player, mainHand, this.rotInfo.rightArmPos, this.rotInfo.rightArmQuat,
+                ModelUtils.pointModelAtLocal(player, mainHand, this.rotInfo.mainHandPos, this.rotInfo.mainHandQuat,
                     this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
 
                 float controllerDist = this.tempV.length();
@@ -326,7 +326,7 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
                 ModelUtils.setRotation(mainHand, this.tempM, this.tempV);
 
                 // offhand
-                ModelUtils.pointModelAtLocal(player, offHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat,
+                ModelUtils.pointModelAtLocal(player, offHand, this.rotInfo.offHandPos, this.rotInfo.offHandQuat,
                     this.rotInfo, this.bodyYaw, this.isMainPlayer, this.tempV, this.tempV2, this.tempM);
 
                 controllerDist = this.tempV.length();
@@ -459,7 +459,7 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
 
     public void hideHand(LivingEntity player, InteractionHand hand, boolean completeArm) {
         VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
-        if (rotInfo != null && rotInfo.reverse) {
+        if (rotInfo != null && rotInfo.leftHanded) {
             if (hand == InteractionHand.MAIN_HAND) {
                 this.hideLeftArm(completeArm);
             } else {

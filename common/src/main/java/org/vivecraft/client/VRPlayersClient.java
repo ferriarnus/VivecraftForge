@@ -85,21 +85,21 @@ public class VRPlayersClient {
         Vector3fc controller1Dir = vrPlayerState.controller1().orientation().transform(MathUtils.BACK, new Vector3f());
 
         RotInfo rotInfo = new RotInfo();
-        rotInfo.reverse = vrPlayerState.reverseHands();
+        rotInfo.leftHanded = vrPlayerState.reverseHands();
         rotInfo.seated = vrPlayerState.seated();
 
         rotInfo.hmd = this.donors.getOrDefault(uuid, 0);
 
-        rotInfo.leftArmRot = controller1Dir;
-        rotInfo.rightArmRot = controller0Dir;
+        rotInfo.offHandRot = controller1Dir;
+        rotInfo.mainHandRot = controller0Dir;
         rotInfo.headRot = hmdDir;
 
-        rotInfo.leftArmPos = vrPlayerState.controller1().position();
-        rotInfo.rightArmPos = vrPlayerState.controller0().position();
+        rotInfo.offHandPos = vrPlayerState.controller1().position();
+        rotInfo.mainHandPos = vrPlayerState.controller0().position();
         rotInfo.headPos = vrPlayerState.hmd().position();
 
-        rotInfo.leftArmQuat = vrPlayerState.controller1().orientation();
-        rotInfo.rightArmQuat = vrPlayerState.controller0().orientation();
+        rotInfo.offHandQuat = vrPlayerState.controller1().orientation();
+        rotInfo.mainHandQuat = vrPlayerState.controller0().orientation();
         rotInfo.headQuat = vrPlayerState.hmd().orientation();
 
         rotInfo.worldScale = worldScale;
@@ -174,12 +174,12 @@ public class VRPlayersClient {
                         RotInfo rotInfo = this.vivePlayers.get(player.getUUID());
                         Vector3f look = player.getLookAngle().toVector3f();
                         if (rotInfo != null) {
-                            look = rotInfo.leftArmPos.sub(rotInfo.rightArmPos, look).rotateY(-Mth.HALF_PI);
+                            look = rotInfo.offHandPos.sub(rotInfo.mainHandPos, look).rotateY(-Mth.HALF_PI);
 
-                            if (rotInfo.reverse) {
+                            if (rotInfo.leftHanded) {
                                 look = look.mul(-1.0F);
                             } else if (rotInfo.seated) {
-                                look.set(rotInfo.rightArmRot);
+                                look.set(rotInfo.mainHandRot);
                             }
 
                             // Hands are at origin or something, usually happens if they don't track
@@ -233,7 +233,7 @@ public class VRPlayersClient {
      * @return if the player is in VR and using reversed hands
      */
     public boolean isVRAndLeftHanded(UUID uuid) {
-        return this.vivePlayers.containsKey(uuid) && this.vivePlayers.get(uuid).reverse;
+        return this.vivePlayers.containsKey(uuid) && this.vivePlayers.get(uuid).leftHanded;
     }
 
     public RotInfo getRotationsForPlayer(UUID uuid) {
@@ -252,20 +252,20 @@ public class VRPlayersClient {
             RotInfo lastRotInfo = this.vivePlayersLast.get(uuid);
             RotInfo lerpRotInfo = new RotInfo();
 
-            lerpRotInfo.reverse = newRotInfo.reverse;
+            lerpRotInfo.leftHanded = newRotInfo.leftHanded;
             lerpRotInfo.seated = newRotInfo.seated;
             lerpRotInfo.hmd = newRotInfo.hmd;
 
-            lerpRotInfo.leftArmPos = lastRotInfo.leftArmPos.lerp(newRotInfo.leftArmPos, partialTick, new Vector3f());
-            lerpRotInfo.rightArmPos = lastRotInfo.rightArmPos.lerp(newRotInfo.rightArmPos, partialTick, new Vector3f());
+            lerpRotInfo.offHandPos = lastRotInfo.offHandPos.lerp(newRotInfo.offHandPos, partialTick, new Vector3f());
+            lerpRotInfo.mainHandPos = lastRotInfo.mainHandPos.lerp(newRotInfo.mainHandPos, partialTick, new Vector3f());
             lerpRotInfo.headPos = lastRotInfo.headPos.lerp(newRotInfo.headPos, partialTick, new Vector3f());
 
-            lerpRotInfo.leftArmQuat = newRotInfo.leftArmQuat;
-            lerpRotInfo.rightArmQuat = newRotInfo.rightArmQuat;
+            lerpRotInfo.offHandQuat = newRotInfo.offHandQuat;
+            lerpRotInfo.mainHandQuat = newRotInfo.mainHandQuat;
             lerpRotInfo.headQuat = newRotInfo.headQuat;
 
-            lerpRotInfo.leftArmRot = lastRotInfo.leftArmRot.lerp(newRotInfo.leftArmRot, partialTick, new Vector3f());
-            lerpRotInfo.rightArmRot = lastRotInfo.rightArmRot.lerp(newRotInfo.rightArmRot, partialTick, new Vector3f());
+            lerpRotInfo.offHandRot = lastRotInfo.offHandRot.lerp(newRotInfo.offHandRot, partialTick, new Vector3f());
+            lerpRotInfo.mainHandRot = lastRotInfo.mainHandRot.lerp(newRotInfo.mainHandRot, partialTick, new Vector3f());
             lerpRotInfo.headRot = lastRotInfo.headRot.lerp(newRotInfo.headRot, partialTick, new Vector3f());
 
             lerpRotInfo.heightScale = newRotInfo.heightScale;
@@ -328,7 +328,7 @@ public class VRPlayersClient {
         VRData data = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld();
 
         rotInfo.seated = ClientDataHolderVR.getInstance().vrSettings.seated;
-        rotInfo.reverse = ClientDataHolderVR.getInstance().vrSettings.reverseHands;
+        rotInfo.leftHanded = ClientDataHolderVR.getInstance().vrSettings.reverseHands;
         rotInfo.fbtMode = data.fbtMode;
 
         rotInfo.heightScale = AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT;
@@ -337,14 +337,14 @@ public class VRPlayersClient {
         LOCAL_PLAYER_ROT_INFO_FRAME_INDEX = ClientDataHolderVR.getInstance().frameIndex;
         LOCAL_PLAYER_ROT_INFO = rotInfo;
 
-        rotInfo.leftArmQuat = data.getController(MCVR.OFFHAND_CONTROLLER).getMatrix()
+        rotInfo.offHandQuat = data.getController(MCVR.OFFHAND_CONTROLLER).getMatrix()
             .getNormalizedRotation(new Quaternionf());
-        rotInfo.rightArmQuat = data.getController(MCVR.MAIN_CONTROLLER).getMatrix()
+        rotInfo.mainHandQuat = data.getController(MCVR.MAIN_CONTROLLER).getMatrix()
             .getNormalizedRotation(new Quaternionf());
         rotInfo.headQuat = data.hmd.getMatrix().getNormalizedRotation(new Quaternionf());
 
-        rotInfo.leftArmRot = rotInfo.leftArmQuat.transform(MathUtils.BACK, new Vector3f());
-        rotInfo.rightArmRot = rotInfo.rightArmQuat.transform(MathUtils.BACK, new Vector3f());
+        rotInfo.offHandRot = rotInfo.offHandQuat.transform(MathUtils.BACK, new Vector3f());
+        rotInfo.mainHandRot = rotInfo.mainHandQuat.transform(MathUtils.BACK, new Vector3f());
         rotInfo.headRot = rotInfo.headQuat.transform(MathUtils.BACK, new Vector3f());
 
         Vec3 pos;
@@ -354,9 +354,9 @@ public class VRPlayersClient {
             pos = player.getPosition(partialTick);
         }
 
-        rotInfo.leftArmPos = MathUtils.subtractToVector3f(
+        rotInfo.offHandPos = MathUtils.subtractToVector3f(
             RenderHelper.getControllerRenderPos(MCVR.OFFHAND_CONTROLLER), pos);
-        rotInfo.rightArmPos = MathUtils.subtractToVector3f(
+        rotInfo.mainHandPos = MathUtils.subtractToVector3f(
             RenderHelper.getControllerRenderPos(MCVR.MAIN_CONTROLLER), pos);
         rotInfo.headPos = MathUtils.subtractToVector3f(data.hmd.getPosition(), pos);
 
@@ -425,18 +425,18 @@ public class VRPlayersClient {
 
     public static class RotInfo {
         public boolean seated;
-        public boolean reverse;
+        public boolean leftHanded;
         public int hmd = 0;
-        public Quaternionfc leftArmQuat;
-        public Quaternionfc rightArmQuat;
+        public Quaternionfc offHandQuat;
+        public Quaternionfc mainHandQuat;
         public Quaternionfc headQuat;
         // body rotations in world space
-        public Vector3fc leftArmRot;
-        public Vector3fc rightArmRot;
+        public Vector3fc offHandRot;
+        public Vector3fc mainHandRot;
         public Vector3fc headRot;
         // body positions in player local world space
-        public Vector3fc leftArmPos;
-        public Vector3fc rightArmPos;
+        public Vector3fc offHandPos;
+        public Vector3fc mainHandPos;
         public Vector3fc headPos;
         public float worldScale;
         public float heightScale;
@@ -464,7 +464,7 @@ public class VRPlayersClient {
         public float getBodyYawRad() {
             Vector3f dir = new Vector3f();
             if (this.seated ||
-                (this.fbtMode == FBTMode.ARMS_ONLY && this.leftArmPos.distanceSquared(this.rightArmPos) == 0.0F))
+                (this.fbtMode == FBTMode.ARMS_ONLY && this.offHandPos.distanceSquared(this.mainHandPos) == 0.0F))
             {
                 // in seated use the head direction
                 dir.set(this.headRot);
@@ -474,8 +474,8 @@ public class VRPlayersClient {
                     .lerp(this.headRot, 0.5F);
             } else {
                 return MathUtils.bodyYawRad(
-                    this.reverse ? this.leftArmPos: this.rightArmPos,
-                    this.reverse ? this.rightArmPos: this.leftArmPos,
+                    this.leftHanded ? this.offHandPos : this.mainHandPos,
+                    this.leftHanded ? this.mainHandPos : this.offHandPos,
                     this.headRot);
             }
             return (float) Math.atan2(-dir.x, dir.z);

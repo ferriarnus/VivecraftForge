@@ -55,7 +55,7 @@ public abstract class FishingHookRendererVRMixin {
             return linePos.get().x;
         } else if (VRPlayersClient.getInstance().isVRPlayer(player) && !(info = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID())).seated) {
             // other players in standing mode
-            Vector3fc aimSource = player.getMainHandItem().getItem() instanceof FishingRodItem ? info.rightArmPos : info.leftArmPos;
+            Vector3fc aimSource = player.getMainHandItem().getItem() instanceof FishingRodItem ? info.mainHandPos : info.offHandPos;
             // just set it to the hand, everything else looks silly
             linePos.set(player.getPosition(partialTick).add(aimSource.x(), aimSource.y(), aimSource.z()));
             return linePos.get().x;

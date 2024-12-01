@@ -92,10 +92,10 @@ public class DebugRenderHelper {
                         addAxes(poseStack, bufferbuilder, playerPos, info.headPos, info.headRot, info.headQuat);
                     }
                     if (!info.seated) {
-                        addAxes(poseStack, bufferbuilder, playerPos, info.rightArmPos, info.rightArmRot,
-                            info.rightArmQuat);
-                        addAxes(poseStack, bufferbuilder, playerPos, info.leftArmPos, info.leftArmRot,
-                            info.leftArmQuat);
+                        addAxes(poseStack, bufferbuilder, playerPos, info.mainHandPos, info.mainHandRot,
+                            info.mainHandQuat);
+                        addAxes(poseStack, bufferbuilder, playerPos, info.offHandPos, info.offHandRot,
+                            info.offHandQuat);
                     }
                     if (info.fbtMode != FBTMode.ARMS_ONLY) {
                         addAxes(poseStack, bufferbuilder, playerPos, info.waistPos, info.waistQuat);

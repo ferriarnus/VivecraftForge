@@ -145,29 +145,29 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             return;
         }
 
-        ModelPart offHand = this.rotInfo.reverse ? this.rightHand : this.leftHand;
-        ModelPart mainHand = this.rotInfo.reverse ? this.leftHand : this.rightHand;
-        ModelPart offShoulder = this.rotInfo.reverse ? this.rightArm : this.leftArm;
-        ModelPart mainShoulder = this.rotInfo.reverse ? this.leftArm : this.rightArm;
+        ModelPart offHand = this.rotInfo.leftHanded ? this.rightHand : this.leftHand;
+        ModelPart mainHand = this.rotInfo.leftHanded ? this.leftHand : this.rightHand;
+        ModelPart offShoulder = this.rotInfo.leftHanded ? this.rightArm : this.leftArm;
+        ModelPart mainShoulder = this.rotInfo.leftHanded ? this.leftArm : this.rightArm;
 
-        if (this.rotInfo.leftArmPos.distanceSquared(this.rotInfo.rightArmPos) > 0.0F) {
-            float offset = (this.slim ? 0.5F : 1F) * this.armScale * (this.rotInfo.reverse ? -1F : 1F);
+        if (this.rotInfo.offHandPos.distanceSquared(this.rotInfo.mainHandPos) > 0.0F) {
+            float offset = (this.slim ? 0.5F : 1F) * this.armScale * (this.rotInfo.leftHanded ? -1F : 1F);
 
             // main hand
             if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-                positionConnectedLimb(player, mainShoulder, mainHand, this.rotInfo.rightArmPos,
-                    this.rotInfo.rightArmQuat, -offset, this.rotInfo.rightElbowPos, true, this.mainArm);
+                positionConnectedLimb(player, mainShoulder, mainHand, this.rotInfo.mainHandPos,
+                    this.rotInfo.mainHandQuat, -offset, this.rotInfo.rightElbowPos, true, this.mainArm);
             } else {
-                positionSplitLimb(player, mainShoulder, mainHand, this.rotInfo.rightArmPos, this.rotInfo.rightArmQuat,
+                positionSplitLimb(player, mainShoulder, mainHand, this.rotInfo.mainHandPos, this.rotInfo.mainHandQuat,
                     0F, -offset, this.rotInfo.rightElbowPos, true, this.mainArm);
             }
 
             // offhand
             if (ClientDataHolderVR.getInstance().vrSettings.playerLimbsConnected) {
-                positionConnectedLimb(player, offShoulder, offHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat,
+                positionConnectedLimb(player, offShoulder, offHand, this.rotInfo.offHandPos, this.rotInfo.offHandQuat,
                     offset, this.rotInfo.leftElbowPos, true, this.mainArm.getOpposite());
             } else {
-                positionSplitLimb(player, offShoulder, offHand, this.rotInfo.leftArmPos, this.rotInfo.leftArmQuat, 0F,
+                positionSplitLimb(player, offShoulder, offHand, this.rotInfo.offHandPos, this.rotInfo.offHandQuat, 0F,
                     offset, this.rotInfo.leftElbowPos, true, this.mainArm.getOpposite());
             }
 

@@ -154,23 +154,23 @@ public class MathUtils {
 
     /**
      * calculates the body yaw based on the two controller positions and the head direction
-     * @param c0Pos right controller position
-     * @param c1Pos left controller position
+     * @param rightHand right controller position
+     * @param leftHand left controller position
      * @param headDir head direction
      * @return ywa in radians
      */
-    public static float bodyYawRad(Vector3fc c0Pos, Vector3fc c1Pos, Vector3fc headDir) {
+    public static float bodyYawRad(Vector3fc rightHand, Vector3fc leftHand, Vector3fc headDir) {
         // use an average of controller forward and head dir
 
         // use this when the hands are in front of the head
-        Vector3f dir = c1Pos.add(c0Pos, new Vector3f());
+        Vector3f dir = leftHand.add(rightHand, new Vector3f());
 
         float hDot = MathUtils.normalizedDotXZ(dir, headDir);
 
         // BEHIND HEAD
         // use this when the hands are behind of the head
         // assuming the left controller is on the left side of the body, and the right one on the right side
-        Vector3f armsForward = c1Pos.sub(c0Pos, new Vector3f()).rotateY(-Mth.HALF_PI);
+        Vector3f armsForward = leftHand.sub(rightHand, new Vector3f()).rotateY(-Mth.HALF_PI);
 
         // TODO FBT this causes the body to flip when having the hands opposite each other, and looking 90° to the side
         // if hands are crossed, flip them

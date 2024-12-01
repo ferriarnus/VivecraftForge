@@ -55,10 +55,10 @@ public abstract class AbstractClientPlayerMixin extends LivingEntityMixin {
             VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(this.uuid);
             if (rotInfo != null) {
                 Vec3 pos;
-                if (this.getUsedItemHand() == InteractionHand.MAIN_HAND && !rotInfo.reverse) {
-                    pos = this.position().add(rotInfo.rightArmPos.x(), rotInfo.rightArmPos.y(), rotInfo.rightArmPos.z());
+                if (this.getUsedItemHand() == InteractionHand.MAIN_HAND) {
+                    pos = this.position().add(rotInfo.mainHandPos.x(), rotInfo.mainHandPos.y(), rotInfo.mainHandPos.z());
                 } else {
-                    pos = this.position().add(rotInfo.leftArmPos.x(), rotInfo.leftArmPos.y(), rotInfo.leftArmPos.z());
+                    pos = this.position().add(rotInfo.offHandPos.x(), rotInfo.offHandPos.y(), rotInfo.offHandPos.z());
                 }
 
                 Vector3fc dir = rotInfo.headRot;
