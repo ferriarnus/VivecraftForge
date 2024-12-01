@@ -214,7 +214,7 @@ public class VRPlayerRenderer extends PlayerRenderer {
     protected void setupRotations(AbstractClientPlayer player, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTick) {
         UUID uuid = player.getUUID();
         if (ClientDataHolderVR.getInstance().currentPass != RenderPass.GUI &&
-            VRPlayersClient.getInstance().isTracked(uuid))
+            VRPlayersClient.getInstance().isTracked(uuid) || player == Minecraft.getInstance().player)
         {
             if (player == Minecraft.getInstance().player) {
                 rotationYaw = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().getBodyYaw();
