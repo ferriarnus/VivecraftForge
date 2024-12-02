@@ -51,6 +51,8 @@ config = "vivecraft.sodium.mixins.json"
 [[mixins]]
 config = "vivecraft.iris.mixins.json"
 [[mixins]]
+config = "vivecraft.mca.mixins.json"
+[[mixins]]
 config = "vivecraft.physicsmod.mixins.json"
 [[mixins]]
 config = "vivecraft.rei.mixins.json"

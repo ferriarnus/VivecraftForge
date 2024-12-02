@@ -36,6 +36,7 @@
     "vivecraft.dynamicfps.mixins.json",
     "vivecraft.sodium.mixins.json",
     "vivecraft.iris.mixins.json",
+    "vivecraft.mca.mixins.json",
     "vivecraft.modmenu.mixins.json",
     "vivecraft.physicsmod.mixins.json",
     "vivecraft.rei.mixins.json",

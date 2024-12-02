@@ -41,7 +41,6 @@ public class VRPlayersClient {
     private static RotInfo LOCAL_PLAYER_ROT_INFO;
 
     private final Random rand = new Random();
-    public boolean debug = false;
 
     public static VRPlayersClient getInstance() {
         if (INSTANCE == null) {
@@ -65,8 +64,35 @@ public class VRPlayersClient {
         this.mc = Minecraft.getInstance();
     }
 
+    /**
+     * checks if there is VR data for the given player
+     * @param player Player to check
+     * @return true if data is available
+     */
     public boolean isVRPlayer(Player player) {
-        return this.vivePlayers.containsKey(player.getUUID());
+        return isVRPlayer(player.getUUID());
+    }
+
+    /**
+     * checks if there is VR data for the given UUID of a player
+     * @param uuid UUID to check
+     * @return true if data is available
+     */
+    public boolean isVRPlayer(UUID uuid) {
+        return this.vivePlayers.containsKey(uuid) ||
+            (VRState.VR_RUNNING && this.mc.player != null && uuid.equals(this.mc.player.getUUID()));
+    }
+
+    /**
+     * checks if the given player is in VR and using reversed hands, without lerping the RotInfo
+     * @param uuid UUID of the player
+     * @return if the player is in VR and using reversed hands
+     */
+    public boolean isVRAndLeftHanded(UUID uuid) {
+        return (this.vivePlayers.containsKey(uuid) && this.vivePlayers.get(uuid).leftHanded) ||
+            (VRState.VR_RUNNING && this.mc.player != null && uuid.equals(this.mc.player.getUUID()) &&
+                ClientDataHolderVR.getInstance().vrSettings.reverseHands
+            );
     }
 
     public void disableVR(UUID player) {
@@ -75,7 +101,9 @@ public class VRPlayersClient {
         this.vivePlayersReceived.remove(player);
     }
 
-    public void update(UUID uuid, VrPlayerState vrPlayerState, float worldScale, float heightScale, boolean localPlayer) {
+    public void update(
+        UUID uuid, VrPlayerState vrPlayerState, float worldScale, float heightScale, boolean localPlayer)
+    {
         if (!localPlayer && this.mc.player.getUUID().equals(uuid)) {
             return; // Don't update local player from server packet
         }
@@ -151,7 +179,7 @@ public class VRPlayersClient {
 
         this.vivePlayers.putAll(this.vivePlayersReceived);
 
-        Level level = Minecraft.getInstance().level;
+        Level level = this.mc.level;
 
         if (level != null) {
 
@@ -227,19 +255,7 @@ public class VRPlayersClient {
         return this.donors.containsKey(uuid);
     }
 
-    /**
-     * checks if the given player is in VR and using reversed hands, without lerping the RotInfo
-     * @param uuid UUID of the player
-     * @return if the player is in VR and using reversed hands
-     */
-    public boolean isVRAndLeftHanded(UUID uuid) {
-        return this.vivePlayers.containsKey(uuid) && this.vivePlayers.get(uuid).leftHanded;
-    }
-
     public RotInfo getRotationsForPlayer(UUID uuid) {
-        if (this.debug) {
-            uuid = this.mc.player.getUUID();
-        }
         float partialTick = ClientUtils.getCurrentPartialTick();
 
         if (VRState.VR_RUNNING && this.mc.player != null && uuid.equals(this.mc.player.getUUID())) {
@@ -398,11 +414,6 @@ public class VRPlayersClient {
         }
 
         return rotInfo;
-    }
-
-    public boolean isTracked(UUID uuid) {
-        this.debug = false;
-        return this.debug || this.vivePlayers.containsKey(uuid);
     }
 
     /**

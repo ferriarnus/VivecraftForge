@@ -9,6 +9,7 @@ import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.render.VRFirstPersonArmSwing;
 import org.vivecraft.common.utils.MathUtils;
+import org.vivecraft.mod_compat_vr.mca.MCAHelper;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 import org.vivecraft.mod_compat_vr.sodium.SodiumHelper;
 
@@ -127,6 +128,9 @@ public class ModelUtils {
         } else {
             out.div(ScaleHelper.getEntityEyeHeightScale(player, ClientUtils.getCurrentPartialTick()));
         }
+        if (MCAHelper.isLoaded()) {
+            MCAHelper.undoPlayerScale(player, out);
+        }
 
         final float scale = 0.9375F * rotInfo.heightScale;
         out.sub(0.0F, 1.501F * scale, 0.0F) // move to player center
@@ -198,6 +202,10 @@ public class ModelUtils {
             .mul(scale / 16.0F)
             .rotateY(Mth.PI - bodyYaw)
             .add(0.0F, 1.501F * scale, 0.0F);
+
+        if (MCAHelper.isLoaded()) {
+            MCAHelper.applyPlayerScale(player, out);
+        }
 
         if (applyScale) {
             if (useWorldScale) {

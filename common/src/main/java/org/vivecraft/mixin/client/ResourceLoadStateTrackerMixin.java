@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.vivecraft.client.Xplat;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.settings.VRSettings;
@@ -22,6 +23,7 @@ public abstract class ResourceLoadStateTrackerMixin {
     @Inject(method = "finishReload", at = @At("TAIL"))
     private void vivecraft$initializeVR(CallbackInfo ci) {
         if (this.reloadState != null && this.reloadState.reloadReason == ResourceLoadStateTracker.ReloadReason.INITIAL) {
+            Xplat.init();
             // init vr after first resource loading
             try {
                 if (ClientDataHolderVR.getInstance().vrSettings.vrEnabled &&

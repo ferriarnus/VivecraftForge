@@ -429,12 +429,11 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
     @Override
     public void translateToHand(HumanoidArm side, PoseStack poseStack) {
-        ModelPart modelpart = this.getArm(side);
-
-        modelpart.translateAndRotate(poseStack);
+        this.getArm(side).translateAndRotate(poseStack);
 
         poseStack.translate(side == HumanoidArm.LEFT ? -0.0625F : 0.0625F, -0.65F, 0.0F);
-        if (this.attackArm == side) {
+
+        if (side == this.attackArm) {
             poseStack.translate(0.0F, 0.5F, 0.0F);
             poseStack.mulPose(Axis.XP.rotation(Mth.sin(this.attackTime * Mth.PI)));
             poseStack.translate(0.0F, -0.5F, 0.0F);

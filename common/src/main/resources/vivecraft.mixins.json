@@ -12,6 +12,7 @@
     "client.gui.screens.ScreenMixin",
     "client.gui.screens.TitleScreenMixin",
     "client.main.MainMixin",
+    "client.model.PlayerModelMixin",
     "client.particle.SparkParticleMixin",
     "client.player.AbstractClientPlayerMixin",
     "client.renderer.ItemBlockRenderTypesMixin",

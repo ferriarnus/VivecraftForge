@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client.render.armor.VRArmorModel_WithArms;
@@ -24,8 +24,6 @@ import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.mod_compat_vr.ShadersHelper;
 import org.vivecraft.mod_compat_vr.immersiveportals.ImmersivePortalsHelper;
-
-import java.util.UUID;
 
 public class VRPlayerRenderer extends PlayerRenderer {
     // Vanilla model
@@ -170,7 +168,8 @@ public class VRPlayerRenderer extends PlayerRenderer {
             ClientDataHolderVR.getInstance().grabScreenShot)
         {
             // player hands block the camera, so disable them for the screenshot
-            hideHands(true);
+            hideHand(HumanoidArm.LEFT, true);
+            hideHand(HumanoidArm.RIGHT, true);
         }
         if (player == Minecraft.getInstance().player &&
             ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
@@ -187,42 +186,50 @@ public class VRPlayerRenderer extends PlayerRenderer {
                 VRSettings.ModelArmsMode.COMPLETE)
             {
                 // keep the shoulders when in shoulder mode
-                hideHands(ClientDataHolderVR.getInstance().vrSettings.modelArmsMode ==
+                hideHand(HumanoidArm.LEFT, ClientDataHolderVR.getInstance().vrSettings.modelArmsMode ==
                     VRSettings.ModelArmsMode.OFF);
-            } else if (this.getModel() instanceof VRPlayerModel<?> vrModel) {
+                hideHand(HumanoidArm.RIGHT, ClientDataHolderVR.getInstance().vrSettings.modelArmsMode ==
+                    VRSettings.ModelArmsMode.OFF);
+            } else {
+                boolean leftHanded = VRPlayersClient.getInstance().isVRAndLeftHanded(player.getUUID());
                 if (ClientDataHolderVR.getInstance().menuHandOff) {
-                    vrModel.hideHand(player, InteractionHand.OFF_HAND, false);
+                    hideHand(leftHanded ? HumanoidArm.RIGHT : HumanoidArm.LEFT, false);
                 }
                 if (ClientDataHolderVR.getInstance().menuHandMain) {
-                    vrModel.hideHand(player, InteractionHand.MAIN_HAND, false);
+                    hideHand(leftHanded ? HumanoidArm.LEFT : HumanoidArm.RIGHT, false);
                 }
             }
         }
     }
 
-    private void hideHands(boolean completeArm) {
+    private void hideHand(HumanoidArm arm, boolean completeArm) {
         if (this.getModel() instanceof VRPlayerModel<?> vrModel) {
-            vrModel.hideLeftArm(completeArm);
-            vrModel.hideRightArm(completeArm);
+            if (arm == HumanoidArm.LEFT) {
+                vrModel.hideLeftArm(completeArm);
+            } else {
+                vrModel.hideRightArm(completeArm);
+            }
         } else {
             // this is just for the case someone replaces the model
-            getModel().leftArm.visible = false;
-            getModel().rightArm.visible = false;
-            getModel().leftSleeve.visible = false;
-            getModel().rightSleeve.visible = false;
+            if (arm == HumanoidArm.LEFT) {
+                getModel().leftArm.visible = false;
+                getModel().leftSleeve.visible = false;
+            } else {
+                getModel().rightArm.visible = false;
+                getModel().rightSleeve.visible = false;
+            }
         }
     }
 
     @Override
     protected void setupRotations(AbstractClientPlayer player, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTick) {
-        UUID uuid = player.getUUID();
         if (ClientDataHolderVR.getInstance().currentPass != RenderPass.GUI &&
-            (VRPlayersClient.getInstance().isTracked(uuid) || player == Minecraft.getInstance().player))
+            VRPlayersClient.getInstance().isVRPlayer(player))
         {
             if (player == Minecraft.getInstance().player) {
                 rotationYaw = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().getBodyYaw();
             } else {
-                VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(uuid);
+                VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
                 rotationYaw = Mth.RAD_TO_DEG * rotInfo.getBodyYawRad();
             }
         }

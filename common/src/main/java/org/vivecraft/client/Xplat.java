@@ -34,7 +34,8 @@ public interface Xplat {
     enum ModLoader{
         FABRIC("fabric"),
         FORGE("forge"),
-        NEOFORGE("neoforge");
+        NEOFORGE("neoforge"),
+        QUILT("quilt");
 
         public final String name;
 
@@ -42,6 +43,12 @@ public interface Xplat {
             this.name = name;
         }
     }
+
+    /**
+     * initializes stuff needed for the Xplat to work correctly
+     */
+    @ExpectPlatform
+    static void init() {}
 
     /**
      * @param name modId to check

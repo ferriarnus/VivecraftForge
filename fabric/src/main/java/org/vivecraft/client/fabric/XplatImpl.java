@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.ClientBrandRetriever;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -31,6 +32,15 @@ import java.nio.file.Path;
 
 public class XplatImpl implements Xplat {
 
+    private static ModLoader currentModloader = ModLoader.FABRIC;
+
+    public static void init() {
+        // check client brand, if we are running on quilt
+        if (ClientBrandRetriever.getClientModName().contains("quilt")) {
+            currentModloader = ModLoader.QUILT;
+        }
+    }
+
     public static boolean isModLoaded(String name) {
         return FabricLoader.getInstance().isModLoaded(name);
     }
@@ -44,7 +54,7 @@ public class XplatImpl implements Xplat {
     }
 
     public static Xplat.ModLoader getModloader() {
-        return Xplat.ModLoader.FABRIC;
+        return currentModloader;
     }
 
     public static String getModVersion() {

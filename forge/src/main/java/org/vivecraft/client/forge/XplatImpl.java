@@ -32,6 +32,8 @@ import java.nio.file.Path;
 
 public class XplatImpl implements Xplat {
 
+    public static void init() {}
+
     public static boolean isModLoaded(String name) {
         return FMLLoader.getLoadingModList().getModFileById(name) != null;
     }

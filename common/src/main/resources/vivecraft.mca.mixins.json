@@ -1,0 +1,10 @@
+{
+  "required": false,
+  "package": "org.vivecraft.mod_compat_vr.mca.mixin",
+  "plugin": "org.vivecraft.MixinConfig",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "PlayerEntityExtendedModelMixin"
+  ],
+  "minVersion": "0.8.4"
+}
