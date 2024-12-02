@@ -145,6 +145,7 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
             if (this.isMainPlayer) {
                 this.tempV2.mul(this.rotInfo.worldScale);
             }
+            this.tempV2.mul(this.rotInfo.heightScale);
         } else {
             // no pivot offset when swimming
             this.tempV2.zero();

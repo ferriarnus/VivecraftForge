@@ -19,6 +19,7 @@ import org.joml.Vector2f;
 import org.joml.Vector2fc;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
+import org.vivecraft.client_vr.settings.AutoCalibration;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.MethodHolder;
@@ -573,6 +574,13 @@ public class GuiHandler {
                             yOffset + yScaleOffset * (1.0F - armScale),
                             0.14F * armScale);
                         guilocal.mul(DH.vrPlayer.vrdata_world_render.worldScale);
+
+                        if (modelArms) {
+                            // the model changes size with player height, so need to scale the offset as well
+                            float playerScale = AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT;
+                            scale *= playerScale;
+                            guilocal.mul(playerScale);
+                        }
 
                         guirot.rotateZ(Mth.HALF_PI * side);
                         guirot.rotateY(Mth.HALF_PI * side);
