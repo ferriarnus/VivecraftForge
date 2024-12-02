@@ -231,13 +231,11 @@ public class GuiHandler {
 
         if (Math.abs(guiDotController) > 1.0E-5F) {
             // pointed normal to the GUI
-            float guiHalfWidth = 0.5F;
-            float guiHalfHeight = 0.5F;
             Vector3f guiPos = new Vector3f(guiPos_room);
 
             Vector3f guiTopLeft = guiPos
-                .sub(guiUp.mul(guiHalfHeight, new Vector3f()))
-                .sub(guiRight.mul(guiHalfWidth, new Vector3f()));
+                .sub(guiUp.mul(0.5F, new Vector3f()))
+                .sub(guiRight.mul(0.5F, new Vector3f()));
 
             float intersectDist = -guiNormal.dot(controllerPos.sub(guiTopLeft, new Vector3f())) / guiDotController;
 
