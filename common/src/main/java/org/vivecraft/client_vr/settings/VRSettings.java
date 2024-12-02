@@ -504,6 +504,8 @@ public class VRSettings {
     public boolean guiAppearOverBlock = true;
     @SettingField(VrOptions.SHADER_GUI_RENDER)
     public ShaderGUIRender shaderGUIRender = ShaderGUIRender.AFTER_SHADER;
+    @SettingField(VrOptions.SHADER_SHADOW_MODEL_LIMB_SCALE)
+    public boolean shaderFullSizeShadowLimbs = true;
     @SettingField(VrOptions.DOUBLE_GUI_RESOLUTION)
     public boolean doubleGUIResolution = false;
     @SettingField(VrOptions.GUI_SCALE)
@@ -1411,6 +1413,7 @@ public class VRSettings {
         KEYBOARD_PRESS_BINDS(false, true), // Keyboard Presses Bindings
         GUI_APPEAR_OVER_BLOCK(false, true), // Appear Over Block
         SHADER_GUI_RENDER(false, false), // Shaders GUI
+        SHADER_SHADOW_MODEL_LIMB_SCALE(false, false), // Shaders if player shadows should use full size limbs or first person size
         DOUBLE_GUI_RESOLUTION(false, true), // 1440p GUI
         GUI_SCALE(true, true, 0, 6, 1, 0) { // GUI Scale
 

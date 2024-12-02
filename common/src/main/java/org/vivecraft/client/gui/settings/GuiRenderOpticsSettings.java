@@ -42,9 +42,13 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
         Minecraft.getInstance().setScreen(new GuiMixedRealitySettings(this));
         return true;
     })};
-    private final VROptionEntry[] postEffects = new VROptionEntry[]{new VROptionEntry(
+    private final VROptionEntry[] renderSettings = new VROptionEntry[]{new VROptionEntry(
         "vivecraft.options.screen.posteffects.button", (button, mousePos) -> {
         Minecraft.getInstance().setScreen(new GuiPostEffectsSettings(this));
+        return true;
+    }), new VROptionEntry(
+        "vivecraft.options.screen.shadercompat.button", (button, mousePos) -> {
+        Minecraft.getInstance().setScreen(new GuiShaderCompatibilitySettings(this));
         return true;
     })};
 
@@ -76,6 +80,8 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
 
         super.init(buttons, true);
 
+        super.init(this.renderSettings, false);
+
         switch(this.dataHolder.vrSettings.displayMirrorMode) {
             case MIXED_REALITY -> super.init(this.MROptions, false);
             case FIRST_PERSON -> super.init(UNDISTORTED_OPTIONS, false);
@@ -83,8 +89,6 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
             case CROPPED -> super.init(CROP_OPTIONS, false);
             case SINGLE -> super.init(SINGLE_OPTIONS, false);
         }
-
-        super.init(this.postEffects, false);
 
         super.addDefaultButtons();
 

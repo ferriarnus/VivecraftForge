@@ -13,8 +13,7 @@ public class GuiRenderingSettings extends GuiVROptionsBase {
         new VROptionEntry(VRSettings.VrOptions.DOUBLE_GUI_RESOLUTION),
         new VROptionEntry(VRSettings.VrOptions.GUI_MIPMAPS),
         new VROptionEntry(VRSettings.VrOptions.GUI_SCALE),
-        new VROptionEntry(VRSettings.VrOptions.HUD_MAX_GUI_SCALE),
-        new VROptionEntry(VRSettings.VrOptions.SHADER_GUI_RENDER)
+        new VROptionEntry(VRSettings.VrOptions.HUD_MAX_GUI_SCALE)
     };
 
     public GuiRenderingSettings(Screen lastScreen) {

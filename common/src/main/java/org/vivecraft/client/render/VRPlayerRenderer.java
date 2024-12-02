@@ -23,6 +23,7 @@ import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.mod_compat_vr.ShadersHelper;
+import org.vivecraft.mod_compat_vr.immersiveportals.ImmersivePortalsHelper;
 
 import java.util.UUID;
 
@@ -171,8 +172,10 @@ public class VRPlayerRenderer extends PlayerRenderer {
             // player hands block the camera, so disable them for the screenshot
             hideHands(true);
         }
-        if (player == Minecraft.getInstance().player && !ShadersHelper.isRenderingShadows() &&
+        if (player == Minecraft.getInstance().player &&
             ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
+            !ShadersHelper.isRenderingShadows() &&
+            !(ImmersivePortalsHelper.isLoaded() && ImmersivePortalsHelper.isRenderingPortal()) &&
             RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass))
         {
             // hide the head or you won't see anything
@@ -183,7 +186,7 @@ public class VRPlayerRenderer extends PlayerRenderer {
             if (ClientDataHolderVR.getInstance().vrSettings.modelArmsMode !=
                 VRSettings.ModelArmsMode.COMPLETE)
             {
-                // keep the shouders when in shoulder mode
+                // keep the shoulders when in shoulder mode
                 hideHands(ClientDataHolderVR.getInstance().vrSettings.modelArmsMode ==
                     VRSettings.ModelArmsMode.OFF);
             } else if (this.getModel() instanceof VRPlayerModel<?> vrModel) {

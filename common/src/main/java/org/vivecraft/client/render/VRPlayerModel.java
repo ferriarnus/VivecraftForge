@@ -27,6 +27,7 @@ import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.mod_compat_vr.ShadersHelper;
+import org.vivecraft.mod_compat_vr.immersiveportals.ImmersivePortalsHelper;
 
 import java.lang.Math;
 
@@ -115,8 +116,13 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         this.armScale = 1F;
         this.legScale = 1F;
 
-        if (this.isMainPlayer && RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass) &&
-            !ShadersHelper.isRenderingShadows())
+        if (this.isMainPlayer && ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
+            !(ImmersivePortalsHelper.isLoaded() && ImmersivePortalsHelper.isRenderingPortal()) &&
+            (!ShadersHelper.isRenderingShadows() &&
+                RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass)
+            ) ||
+            (ShadersHelper.isRenderingShadows() && ClientDataHolderVR.getInstance().vrSettings.shaderFullSizeShadowLimbs
+            ))
         {
             this.bodyScale = ClientDataHolderVR.getInstance().vrSettings.playerModelBodyScale;
             this.armScale = ClientDataHolderVR.getInstance().vrSettings.playerModelArmsScale;

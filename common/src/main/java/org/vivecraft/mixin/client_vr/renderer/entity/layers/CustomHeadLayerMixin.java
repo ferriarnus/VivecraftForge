@@ -12,6 +12,7 @@ import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.mod_compat_vr.ShadersHelper;
+import org.vivecraft.mod_compat_vr.immersiveportals.ImmersivePortalsHelper;
 
 @Mixin(CustomHeadLayer.class)
 public class CustomHeadLayerMixin {
@@ -19,8 +20,11 @@ public class CustomHeadLayerMixin {
     private void vivecraft$noHelmetInFirstPerson(
         CallbackInfo ci, @Local(argsOnly = true) LivingEntity entity)
     {
-        if (VRState.VR_RUNNING && entity == Minecraft.getInstance().player && !ShadersHelper.isRenderingShadows() &&
-            RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass))
+        if (VRState.VR_RUNNING && entity == Minecraft.getInstance().player &&
+            ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
+            RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass) &&
+            !ShadersHelper.isRenderingShadows() &&
+            !(ImmersivePortalsHelper.isLoaded() && ImmersivePortalsHelper.isRenderingPortal()))
         {
             ci.cancel();
         }

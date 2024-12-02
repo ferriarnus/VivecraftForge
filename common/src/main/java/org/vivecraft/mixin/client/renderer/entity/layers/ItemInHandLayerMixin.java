@@ -27,6 +27,7 @@ import org.vivecraft.client_vr.gameplay.trackers.ClimbTracker;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.mod_compat_vr.ShadersHelper;
+import org.vivecraft.mod_compat_vr.immersiveportals.ImmersivePortalsHelper;
 
 @Mixin(ItemInHandLayer.class)
 public abstract class ItemInHandLayerMixin extends RenderLayer {
@@ -47,8 +48,11 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
 
     @Inject(method = "renderArmWithItem", at = @At("HEAD"), cancellable = true)
     private void vivecraft$noItemsInFirstPerson(CallbackInfo ci, @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true) HumanoidArm arm) {
-        if (entity == Minecraft.getInstance().player && VRState.VR_RUNNING && !ShadersHelper.isRenderingShadows() &&
+        if (entity == Minecraft.getInstance().player && VRState.VR_RUNNING &&
+            ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
             RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass) &&
+            !ShadersHelper.isRenderingShadows() &&
+            !(ImmersivePortalsHelper.isLoaded() && ImmersivePortalsHelper.isRenderingPortal()) &&
             // don't cancel climbing claws, unless menu hand
             (ClientDataHolderVR.getInstance().vrSettings.modelArmsMode != VRSettings.ModelArmsMode.COMPLETE ||
                 ClientDataHolderVR.getInstance().isMenuHand(arm) ||
@@ -90,8 +94,12 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
 
     @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ArmedModel;translateToHand(Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;)V", shift = At.Shift.AFTER))
     private void vivecraft$firstPersonItemScale(CallbackInfo ci, @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true) PoseStack poseStack) {
-        if (entity == Minecraft.getInstance().player && VRState.VR_RUNNING && !ShadersHelper.isRenderingShadows() &&
-            RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass)) {
+        if (entity == Minecraft.getInstance().player && VRState.VR_RUNNING &&
+            ClientDataHolderVR.getInstance().vrSettings.shouldRenderSelf &&
+            RenderPass.isFirstPerson(ClientDataHolderVR.getInstance().currentPass) &&
+            !ShadersHelper.isRenderingShadows() &&
+            !(ImmersivePortalsHelper.isLoaded() && ImmersivePortalsHelper.isRenderingPortal()))
+        {
             // make the item scale equal in all directions
             if (getParentModel() instanceof VRPlayerModel_WithArms<?>) {
                 poseStack.translate(0.0F, 0.65F, 0.0F);
