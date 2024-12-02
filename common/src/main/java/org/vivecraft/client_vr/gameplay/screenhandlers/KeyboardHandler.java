@@ -122,7 +122,7 @@ public class KeyboardHandler {
             ROTATION_ROOM.setTranslation(0F, 0F, 0F);
         } else {
             // copy from GuiHandler.onScreenChanged for static screens
-            Vector3f offset = new Vector3f(0.0F, 0.0F, -2.0F);
+            Vector3f offset = new Vector3f(0.0F, -0.5F, -2.0F);
 
             Vector3f hmdPos = DH.vrPlayer.vrdata_room_pre.hmd.getPositionF();
             Vector3f look = DH.vrPlayer.vrdata_room_pre.hmd.getCustomVector(offset).mul(0.5F);

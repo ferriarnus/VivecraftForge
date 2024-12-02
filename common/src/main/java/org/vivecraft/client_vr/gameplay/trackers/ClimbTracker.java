@@ -601,11 +601,11 @@ public class ClimbTracker extends Tracker {
             final float limit = 0.66F;
 
             if (movement.length() > limit) {
-                 movement.mul(limit / movement.length());
+                movement.mul(limit / movement.length());
             }
 
             if (player.hasEffect(MobEffects.JUMP)) {
-                 movement.mul(player.getEffect(MobEffects.JUMP).getAmplifier() + 1.5F);
+                movement.mul(player.getEffect(MobEffects.JUMP).getAmplifier() + 1.5F);
             }
 
             movement.rotateY(this.dh.vrPlayer.vrdata_world_pre.rotation_radians);

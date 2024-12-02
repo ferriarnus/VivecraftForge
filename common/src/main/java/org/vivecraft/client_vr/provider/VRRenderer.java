@@ -247,8 +247,8 @@ public abstract class VRRenderer {
         for (int i = 0; i < edges + 1; i++) {
             float startAngle = (float) i / edges * Mth.TWO_PI;
             builder.vertex(
-                radius + (float) Math.cos(startAngle) * radius,
-                radius + (float) Math.sin(startAngle) * radius,
+                radius + Mth.cos(startAngle) * radius,
+                radius + Mth.sin(startAngle) * radius,
                 0.0F).endVertex();
         }
         BufferUploader.drawWithShader(builder.end());

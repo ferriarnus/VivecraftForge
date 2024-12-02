@@ -581,7 +581,7 @@ public class GuiHandler {
             yawAvg /= DH.vr.hmdYawSamples.size();
             yawAvg = Mth.DEG_TO_RAD * yawAvg;
 
-            Vector3f dir = new Vector3f((float) -Math.sin(yawAvg), 0.0F, (float) Math.cos(yawAvg));
+            Vector3f dir = new Vector3f(-Mth.sin(yawAvg), 0.0F, Mth.cos(yawAvg));
             float dist = MethodHolder.isInMenuRoom() ?
                 2.5F * DH.vrPlayer.vrdata_world_render.worldScale : DH.vrSettings.hudDistance;
 

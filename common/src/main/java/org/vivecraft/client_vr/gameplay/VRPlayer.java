@@ -351,9 +351,9 @@ public class VRPlayer {
 
         if (rads != 0.0F) {
             this.setRoomOrigin(
-                Math.cos(rads) * (point.x - origin.x) - Math.sin(rads) * (point.z - origin.z) + origin.x,
+                Mth.cos(rads) * (point.x - origin.x) - Mth.sin(rads) * (point.z - origin.z) + origin.x,
                 point.y,
-                Math.sin(rads) * (point.x - origin.x) + Math.cos(rads) * (point.z - origin.z) + origin.z,
+                Mth.sin(rads) * (point.x - origin.x) + Mth.cos(rads) * (point.z - origin.z) + origin.z,
                 false);
         }
     }

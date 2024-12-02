@@ -213,7 +213,7 @@ public class VivecraftItemRendering {
                 if (DH.bowTracker.isCharged()) {
                     // bow jitter
                     long j = Util.getMillis() - DH.bowTracker.startDrawTime;
-                    translateX += 0.003F * (float) Math.sin((double) j);
+                    translateX += 0.003F * Mth.sin(j);
                 }
 
                 poseStack.translate(0.0F, 0.0F, 0.1F);
@@ -255,7 +255,7 @@ public class VivecraftItemRendering {
                 rotation.mul(Axis.XP.rotationDegrees(-135.0F));
                 translateX += 0.08F;
                 // eating jitter
-                translateZ += 0.02F + 0.006F * (float) Math.sin(player.getUseItemRemainingTicks());
+                translateZ += 0.02F + 0.006F * Mth.sin(player.getUseItemRemainingTicks());
                 scale = 0.4F;
             }
             case Item, Block_Item -> {

@@ -280,7 +280,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         }
 
         modelpart.translateAndRotate(poseStack);
-        poseStack.mulPose(Axis.XP.rotation((float) Math.sin(this.attackTime * Mth.PI)));
+        poseStack.mulPose(Axis.XP.rotation(Mth.sin(this.attackTime * Mth.PI)));
         poseStack.translate(0.0F, -0.5F, 0.0F);
     }
 }

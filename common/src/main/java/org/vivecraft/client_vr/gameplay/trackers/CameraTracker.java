@@ -35,8 +35,8 @@ public class CameraTracker extends Tracker {
     public boolean isActive(LocalPlayer player) {
         if (this.mc.gameMode == null) {
             return false;
-        /*} else if (this.dh.vrSettings.seated) {
-            return false;*/
+        } else if (this.dh.vrSettings.seated) {
+            return false;
         } else {
             return this.isVisible();
         }
