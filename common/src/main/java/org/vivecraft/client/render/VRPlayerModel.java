@@ -34,7 +34,6 @@ import java.lang.Math;
 
 public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
     public final ModelPart vrHMD;
-    private final ModelPart cloak;
 
     protected VRPlayersClient.RotInfo rotInfo;
     protected float bodyYaw;
@@ -57,7 +56,6 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
     public VRPlayerModel(ModelPart root, boolean isSlim) {
         super(root, isSlim);
         this.vrHMD = root.getChild("vrHMD");
-        this.cloak = root.getChild("cloak");
     }
 
     public static MeshDefinition createMesh(CubeDeformation cubeDeformation, boolean slim) {
