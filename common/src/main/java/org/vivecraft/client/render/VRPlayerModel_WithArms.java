@@ -30,10 +30,10 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
     public static final int UPPER_EXTENSION = 3;
 
     // shoulders use the vanilla arm parts
-    public final ModelPart leftHand;
-    public final ModelPart rightHand;
-    public final ModelPart leftHandSleeve;
-    public final ModelPart rightHandSleeve;
+    public ModelPart leftHand;
+    public ModelPart rightHand;
+    public ModelPart leftHandSleeve;
+    public ModelPart rightHandSleeve;
 
     private final Vector3f jointOffset = new Vector3f();
 

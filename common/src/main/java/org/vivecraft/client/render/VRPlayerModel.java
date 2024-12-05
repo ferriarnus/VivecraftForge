@@ -33,7 +33,7 @@ import org.vivecraft.mod_compat_vr.mca.MCAHelper;
 import java.lang.Math;
 
 public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
-    public final ModelPart vrHMD;
+    public ModelPart vrHMD;
 
     protected VRPlayersClient.RotInfo rotInfo;
     protected float bodyYaw;

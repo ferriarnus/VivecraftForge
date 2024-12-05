@@ -25,10 +25,10 @@ public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayer
     public static final int UPPER_EXTENSION = 2;
 
     // thighs use the vanilla leg parts
-    public final ModelPart leftFoot;
-    public final ModelPart rightFoot;
-    public final ModelPart leftFootPants;
-    public final ModelPart rightFootPants;
+    public ModelPart leftFoot;
+    public ModelPart rightFoot;
+    public ModelPart leftFootPants;
+    public ModelPart rightFootPants;
 
     private final Vector3f footDir = new Vector3f();
     private final Vector3f footOffset = new Vector3f();
