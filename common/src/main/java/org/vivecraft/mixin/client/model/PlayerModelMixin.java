@@ -39,7 +39,7 @@ public class PlayerModelMixin<T extends LivingEntity> extends HumanoidModel<T> {
         LivingEntity player, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw,
         float headPitch, CallbackInfo ci)
     {
-        if (VRPlayersClient.getInstance().isVRPlayer(player.getUUID())) {
+        if (VRPlayersClient.getInstance().isVRPlayer(player)) {
             VRPlayerModel.animateVRModel((PlayerModel<LivingEntity>) (Object) this, player, limbSwing, limbSwingAmount,
                 this.vivecraft$tempV, this.vivecraft$tempV2, this.vivecraft$tempM);
 

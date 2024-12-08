@@ -11,6 +11,8 @@ import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
@@ -83,17 +85,23 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         PlayerModel<LivingEntity> model, LivingEntity player, float limbSwing, float limbSwingAmount, Vector3f tempV,
         Vector3f tempV2, Matrix3f tempM)
     {
-        float partialTick = ClientUtils.getCurrentPartialTick();
-        boolean isMainPlayer = VRState.VR_RUNNING && player == Minecraft.getInstance().player;
+        VRPlayersClient.RotInfo rotInfo = null;
 
-        VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
+        // don't do any animations for dummy players
+        if (player.getClass() == LocalPlayer.class || player.getClass() == RemotePlayer.class) {
+            rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
+        }
 
         if (rotInfo == null) {
+            // not a vr player
             if (model instanceof VRPlayerModel<LivingEntity> vrModel) {
                 vrModel.rotInfo = null;
             }
-            return; //how
+            return;
         }
+
+        float partialTick = ClientUtils.getCurrentPartialTick();
+        boolean isMainPlayer = VRState.VR_RUNNING && player == Minecraft.getInstance().player;
 
         HumanoidArm mainArm = rotInfo.leftHanded ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
         HumanoidArm attackArm = null;

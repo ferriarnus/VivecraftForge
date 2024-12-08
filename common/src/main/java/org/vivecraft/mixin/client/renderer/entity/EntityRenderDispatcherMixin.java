@@ -4,6 +4,8 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -86,7 +88,10 @@ public abstract class EntityRenderDispatcherMixin implements ResourceManagerRelo
     private void vivecraft$getVRPlayerRenderer(
         Entity entity, CallbackInfoReturnable<EntityRenderer<AbstractClientPlayer>> cir)
     {
-        if (entity instanceof AbstractClientPlayer player) {
+        // don't do any animations for dummy players
+        if (entity instanceof AbstractClientPlayer player &&
+            (player.getClass() == LocalPlayer.class || player.getClass() == RemotePlayer.class))
+        {
             String skinType = player.getSkin().model().id();
             VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
             if (rotInfo != null) {
