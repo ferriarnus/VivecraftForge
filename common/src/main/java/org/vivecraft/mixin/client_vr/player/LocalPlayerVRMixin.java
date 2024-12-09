@@ -137,7 +137,7 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
     @Inject(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/AbstractClientPlayer;aiStep()V"))
     private void vivecraft$VRPlayerTick(CallbackInfo ci) {
         if (VRState.VR_RUNNING && vivecraft$isLocalPlayer(this)) {
-            ClientDataHolderVR.getInstance().vrPlayer.tick((LocalPlayer) (Object) this, this.minecraft);
+            ClientDataHolderVR.getInstance().vrPlayer.tick((LocalPlayer) (Object) this);
         }
     }
 

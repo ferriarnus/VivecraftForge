@@ -358,7 +358,7 @@ public class VRPlayer {
         }
     }
 
-    public void tick(LocalPlayer player, Minecraft mc) {
+    public void tick(LocalPlayer player) {
         if (!((PlayerExtension) player).vivecraft$getInitFromServer()) return;
 
         if (!this.initDone) {
@@ -384,23 +384,23 @@ public class VRPlayer {
 
         for (Tracker tracker : this.trackers) {
             if (tracker.getEntryPoint() == Tracker.EntryPoint.LIVING_UPDATE) {
-                tracker.idleTick(mc.player);
+                tracker.idleTick(player);
 
-                if (tracker.isActive(mc.player)) {
-                    tracker.doProcess(mc.player);
+                if (tracker.isActive(player)) {
+                    tracker.doProcess(player);
                 } else {
-                    tracker.reset(mc.player);
+                    tracker.reset(player);
                 }
             }
         }
 
         if (player.isPassenger()) {
-            Entity entity = mc.player.getVehicle();
+            Entity entity = player.getVehicle();
 
             if (entity instanceof AbstractHorse abstracthorse) {
                 if (abstracthorse.isControlledByLocalInstance() &&
                     abstracthorse.isSaddled() &&
-                    !this.dh.horseTracker.isActive(mc.player))
+                    !this.dh.horseTracker.isActive(player))
                 {
                     abstracthorse.yBodyRot = this.vrdata_world_pre.getBodyYaw();
                     this.dh.vehicleTracker.rotationCooldown = 10;
@@ -413,6 +413,10 @@ public class VRPlayer {
                 }
             }
         }
+    }
+
+    public boolean isTrackerUsingItem(LocalPlayer player) {
+        return this.trackers.stream().anyMatch(tracker -> tracker.itemInUse(player));
     }
 
     public void doPlayerMoveInRoom(LocalPlayer player) {

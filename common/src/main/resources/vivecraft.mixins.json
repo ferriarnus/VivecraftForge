@@ -84,6 +84,7 @@
   ],
   "minVersion": "0.8.4",
   "mixins": [
+    "advancements.PlayerPredicateMixin",
     "server.ChunkMapAccessor",
     "server.MinecraftServerMixin",
     "server.ServerGamePacketListenerImplMixin",

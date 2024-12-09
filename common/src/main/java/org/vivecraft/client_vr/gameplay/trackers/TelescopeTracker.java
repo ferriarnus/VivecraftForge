@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.joml.Vector3f;
@@ -20,17 +21,46 @@ public class TelescopeTracker extends Tracker {
     private static final float LENS_DOT_MAX = 0.9F;
     private static final float LENS_DOT_MIN = 0.75F;
 
+    private final boolean[] viewing = new boolean[2];
+
     public TelescopeTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
     }
 
     @Override
     public boolean isActive(LocalPlayer player) {
-        return false;
+        return player != null &&
+            !this.dh.bowTracker.isActive(player) &&
+            (isTelescope(player.getMainHandItem()) || isTelescope(player.getOffhandItem()));
+    }
+
+    @Override
+    public boolean itemInUse(LocalPlayer player) {
+        return this.viewing[0] || this.viewing[1];
+    }
+
+    @Override
+    public void reset(LocalPlayer player) {
+        this.viewing[0] = false;
+        this.viewing[1] = false;
     }
 
     @Override
     public void doProcess(LocalPlayer player) {
+        for (int c = 0; c < 2; c++) {
+            if (isTelescope(player.getItemInHand(InteractionHand.values()[c]))) {
+                if (isViewing(c)) {
+                    if (!this.viewing[c]) {
+                        this.mc.gameMode.useItem(player, InteractionHand.values()[c]);
+                    }
+                    this.viewing[c] = true;
+                } else {
+                    this.viewing[c] = false;
+                }
+            } else {
+                this.viewing[c] = false;
+            }
+        }
     }
 
     /**
@@ -38,9 +68,9 @@ public class TelescopeTracker extends Tracker {
      * @return if the given {@code itemStack} is a telescope
      */
     public static boolean isTelescope(ItemStack itemStack) {
-        return itemStack != null && (itemStack.getItem() == Items.SPYGLASS || isLegacyTelescope(itemStack) ||
-            itemStack.is(ItemTags.VIVECRAFT_TELESCOPE)
-        );
+        return itemStack != null &&
+            (itemStack.is(Items.SPYGLASS) || isLegacyTelescope(itemStack) || itemStack.is(ItemTags.VIVECRAFT_TELESCOPE)
+            );
     }
 
     // TODO: old eye of the farseer, remove this eventually

@@ -21,7 +21,6 @@ public abstract class MethodHolder {
             newScreen instanceof ReceivingLevelScreen ||
             newScreen instanceof ProgressScreen ||
             newScreen instanceof GenericDirtMessageScreen ||
-            ClientDataHolderVR.getInstance().integratedServerLaunchInProgress ||
             Minecraft.getInstance().getOverlay() != null;
     }
 }

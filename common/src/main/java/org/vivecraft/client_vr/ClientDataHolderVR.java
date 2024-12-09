@@ -11,6 +11,11 @@ import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.render.VRFirstPersonArmSwing;
 import org.vivecraft.client_vr.settings.VRSettings;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.BiFunction;
+
 public class ClientDataHolderVR {
 
     public static final ModelResourceLocation THIRD_PERSON_CAMERA_MODEL = new ModelResourceLocation("vivecraft", "camcorder", "");
@@ -31,24 +36,30 @@ public class ClientDataHolderVR {
     public MCVR vr;
     public VRRenderer vrRenderer;
     public MenuWorldRenderer menuWorldRenderer;
-    public BackpackTracker backpackTracker = new BackpackTracker(Minecraft.getInstance(), this);
-    public BowTracker bowTracker = new BowTracker(Minecraft.getInstance(), this);
-    public SwimTracker swimTracker = new SwimTracker(Minecraft.getInstance(), this);
-    public EatingTracker autoFood = new EatingTracker(Minecraft.getInstance(), this);
-    public JumpTracker jumpTracker = new JumpTracker(Minecraft.getInstance(), this);
-    public SneakTracker sneakTracker = new SneakTracker(Minecraft.getInstance(), this);
-    public ClimbTracker climbTracker = new ClimbTracker(Minecraft.getInstance(), this);
-    public RunTracker runTracker = new RunTracker(Minecraft.getInstance(), this);
-    public RowTracker rowTracker = new RowTracker(Minecraft.getInstance(), this);
-    public TeleportTracker teleportTracker = new TeleportTracker(Minecraft.getInstance(), this);
-    public SwingTracker swingTracker = new SwingTracker(Minecraft.getInstance(), this);
-    public HorseTracker horseTracker = new HorseTracker(Minecraft.getInstance(), this);
-    public VehicleTracker vehicleTracker = new VehicleTracker(Minecraft.getInstance(), this);
-    public InteractTracker interactTracker = new InteractTracker(Minecraft.getInstance(), this);
-    public CrawlTracker crawlTracker = new CrawlTracker(Minecraft.getInstance(), this);
-    public CameraTracker cameraTracker = new CameraTracker(Minecraft.getInstance(), this);
+
+    // list of all registered trackers
+    private final List<Tracker> trackers = new ArrayList<>();
+
+    // our trackers
+    public final BackpackTracker backpackTracker = createTracker(BackpackTracker::new);
+    public final BowTracker bowTracker = createTracker(BowTracker::new);
+    public final CameraTracker cameraTracker = createTracker(CameraTracker::new);
+    public final ClimbTracker climbTracker = createTracker(ClimbTracker::new);
+    public final CrawlTracker crawlTracker = createTracker(CrawlTracker::new);
+    public final EatingTracker eatingTracker = createTracker(EatingTracker::new);
+    public final HorseTracker horseTracker = createTracker(HorseTracker::new);
+    public final InteractTracker interactTracker = createTracker(InteractTracker::new);
+    public final JumpTracker jumpTracker = createTracker(JumpTracker::new);
+    public final RowTracker rowTracker = createTracker(RowTracker::new);
+    public final RunTracker runTracker = createTracker(RunTracker::new);
+    public final SneakTracker sneakTracker = createTracker(SneakTracker::new);
+    public final SwimTracker swimTracker = createTracker(SwimTracker::new);
+    public final SwingTracker swingTracker = createTracker(SwingTracker::new);
+    public final TeleportTracker teleportTracker = createTracker(TeleportTracker::new);
+    public final TelescopeTracker telescopeTracker = createTracker(TelescopeTracker::new);
+    public final VehicleTracker vehicleTracker = createTracker(VehicleTracker::new);
+
     public VRSettings vrSettings;
-    public boolean integratedServerLaunchInProgress = false;
     public boolean grabScreenShot = false;
     public String incorrectGarbageCollector = "";
     public long frameIndex = 0L;
@@ -69,5 +80,36 @@ public class ClientDataHolderVR {
             INSTANCE = new ClientDataHolderVR();
         }
         return INSTANCE;
+    }
+
+    /**
+     * Creates a tracker instance, adds it to the registered list and returns it
+     * @param constructor Constructor to use to create the tracker instance
+     * @return created tracker instance
+     * @param <T> Class of the tracker
+     */
+    public <T extends Tracker> T createTracker(BiFunction<Minecraft, ClientDataHolderVR, T> constructor) {
+        T tracker = constructor.apply(Minecraft.getInstance(), this);
+        registerTracker(tracker);
+        return tracker;
+    }
+
+    /**
+     * registers a tracker
+     * @param tracker tracker to register
+     * @throws IllegalArgumentException if the tracker is already registered
+     */
+    public void registerTracker(Tracker tracker) throws IllegalArgumentException{
+        if (this.trackers.contains(tracker)) {
+            throw new IllegalArgumentException("Tracker is already added and should not be added again!");
+        }
+        this.trackers.add(tracker);
+    }
+
+    /**
+     * @return Unmodifiable list of the registered trackers
+     */
+    public List<Tracker> getTrackers() {
+        return Collections.unmodifiableList(this.trackers);
     }
 }
