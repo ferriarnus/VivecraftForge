@@ -1,7 +1,5 @@
 #version 330 core
 
-uniform sampler2D firstPersonColor;
-
 uniform sampler2D thirdPersonColor;
 uniform sampler2D thirdPersonDepth;
 
@@ -63,9 +61,6 @@ void main(void) {
                     out_Color.rgb = vec3(1.0);
                 }
             }
-        } else if (texCoordinates.x >= 0.5 && texCoordinates.y < 0.5){
-            // first person
-            out_Color.rgb = texture(firstPersonColor, sampleTexcCoord).rgb;
         }
     } else {
         // side by side

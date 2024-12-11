@@ -41,8 +41,8 @@ public class MirrorNotification {
      */
     public static void render() {
         if (System.currentTimeMillis() < MIRROR_NOTIFY_START + MIRROR_NOTIFY_LEN) {
-            int screenX = ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenWidth();
-            int screenY = ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenHeight();
+            int screenX = MC.mainRenderTarget.width;
+            int screenY = MC.mainRenderTarget.height;
 
             RenderSystem.viewport(0, 0, screenX, screenY);
             Matrix4f projection = new Matrix4f().setOrtho(0.0F, screenX,

@@ -35,10 +35,4 @@ public interface RenderTargetExtension {
      * @return if the RenderTarget is set to use mipmaps
      */
     boolean vivecraft$hasMipmaps();
-
-    /**
-     * Sets the color id
-     * @param colorid the color id to set
-     */
-    void vivecraft$setColorid(int colorid);
 }

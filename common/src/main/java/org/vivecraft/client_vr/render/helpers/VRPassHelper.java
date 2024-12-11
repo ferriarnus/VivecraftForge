@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.VertexSorting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
 import org.lwjgl.opengl.GL30C;
 import org.vivecraft.client.utils.ClientUtils;
@@ -243,7 +244,15 @@ public class VRPassHelper {
         MC.getProfiler().pop();
 
         DATA_HOLDER.vrPlayer.postRender(actualPartialTick);
-        MC.getProfiler().push("Display/Reproject");
+
+        MC.getProfiler().push("vrMirror");
+        // use the vanilla target for the mirror
+        RenderPassManager.setVanillaRenderPass();
+        MC.mainRenderTarget.bindWrite(true);
+        ShaderHelper.drawMirror();
+        RenderHelper.checkGLError("post-mirror");
+
+        MC.getProfiler().popPush("Display/Reproject");
 
         try {
             DATA_HOLDER.vrRenderer.endFrame();

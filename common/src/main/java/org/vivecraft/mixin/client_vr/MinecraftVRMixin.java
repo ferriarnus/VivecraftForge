@@ -73,7 +73,6 @@ import org.vivecraft.client_vr.render.RenderConfigException;
 import org.vivecraft.client_vr.render.VRFirstPersonArmSwing;
 import org.vivecraft.client_vr.render.MirrorNotification;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
-import org.vivecraft.client_vr.render.helpers.ShaderHelper;
 import org.vivecraft.client_vr.settings.VRHotkeys;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_xr.render_pass.RenderPassManager;
@@ -389,17 +388,6 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
     @ModifyExpressionValue(method = "runTick", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;fpsPieResults:Lnet/minecraft/util/profiling/ProfileResults;", ordinal = 0))
     private ProfileResults vivecraft$cancelRegularFpsPie(ProfileResults original) {
         return VRState.VR_RUNNING ? null : original;
-    }
-
-    @WrapOperation(method = "runTick", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/pipeline/RenderTarget;blitToScreen(II)V"))
-    private void vivecraft$blitMirror(RenderTarget instance, int width, int height, Operation<Void> original) {
-        if (!VRState.VR_RUNNING) {
-            original.call(instance, width, height);
-        } else {
-            this.profiler.popPush("vrMirror");
-            ShaderHelper.drawMirror();
-            RenderHelper.checkGLError("post-mirror");
-        }
     }
 
     // the VR runtime handles the frame limit, no need to manually limit it 60fps

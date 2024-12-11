@@ -37,9 +37,6 @@ public class VRShaders {
     public static AbstractUniform POST_PROCESSING_OVERLAY_BLACK_ALPHA_UNIFORM;
     public static AbstractUniform POST_PROCESSING_OVERLAY_EYE_UNIFORM;
 
-    // blit shader
-    public static ShaderInstance BLIT_VR_SHADER;
-
     // end portal shaders
     public static ShaderInstance RENDERTYPE_END_PORTAL_VR_SHADER;
     public static ShaderInstance RENDERTYPE_END_GATEWAY_VR_SHADER;
@@ -87,10 +84,6 @@ public class VRShaders {
         POST_PROCESSING_OVERLAY_EYE_UNIFORM = POST_PROCESSING_SHADER.safeGetUniform("eye");
         POST_PROCESSING_OVERLAY_TIME_UNIFORM = POST_PROCESSING_SHADER.safeGetUniform("portaltime");
         POST_PROCESSING_OVERLAY_BLACK_ALPHA_UNIFORM = POST_PROCESSING_SHADER.safeGetUniform("blackalpha");
-    }
-
-    public static void setupBlitAspect() throws Exception {
-        BLIT_VR_SHADER = new ShaderInstance(Minecraft.getInstance().getResourceManager(), "blit_vr", DefaultVertexFormat.POSITION_TEX);
     }
 
     public static void setupPortalShaders() throws IOException {

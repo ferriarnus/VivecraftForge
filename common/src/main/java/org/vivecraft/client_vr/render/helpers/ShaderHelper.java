@@ -1,6 +1,7 @@
 package org.vivecraft.client_vr.render.helpers;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.Util;
@@ -14,10 +15,11 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.opengl.GL11C;
+import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GL43;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
-import org.vivecraft.client_vr.extensions.WindowExtension;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.render.MirrorNotification;
 import org.vivecraft.client_vr.render.RenderPass;
@@ -81,7 +83,9 @@ public class ShaderHelper {
             throw new IllegalStateException("Unexpected vertex format " + format);
         }
 
+        RenderSystem.disableDepthTest();
         BufferUploader.draw(builder.end());
+        RenderSystem.enableDepthTest();
     }
 
     /**
@@ -256,15 +260,15 @@ public class ShaderHelper {
             RenderTarget leftEye = DATA_HOLDER.vrRenderer.getLeftEyeTarget();
             RenderTarget rightEye = DATA_HOLDER.vrRenderer.getRightEyeTarget();
 
-            int screenWidth = ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenWidth() / 2;
-            int screenHeight = ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenHeight();
+            int screenWidth = MC.mainRenderTarget.width / 2;
+            int screenHeight = MC.mainRenderTarget.height;
 
             if (leftEye != null) {
-                ShaderHelper.blitToScreen(leftEye, 0, screenWidth, screenHeight, 0, 0.0F, 0.0F, false);
+                blitFramebuffer(leftEye, 0, 0, screenWidth, screenHeight);
             }
 
             if (rightEye != null) {
-                ShaderHelper.blitToScreen(rightEye, screenWidth, screenWidth, screenHeight, 0, 0.0F, 0.0F, false);
+                blitFramebuffer(rightEye, screenWidth, 0, MC.mainRenderTarget.width, screenHeight);
             }
         } else {
             // general single buffer case
@@ -303,9 +307,7 @@ public class ShaderHelper {
             // source = DataHolder.getInstance().vrRenderer.telescopeFramebufferR;
             //
             if (source != null) {
-                ShaderHelper.blitToScreen(source,
-                    0, ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenWidth(),
-                    ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenHeight(), 0,
+                blitFramebufferCrop(source, 0, 0, MC.mainRenderTarget.width, MC.mainRenderTarget.height,
                     xCrop, yCrop, keepAspect);
             }
         }
@@ -316,9 +318,7 @@ public class ShaderHelper {
 
     public static void doMixedRealityMirror() {
         // set viewport to fullscreen, since it would be still on the one from the last pass
-        RenderSystem.viewport(0, 0,
-            ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenWidth(),
-            ((WindowExtension) (Object) MC.getWindow()).vivecraft$getActualScreenHeight());
+        RenderSystem.viewport(0, 0, MC.mainRenderTarget.width, MC.mainRenderTarget.height);
 
         Vec3 camPlayer = DATA_HOLDER.vrPlayer.vrdata_room_pre.getHeadPivot()
             .subtract(DATA_HOLDER.vrPlayer.vrdata_room_pre.getEye(RenderPass.THIRD).getPosition());
@@ -355,6 +355,12 @@ public class ShaderHelper {
         VRShaders.MIXED_REALITY_SHADER.setSampler("thirdPersonDepth",
             DATA_HOLDER.vrRenderer.framebufferMR.getDepthTextureId());
 
+        VRShaders.MIXED_REALITY_SHADER.apply();
+
+        drawFullscreenQuad(VRShaders.MIXED_REALITY_SHADER.getVertexFormat());
+
+        VRShaders.MIXED_REALITY_SHADER.clear();
+
         if (DATA_HOLDER.vrSettings.mixedRealityUnityLike) {
             RenderTarget source;
             if (DATA_HOLDER.vrSettings.displayMirrorUseScreenshotCamera && DATA_HOLDER.cameraTracker.isVisible()) {
@@ -368,14 +374,9 @@ public class ShaderHelper {
                     source = DATA_HOLDER.vrRenderer.getRightEyeTarget();
                 }
             }
-            VRShaders.MIXED_REALITY_SHADER.setSampler("firstPersonColor", source.getColorTextureId());
+            blitFramebuffer(source, MC.mainRenderTarget.width / 2, 0,
+                MC.mainRenderTarget.width, MC.mainRenderTarget.height / 2);
         }
-
-        VRShaders.MIXED_REALITY_SHADER.apply();
-
-        drawFullscreenQuad(VRShaders.MIXED_REALITY_SHADER.getVertexFormat());
-
-        VRShaders.MIXED_REALITY_SHADER.clear();
     }
 
     /**
@@ -425,66 +426,67 @@ public class ShaderHelper {
     }
 
     /**
-     * blits the given {@code source} RenderTarget to the screen/bound buffer<br>
-     * the {@code source} is drawn to the rectangle at {@code left},{@code top} with a size of {@code width},{@code height}<br>
+     * blits the given {@code source} RenderTarget to the bound framebuffer<br>
      * if {@code xCropFactor} or {@code yCropFactor} are non 0 the {@code source} gets zoomed in
      * @param source RenderTarget to draw to the screen
      * @param left left edge of the target area
-     * @param width width of the target area
-     * @param height height of the target area
      * @param top top edge of the target area
+     * @param right right edge width of the target area
+     * @param bottom bottom edge of the target area
      * @param xCropFactor vertical crop factor for the {@code source}
      * @param yCropFactor horizontal crop factor for the {@code source}
      * @param keepAspect keeps the aspect ratio in takt when cropping the buffer
      */
-    public static void blitToScreen(RenderTarget source, int left, int width, int height, int top, float xCropFactor, float yCropFactor, boolean keepAspect) {
-        RenderSystem.assertOnRenderThread();
-        RenderSystem.colorMask(true, true, true, false);
-        RenderSystem.disableDepthTest();
-        RenderSystem.depthMask(false);
-        RenderSystem.viewport(left, top, width, height);
-        RenderSystem.disableBlend();
-
-        float drawAspect = (float) width / (float) height;
-        float bufferAspect = (float) source.viewWidth / (float) source.viewHeight;
-
-        float xMin = xCropFactor;
-        float yMin = yCropFactor;
-        float xMax = 1.0F - xCropFactor;
-        float yMax = 1.0F - yCropFactor;
+    private static void blitFramebufferCrop(
+        RenderTarget source, int left, int top, int right, int bottom,
+        float xCropFactor, float yCropFactor, boolean keepAspect)
+    {
 
         if (keepAspect) {
+            float drawAspect = (float) MC.mainRenderTarget.width / (float) MC.mainRenderTarget.height;
+            float bufferAspect = (float) source.viewWidth / (float) source.viewHeight;
             if (drawAspect > bufferAspect) {
                 // destination is wider than the buffer
                 float heightAspect = (bufferAspect / drawAspect) * (0.5F - yCropFactor);
 
-                yMin = 0.5F - heightAspect;
-                yMax = 0.5F + heightAspect;
+                yCropFactor = 0.5F - heightAspect;
             } else {
                 // destination is taller than the buffer
                 float widthAspect = (drawAspect / bufferAspect) * (0.5F - xCropFactor);
 
-                xMin = 0.5F - widthAspect;
-                xMax = 0.5F + widthAspect;
+                xCropFactor = 0.5F - widthAspect;
             }
         }
 
-        ShaderInstance instance = VRShaders.BLIT_VR_SHADER;
-        instance.setSampler("DiffuseSampler", source.getColorTextureId());
+        int xMin = (int) (xCropFactor * source.width);
+        int yMin = (int) (yCropFactor * source.height);
+        int xMax = source.width - xMin;
+        int yMax = source.height - yMin;
 
-        instance.apply();
+        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, source.frameBufferId);
+        GlStateManager._glBlitFrameBuffer(
+            xMin, yMin, xMax, yMax,
+            left, top, right, bottom,
+            GL11C.GL_COLOR_BUFFER_BIT, GL11C.GL_LINEAR);
+        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, 0);
+    }
 
-        BufferBuilder bufferbuilder = RenderSystem.renderThreadTesselator().getBuilder();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, instance.getVertexFormat());
-
-        bufferbuilder.vertex(-1.0F, -1.0F, 0.0F).uv(xMin, yMin).endVertex();
-        bufferbuilder.vertex(1.0F, -1.0F, 0.0F).uv(xMax, yMin).endVertex();
-        bufferbuilder.vertex(1.0F, 1.0F, 0.0F).uv(xMax, yMax).endVertex();
-        bufferbuilder.vertex(-1.0F, 1.0F, 0.0F).uv(xMin, yMax).endVertex();
-        BufferUploader.draw(bufferbuilder.end());
-        instance.clear();
-
-        RenderSystem.depthMask(true);
-        RenderSystem.colorMask(true, true, true, true);
+    /**
+     * blits the given {@code source} RenderTarget to the bound framebuffer
+     * @param source RenderTarget to draw to the screen
+     * @param left left edge of the target area
+     * @param top top edge of the target area
+     * @param right right edge width of the target area
+     * @param bottom bottom edge of the target area
+     */
+    private static void blitFramebuffer(
+        RenderTarget source, int left, int top, int right, int bottom)
+    {
+        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, source.frameBufferId);
+        GlStateManager._glBlitFrameBuffer(
+            0, 0, source.width, source.height,
+            left, top, right, bottom,
+            GL11C.GL_COLOR_BUFFER_BIT, GL11C.GL_LINEAR);
+        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, 0);
     }
 }
