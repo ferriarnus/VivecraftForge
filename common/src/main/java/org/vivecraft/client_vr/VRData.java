@@ -209,11 +209,12 @@ public class VRData {
     }
 
     /**
-     * @param c controller index
-     * @return the hand device pose for the specified controller
+     * @param c device index
+     * @return the hand device pose for the specified device, if the specified device doesn't have a hand post the regular pose is returned
      */
+    @Nullable
     public VRDevicePose getHand(int c) {
-        return c == 0 ? this.h0 : this.h1;
+        return c > 1 ? getDevice(c) : c == 0 ? this.h0 : this.h1;
     }
 
     /**

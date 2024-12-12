@@ -342,6 +342,25 @@ public class DebugRenderHelper {
         }
     }
 
+    public static void renderTextAtDevice(PoseStack poseStack, int device, String text) {
+        VRData data = DATA_HOLDER.vrPlayer.getVRDataWorld();
+        Vec3 camPos = RenderHelper.getSmoothCameraPosition(DATA_HOLDER.currentPass, data);
+        Quaternionf orientation = data.getEye(DATA_HOLDER.currentPass).getMatrix()
+            .getNormalizedRotation(new Quaternionf())
+            .rotateY(Mth.PI);
+        Vec3 pos = data.getDevice(device).getPosition().subtract(camPos);
+
+        poseStack.pushPose();
+        poseStack.translate(pos.x(), pos.y() + 0.05F, pos.z());
+        poseStack.mulPose(orientation);
+        poseStack.scale(-0.005F, -0.005F, 0.005F);
+
+        MC.font.drawInBatch(text, MC.font.width(text) * -0.5F, -MC.font.lineHeight, -1, false,
+            poseStack.last().pose(), MC.renderBuffers().bufferSource(), Font.DisplayMode.NORMAL, 0,
+            LightTexture.FULL_BRIGHT);
+        poseStack.popPose();
+    }
+
     /**
      * Renders a cube
      * @param poseStack PoseStack to use for positioning

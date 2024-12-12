@@ -264,6 +264,8 @@ public class VRSettings {
     public boolean simulateFalling = true;  // VIVE if HMD is over empty space, fall
     @SettingField(value = VrOptions.WEAPON_COLLISION, config = "weaponCollisionNew")
     public WeaponCollision weaponCollision = WeaponCollision.AUTO;  // VIVE weapon hand collides with blocks/enemies
+    @SettingField(value = VrOptions.FEET_COLLISION, config = "weaponCollisionNew")
+    public boolean feetCollision = true;  // VIVE weapon feet collides with blocks/enemies
     @SettingField(VrOptions.SWORD_BLOCK_COLLISION)
     public boolean swordBlockCollision = true;
     @SettingField(VrOptions.MOVEMENT_MULTIPLIER)
@@ -308,6 +310,8 @@ public class VRSettings {
     public boolean realisticBlockInteractEnabled = true;
     @SettingField(VrOptions.REALISTIC_ENTITY_INTERACT)
     public boolean realisticEntityInteractEnabled = true;
+    @SettingField(VrOptions.REALISTIC_OPENING)
+    public boolean doorHitting = true;
     @SettingField(VrOptions.BACKPACK_SWITCH)
     public boolean backpackSwitching = true;
     @SettingField(VrOptions.PHYSICAL_GUI)
@@ -1591,6 +1595,7 @@ public class VRSettings {
                 }
             }
         },
+        FEET_COLLISION(false, true),
         SWORD_BLOCK_COLLISION(false, true), // lets swords hit blocks that can be mined or instabroken
         // VIVE END - new options
         //JRBUDDA VIVE
@@ -1850,6 +1855,7 @@ public class VRSettings {
         REALISTIC_DISMOUNT(false, true), // Roomscale Dismounting
         REALISTIC_BLOCK_INTERACT(false, true), // Roomscale Block Interaction
         REALISTIC_ENTITY_INTERACT(false, true), // Roomscale Entity Interaction
+        REALISTIC_OPENING(false, true), // open doors by hitting them
         WALK_MULTIPLIER(true, false, 1f, 10f, 0.1f, 1), // Walking Multiplier
         FREEMOVE_MODE(false, true) { // Free Move Type
 

@@ -3,9 +3,11 @@ package org.vivecraft.client_vr.gameplay.trackers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -14,6 +16,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -21,6 +24,8 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.Xplat;
+import org.vivecraft.client_vr.provider.MCVR;
+import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client_vr.BlockTags;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -34,14 +39,16 @@ import org.vivecraft.mod_compat_vr.epicfight.EpicFightHelper;
 import java.util.List;
 
 public class SwingTracker extends Tracker {
-    private final Vec3[] lastWeaponEndAir = new Vec3[]{Vec3.ZERO, Vec3.ZERO};
-    private final boolean[] lastWeaponSolid = new boolean[2];
-    public final Vec3[] miningPoint = new Vec3[2];
-    public final Vec3[] attackingPoint = new Vec3[2];
-    public final Vector3fHistory[] tipHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
-    public boolean[] canAct = new boolean[2];
+    private static final int[] CONTROLLER_AND_FEET = new int[]{MCVR.MAIN_CONTROLLER, MCVR.OFFHAND_CONTROLLER, MCVR.LEFT_FOOT_TRACKER, MCVR.RIGHT_FOOT_TRACKER};
+    private static final float SPEED_THRESH = 3.0F;
+
+    private final Vec3[] lastWeaponEndAir = new Vec3[]{Vec3.ZERO, Vec3.ZERO, Vec3.ZERO, Vec3.ZERO};
+    private final boolean[] lastWeaponSolid = new boolean[4];
+    public final Vec3[] miningPoint = new Vec3[4];
+    public final Vec3[] attackingPoint = new Vec3[4];
+    public final Vector3fHistory[] tipHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory(), new Vector3fHistory(), new Vector3fHistory()};
+    public boolean[] canAct = new boolean[4];
     public int disableSwing = 3;
-    private float speedThresh = 3.0F;
 
     public SwingTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -101,19 +108,28 @@ public class SwingTracker extends Tracker {
 
     @Override
     public void doProcess(LocalPlayer player) {
-        this.speedThresh = 3.0F;
+        float speedTreshhold = SPEED_THRESH;
 
         if (player.isCreative()) {
-            this.speedThresh *= 1.5F;
+            speedTreshhold *= 1.5F;
         }
 
         this.mc.getProfiler().push("updateSwingAttack");
 
-        for (int c = 0; c < 2; c++) {
-            if (!this.dh.climbTracker.isGrabbingLadder(c)) {
-                Vec3 handPos = this.dh.vrPlayer.vrdata_world_pre.getController(c).getPosition();
+        int trackers = 2;
+
+        if (this.dh.vrSettings.feetCollision && this.dh.vrPlayer.vrdata_world_pre.fbtMode != FBTMode.ARMS_ONLY) {
+            trackers = 4;
+        }
+
+        for (int i = 0; i < trackers; i++) {
+            int c = CONTROLLER_AND_FEET[i];
+            boolean isHand = i < 2;
+            if (!isHand || !this.dh.climbTracker.isGrabbingLadder(c)) {
+                Vec3 handPos = this.dh.vrPlayer.vrdata_world_pre.getDevice(c).getPosition();
                 Vector3f handDirection = this.dh.vrPlayer.vrdata_world_pre.getHand(c).getCustomVector(MathUtils.BACK);
-                ItemStack itemstack = player.getItemInHand(c == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
+                ItemStack itemstack = player.getItemInHand(
+                    c == MCVR.OFFHAND_CONTROLLER ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
                 Item item = itemstack.getItem();
                 boolean isTool = false;
                 boolean isSword = false;
@@ -127,52 +143,51 @@ public class SwingTracker extends Tracker {
                     isTool = true;
                 }
 
-                float weaponLength;
-                float entityReachAdd;
+                float weaponLength = 0.0F;
+                float entityReachAdd = 0.3F;
 
-                double playerEntityReach = Xplat.getItemEntityReach(3.0, itemstack, c == 0 ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
-                if (BetterCombatHelper.isLoaded()) {
-                    // better combat overrides the player reach
-                    playerEntityReach = BetterCombatHelper.getItemRange(playerEntityReach, itemstack);
-                }
+                if (isHand) {
+                    double playerEntityReach = Xplat.getItemEntityReach(3.0, itemstack, c == 0 ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+                    if (BetterCombatHelper.isLoaded()) {
+                        // better combat overrides the player reach
+                        playerEntityReach = BetterCombatHelper.getItemRange(playerEntityReach, itemstack);
+                    }
 
-                // subtract arm length and clamp it to 6 meters
-                playerEntityReach = Math.min(playerEntityReach, 6.0) - 0.5;
+                    // subtract arm length and clamp it to 6 meters
+                    playerEntityReach = Math.min(playerEntityReach, 6.0) - 0.5;
 
-                if (isSword) {
-                    weaponLength = 0.6F;
-                    // in default situations a total reach of 2.5
-                    entityReachAdd = (float) playerEntityReach - weaponLength;
-                } else if (isTool) {
-                    weaponLength = 0.35F;
-                    // in default situations a total reach of 1.55
-                    entityReachAdd = (float) playerEntityReach * 0.62F - weaponLength;
-                } else if (!itemstack.isEmpty()) {
-                    weaponLength = 0.1F;
-                    // in default situations a total reach of 0.4
-                    entityReachAdd = (float) playerEntityReach * 0.16F - weaponLength;
-                } else {
-                    weaponLength = 0.0F;
-                    entityReachAdd = 0.3F;
+                    if (isSword) {
+                        weaponLength = 0.6F;
+                        // in default situations a total reach of 2.5
+                        entityReachAdd = (float) playerEntityReach - weaponLength;
+                    } else if (isTool) {
+                        weaponLength = 0.35F;
+                        // in default situations a total reach of 1.55
+                        entityReachAdd = (float) playerEntityReach * 0.62F - weaponLength;
+                    } else if (!itemstack.isEmpty()) {
+                        weaponLength = 0.1F;
+                        // in default situations a total reach of 0.4
+                        entityReachAdd = (float) playerEntityReach * 0.16F - weaponLength;
+                    }
                 }
 
                 weaponLength *= this.dh.vrPlayer.vrdata_world_pre.worldScale;
 
                 Vector3f weaponEnd = handDirection.mul(weaponLength, new Vector3f());
-                this.miningPoint[c] = handPos.add(weaponEnd.x, weaponEnd.y, weaponEnd.z);
+                this.miningPoint[i] = handPos.add(weaponEnd.x, weaponEnd.y, weaponEnd.z);
 
                 // do speed calc in actual room coords
-                Vector3f tip = this.dh.vrPlayer.vrdata_room_pre.getController(c).getPositionF()
+                Vector3f tip = this.dh.vrPlayer.vrdata_room_pre.getDevice(c).getPositionF()
                     .add(this.dh.vrPlayer.vrdata_room_pre.getHand(c).getCustomVector(MathUtils.BACK).mul(0.3F));
-                this.tipHistory[c].add(tip);
+                this.tipHistory[i].add(tip);
 
                 // at a 0.3m offset on index controllers a speed of 3m/s is an intended smack, 7 m/s is about as high as your arm can go.
-                float speed = this.tipHistory[c].averageSpeed(0.33D);
+                float speed = this.tipHistory[i].averageSpeed(0.33D);
                 boolean inAnEntity = false;
-                this.canAct[c] = speed > this.speedThresh && !this.lastWeaponSolid[c];
+                this.canAct[i] = speed > speedTreshhold && !this.lastWeaponSolid[i];
 
                 // Check EntityCollisions first
-                boolean entityAct = this.canAct[c];
+                boolean entityAct = this.canAct[i];
 
                 // no hitting around corners, to not trigger anticheat
                 if (entityAct) {
@@ -183,14 +198,14 @@ public class SwingTracker extends Tracker {
                     }
                 }
 
-                this.attackingPoint[c] = this.constrain(handPos, this.miningPoint[c]);
+                this.attackingPoint[i] = this.constrain(handPos, this.miningPoint[i]);
 
                 Vector3f weaponEntityEnd = handDirection.mul(weaponLength + entityReachAdd, new Vector3f());
                 Vec3 weaponTip = handPos.add(weaponEntityEnd.x, weaponEntityEnd.y, weaponEntityEnd.z);
                 // no hitting through blocks
                 weaponTip = this.constrain(handPos, weaponTip);
 
-                AABB weaponBB = new AABB(handPos, this.attackingPoint[c]);
+                AABB weaponBB = new AABB(handPos, this.attackingPoint[i]);
                 AABB weaponTipBB = new AABB(handPos, weaponTip);
 
                 List<Entity> mobs = this.mc.level.getEntities(this.mc.player, weaponTipBB);
@@ -214,34 +229,34 @@ public class SwingTracker extends Tracker {
                                 entityAct = false;
                             }
                             this.dh.vr.triggerHapticPulse(c, 1000);
-                            this.lastWeaponSolid[c] = true;
+                            this.lastWeaponSolid[i] = true;
                         }
                         inAnEntity = true;
                     }
                 }
                 // no hitting while climbey climbing
-                if (this.dh.climbTracker.isClimbeyClimb() && (!isTool ||
+                if (isHand && this.dh.climbTracker.isClimbeyClimb() && (!isTool ||
                     (c == 0 && VivecraftVRMod.INSTANCE.keyClimbeyGrab.isDown(ControllerType.RIGHT)) ||
                     (c == 1 && VivecraftVRMod.INSTANCE.keyClimbeyGrab.isDown(ControllerType.LEFT)))) {
                     continue;
                 }
 
-                BlockPos blockpos = BlockPos.containing(this.miningPoint[c]);
+                BlockPos blockpos = BlockPos.containing(this.miningPoint[i]);
                 BlockState blockstate = this.mc.level.getBlockState(blockpos);
 
                 boolean mineableByItem = this.dh.vrSettings.swordBlockCollision && (itemstack.isCorrectToolForDrops(blockstate) || blockstate.getDestroyProgress(player, player.level(), blockpos) == 1F);
 
                 // block check
                 // don't hit blocks with swords or same time as hitting entity
-                this.canAct[c] = this.canAct[c] && (!isSword || mineableByItem) && !inAnEntity;
+                this.canAct[i] = this.canAct[i] && (!isSword || mineableByItem) && !inAnEntity;
 
                 // every time end of weapon enters a solid for the first time, trace from our previous air position
                 // and damage the block it collides with...
-                BlockHitResult blockHit = this.mc.level.clip(new ClipContext(this.lastWeaponEndAir[c], this.miningPoint[c], ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, this.mc.player));
+                BlockHitResult blockHit = this.mc.level.clip(new ClipContext(this.lastWeaponEndAir[i], this.miningPoint[i], ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, this.mc.player));
 
-                if (!blockstate.isAir() && blockHit.getType() == HitResult.Type.BLOCK && this.lastWeaponEndAir[c].length() != 0.0D) {
+                if (!blockstate.isAir() && blockHit.getType() == HitResult.Type.BLOCK && this.lastWeaponEndAir[i].length() != 0.0D) {
 
-                    this.lastWeaponSolid[c] = true;
+                    this.lastWeaponSolid[i] = true;
 
                     boolean sameBlock = blockHit.getBlockPos().equals(blockpos); //fix ladders?
                     // don't break climbable blocks
@@ -250,11 +265,16 @@ public class SwingTracker extends Tracker {
                             blockstate.getBlock() instanceof VineBlock ||
                             blockstate.is(BlockTags.VIVECRAFT_CLIMBABLE));
 
-                    if (blockHit.getType() == HitResult.Type.BLOCK && sameBlock && this.canAct[c] && !protectedBlock) {
+                    if (blockHit.getType() == HitResult.Type.BLOCK && sameBlock && this.canAct[i] && !protectedBlock) {
                         int totalHits = 3;
-
+                        if (this.dh.vrSettings.doorHitting &&
+                            isOpenable(blockstate, this.tipHistory[i].netMovement(0.3)) &&
+                            this.mc.gameMode.useItemOn(player,
+                                c == 1 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND, blockHit) !=
+                                InteractionResult.PASS)
+                        {}
                         // roomscale hoe interaction
-                        if ((item instanceof HoeItem || itemstack.is(ItemTags.VIVECRAFT_HOES) || itemstack.is(ItemTags.VIVECRAFT_SCYTHES)) &&
+                        else if (isHand && (item instanceof HoeItem || itemstack.is(ItemTags.VIVECRAFT_HOES) || itemstack.is(ItemTags.VIVECRAFT_SCYTHES)) &&
                             (blockstate.getBlock() instanceof CropBlock ||
                                 blockstate.getBlock() instanceof StemBlock ||
                                 blockstate.getBlock() instanceof AttachedStemBlock ||
@@ -267,14 +287,14 @@ public class SwingTracker extends Tracker {
                         {
                             // don't try to break crops with hoes
                             // actually use the item on the block
-                            boolean useSuccessful = this.mc.gameMode.useItemOn(player, c == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, blockHit).shouldSwing();
+                            boolean useSuccessful = this.mc.gameMode.useItemOn(player, i == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, blockHit).shouldSwing();
                             if (itemstack.is(ItemTags.VIVECRAFT_SCYTHES) && !useSuccessful) {
                                 // some scythes just need to be used
                                 this.mc.gameMode.useItem(player, c == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
                             }
                         }
                         // roomscale brushes
-                        else if ((item instanceof BrushItem /*|| itemstack.is(ItemTags.VIVECRAFT_BRUSHES*/)) {
+                        else if (isHand && (item instanceof BrushItem /*|| itemstack.is(ItemTags.VIVECRAFT_BRUSHES*/)) {
                             ((BrushItem) item).spawnDustParticles(player.level(), blockHit, blockstate, player.getViewVector(0.0F), c == 0 ? player.getMainArm() : player.getMainArm().getOpposite());
                             player.level().playSound(player, blockHit.getBlockPos(), blockstate.getBlock() instanceof BrushableBlock ? ((BrushableBlock) blockstate.getBlock()).getBrushSound() : SoundEvents.BRUSH_GENERIC, SoundSource.BLOCKS);
                             this.mc.gameMode.useItemOn(player, c == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, blockHit);
@@ -286,7 +306,7 @@ public class SwingTracker extends Tracker {
                         // roomscale mining
                         else {
                             // faster swings do more damage
-                            totalHits = (int) (totalHits + Math.min(speed - this.speedThresh, 4.0F));
+                            totalHits = (int) (totalHits + Math.min(speed - speedTreshhold, 4.0F));
                             //this.mc.physicalGuiManager.preClickAction();
 
                             // this will either destroy the block if in creative or set it as the current block.
@@ -319,8 +339,8 @@ public class SwingTracker extends Tracker {
                     }
                 } else {
                     // reset
-                    this.lastWeaponEndAir[c] = this.miningPoint[c];
-                    this.lastWeaponSolid[c] = false;
+                    this.lastWeaponEndAir[i] = this.miningPoint[i];
+                    this.lastWeaponSolid[i] = false;
                 }
             }
         }
@@ -347,6 +367,67 @@ public class SwingTracker extends Tracker {
     private Vec3 constrain(Vec3 start, Vec3 end) {
         BlockHitResult blockhitresult = this.mc.level.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, this.mc.player));
         return blockhitresult.getType() == HitResult.Type.BLOCK ? blockhitresult.getLocation() : end;
+    }
+
+    /**
+     * checks if the given block can be opened by hitting it in the give direction
+     * @param state block state to check
+     * @param roomDirection direction in room space to check
+     * @return if the block can be opened
+     */
+    private boolean isOpenable(BlockState state, Vector3f roomDirection) {
+        final float t = 0.25F;
+        Vector3f direction = roomDirection.normalize().rotateY(this.dh.vrPlayer.vrdata_world_pre.rotation_radians);
+
+        if (state.is(net.minecraft.tags.BlockTags.DOORS) || state.getBlock() instanceof DoorBlock) {
+            Direction d = state.getValue(DoorBlock.FACING);
+            boolean open = state.getValue(DoorBlock.OPEN);
+            DoorHingeSide hinge = state.getValue(DoorBlock.HINGE);
+
+            if (direction.z < -t &&
+                ((d == Direction.NORTH && !open) ||
+                    (d == Direction.WEST && open && hinge == DoorHingeSide.LEFT) ||
+                    (d == Direction.EAST && open && hinge == DoorHingeSide.RIGHT)
+                ))
+            {
+                return true;
+            } else if (direction.x > t &&
+                ((d == Direction.EAST && !open) ||
+                    (d == Direction.NORTH && open && hinge == DoorHingeSide.LEFT) ||
+                    (d == Direction.SOUTH && open && hinge == DoorHingeSide.RIGHT)
+                ))
+            {
+                return true;
+            } else if (direction.z > t &&
+                ((d == Direction.SOUTH && !open) ||
+                    (d == Direction.EAST && open && hinge == DoorHingeSide.LEFT) ||
+                    (d == Direction.WEST && open && hinge == DoorHingeSide.RIGHT)
+                ))
+            {
+                return true;
+            } else if (direction.x < -t &&
+                ((d == Direction.WEST && !open) ||
+                    (d == Direction.SOUTH && open && hinge == DoorHingeSide.LEFT) ||
+                    (d == Direction.NORTH && open && hinge == DoorHingeSide.RIGHT)
+                ))
+            {
+                return true;
+            }
+        } else if (state.is(net.minecraft.tags.BlockTags.TRAPDOORS) || state.getBlock() instanceof TrapDoorBlock) {
+            Direction d = state.getValue(TrapDoorBlock.FACING);
+            boolean open = state.getValue(TrapDoorBlock.OPEN);
+            return (direction.y > t && !open) ||
+                (direction.x < -t && open && d == Direction.WEST) ||
+                (direction.x > t && open && d == Direction.EAST) ||
+                (direction.z < -t && open && d == Direction.NORTH) ||
+                (direction.z > t && open && d == Direction.SOUTH);
+        } else if (state.is(net.minecraft.tags.BlockTags.FENCE_GATES) || state.getBlock() instanceof FenceGateBlock) {
+            Direction d = state.getValue(FenceGateBlock.FACING);
+            boolean open = state.getValue(FenceGateBlock.OPEN);
+            return !open && (direction.x > t || direction.x < t) && (d == Direction.WEST || d == Direction.EAST) ||
+                !open && (direction.z > t || direction.z < t) && (d == Direction.NORTH || d == Direction.SOUTH);
+        }
+        return false;
     }
 
     /**

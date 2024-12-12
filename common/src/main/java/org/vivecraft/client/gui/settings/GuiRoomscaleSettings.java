@@ -7,6 +7,8 @@ import org.vivecraft.client_vr.settings.VRSettings;
 public class GuiRoomscaleSettings extends GuiVROptionsBase {
     private static final VRSettings.VrOptions[] ROOMSCALE_SETTINGS = new VRSettings.VrOptions[]{
         VRSettings.VrOptions.WEAPON_COLLISION,
+        VRSettings.VrOptions.FEET_COLLISION,
+        VRSettings.VrOptions.REALISTIC_OPENING,
         VRSettings.VrOptions.REALISTIC_JUMP,
         VRSettings.VrOptions.REALISTIC_SNEAK,
         VRSettings.VrOptions.REALISTIC_CLIMB,
