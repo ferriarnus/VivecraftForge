@@ -267,12 +267,15 @@ public class SwingTracker extends Tracker {
 
                     if (blockHit.getType() == HitResult.Type.BLOCK && sameBlock && this.canAct[i] && !protectedBlock) {
                         int totalHits = 3;
+                        // roomscale door punching
                         if (this.dh.vrSettings.doorHitting &&
                             isOpenable(blockstate, this.tipHistory[i].netMovement(0.3)) &&
                             this.mc.gameMode.useItemOn(player,
                                 c == 1 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND, blockHit) !=
                                 InteractionResult.PASS)
-                        {}
+                        {
+                            // the useItem is already in the if check, so nothing to do here
+                        }
                         // roomscale hoe interaction
                         else if (isHand && (item instanceof HoeItem || itemstack.is(ItemTags.VIVECRAFT_HOES) || itemstack.is(ItemTags.VIVECRAFT_SCYTHES)) &&
                             (blockstate.getBlock() instanceof CropBlock ||
