@@ -32,8 +32,10 @@ public class GuiPlayerModelSettings extends GuiVROptionsBase {
 
     private final VROptionEntry[] heightCalibration = new VROptionEntry[]{new VROptionEntry(
         "vivecraft.gui.calibrateheight", (button, mousePos) -> {
-        AutoCalibration.calibrateManual();
-        ClientDataHolderVR.getInstance().vrSettings.saveOptions();
+        if (VRState.VR_INITIALIZED) {
+            AutoCalibration.calibrateManual();
+            ClientDataHolderVR.getInstance().vrSettings.saveOptions();
+        }
         return true;
     })};
 
