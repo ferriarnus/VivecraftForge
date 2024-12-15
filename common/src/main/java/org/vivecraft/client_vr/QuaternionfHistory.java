@@ -33,6 +33,13 @@ public class QuaternionfHistory {
     }
 
     /**
+     * @return if the history is empty
+     */
+    public boolean isEmpty() {
+        return this.data.isEmpty();
+    }
+
+    /**
      * @return the newest Quaternion
      */
     public Quaternionf latest() {

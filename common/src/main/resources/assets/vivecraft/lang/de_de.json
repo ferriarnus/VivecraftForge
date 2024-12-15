@@ -512,6 +512,7 @@
   "vivecraft.options.PLAYER_WALK_ANIM": "FBT Gehanimation",
   "vivecraft.options.PLAYER_ARM_ANIM": "Arm Animationen",
   "vivecraft.options.RENDER_DEBUG_TRACKERS": "Zeige Tracker",
+  "vivecraft.options.OSC_TRACKER_PORT": "OSC Tracker Port",
   "_comment_m6": "Option tooltips",
   "vivecraft.options.LOW_HEALTH_INDICATOR.tooltip": "Pulsiert den Bildschirm Rot bei niedriger Gesundheit, um den derzeitigen Gesundheitszustand anzuzeigen.",
   "vivecraft.options.HIT_INDICATOR.tooltip": "Blinkt den Bildschirm Rot wenn wenn der Spieler Schaden nimmt.",

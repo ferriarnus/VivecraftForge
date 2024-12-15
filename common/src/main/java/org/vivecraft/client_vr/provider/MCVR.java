@@ -11,11 +11,13 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.phys.Vec3;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.joml.*;
 import org.lwjgl.glfw.GLFW;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client_vr.settings.AutoCalibration;
+import org.vivecraft.client_vr.utils.osc_trackers.OSCTracker;
+import org.vivecraft.client_vr.utils.osc_trackers.OSCTrackerReceiver;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.QuaternionfHistory;
@@ -58,7 +60,7 @@ public abstract class MCVR {
     public static final int RIGHT_KNEE_TRACKER = 8;
     public static final int LEFT_KNEE_TRACKER = 9;
 
-    public static final int trackableDeviceCount = 10;
+    public static final int TRACKABLE_DEVICE_COUNT = 10;
 
     protected Minecraft mc;
     protected ClientDataHolderVR dh;
@@ -77,14 +79,19 @@ public abstract class MCVR {
     public Vector3fHistory hmdPivotHistory = new Vector3fHistory();
     public QuaternionfHistory hmdRotHistory = new QuaternionfHistory();
     protected boolean headIsTracking;
-    protected Matrix4f[] controllerPose = new Matrix4f[trackableDeviceCount];
-    protected Matrix4f[] controllerRotation = new Matrix4f[trackableDeviceCount];
-    protected boolean[] controllerTracking = new boolean[trackableDeviceCount];
-    protected Matrix4f[] handRotation = new Matrix4f[trackableDeviceCount];
+    protected Matrix4f[] controllerPose = new Matrix4f[TRACKABLE_DEVICE_COUNT];
+    protected Matrix4f[] controllerRotation = new Matrix4f[TRACKABLE_DEVICE_COUNT];
+    protected boolean[] controllerTracking = new boolean[TRACKABLE_DEVICE_COUNT];
+    protected Matrix4f[] handRotation = new Matrix4f[TRACKABLE_DEVICE_COUNT];
+
+    public final OSCTrackerReceiver oscTrackers;
+    protected final DeviceSource[] deviceSource = new DeviceSource[TRACKABLE_DEVICE_COUNT];
+
+    protected boolean usingUnlabeledTrackers = false;
+
     public Vector3fHistory[] controllerHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     public Vector3fHistory[] controllerForwardHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     public Vector3fHistory[] controllerUpHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
-    public Vector3fHistory[] feetHistory = new Vector3fHistory[]{new Vector3fHistory(), new Vector3fHistory()};
     protected float gunAngle = 0.0F;
     protected boolean gunStyle;
     public boolean initialized;
@@ -92,7 +99,7 @@ public abstract class MCVR {
     public boolean initSuccess;
     protected Matrix4f[] poseMatrices;
     protected Vector3f[] deviceVelocity;
-    protected Vector3f[] aimSource = new Vector3f[trackableDeviceCount];
+    protected Vector3f[] aimSource = new Vector3f[TRACKABLE_DEVICE_COUNT];
 
     //hmd sampling
     private static final int HMD_AVG_MAX_SAMPLES = 90;
@@ -123,7 +130,7 @@ public abstract class MCVR {
     protected Map<String, VRInputAction> inputActions = new HashMap<>();
     protected Map<String, VRInputAction> inputActionsByKeyBinding = new HashMap<>();
 
-    protected static final Vector3fc[] fbtReferencePositions = new Vector3fc[] {
+    protected static final Vector3fc[] FBT_REFERENCE_POSITIONS = new Vector3fc[] {
         new Vector3f(0F, 0.875F, 0F), // waist
         new Vector3f(0.125F, 0F, 0F), // right foot
         new Vector3f(-0.125F, 0F, 0F), // left foot
@@ -146,12 +153,15 @@ public abstract class MCVR {
         ME = this;
 
         // initialize all controller/tracker fields
-        for (int c = 0; c < trackableDeviceCount; c++) {
+        for (int c = 0; c < TRACKABLE_DEVICE_COUNT; c++) {
             this.aimSource[c] = new Vector3f();
             this.controllerPose[c] = new Matrix4f();
             this.controllerRotation[c] = new Matrix4f();
             this.handRotation[c] = new Matrix4f();
+            this.deviceSource[c] = new DeviceSource(DeviceSource.Source.NULL);
         }
+
+        this.oscTrackers = new OSCTrackerReceiver(this);
     }
 
     /**
@@ -171,7 +181,9 @@ public abstract class MCVR {
     /**
      * stops the api connection and releases any allocated objects
      */
-    public abstract void destroy();
+    public void destroy() {
+        this.oscTrackers.stop();
+    }
 
     /**
      * triggers a haptic pulse on the give controller, as soon as possible
@@ -746,10 +758,19 @@ public abstract class MCVR {
         }
 
         if (this.hasFBT()) {
-            int trackers = this.hasExtendedFBT() ? trackableDeviceCount : 6;
+            int trackers = this.hasExtendedFBT() ? TRACKABLE_DEVICE_COUNT : 6;
             boolean calibrated = this.dh.vrSettings.fbtCalibrated ||
                 (this.hasExtendedFBT() && this.dh.vrSettings.fbtExtendedCalibrated);
+
             for (int i = 3; i < trackers; i++) {
+                if (this.deviceSource[i].source == DeviceSource.Source.OSC) {
+                    // update pose from last osc data, if it's still valid
+                    if (this.oscTrackers.trackers[this.deviceSource[i].deviceIndex].isTracking()) {
+                        this.controllerPose[i].set(this.oscTrackers.trackers[this.deviceSource[i].deviceIndex].pose);
+                    } else {
+                        this.deviceSource[i].reset();
+                    }
+                }
                 this.controllerRotation[i].set3x3(this.controllerPose[i]);
                 this.controllerPose[i].getTranslation(this.aimSource[i]);
                 if (calibrated) {
@@ -759,8 +780,6 @@ public abstract class MCVR {
                             new Vector3f()));
                 }
             }
-            this.feetHistory[0].add(new Vector3f(this.getAimSource(RIGHT_FOOT_TRACKER)));
-            this.feetHistory[1].add(new Vector3f(this.getAimSource(LEFT_FOOT_TRACKER)));
         }
     }
 
@@ -1196,16 +1215,71 @@ public abstract class MCVR {
     public void calibrateFBT(float headsetYaw) {
         Vector3f tempV = new Vector3f();
         float scale = (AutoCalibration.getPlayerHeight() / AutoCalibration.DEFAULT_HEIGHT) * 0.9375F;
-
         Vector3f posAvg = this.hmdPivotHistory.averagePosition(0.5D);
 
-        for (int t = 3; t < (hasExtendedFBT() ? trackableDeviceCount : 6); t++) {
+        // check if there are additional trackers that don't have an assigned role
+        List<Triple<DeviceSource, Integer, Matrix4fc>> trackers = getTrackers();
+
+        int startIndex = -1;
+        int endIndex = trackers.size();
+        if (!hasExtendedFBT() && trackers.size() >= 7) {
+            startIndex = !hasFBT() ? 0 : 3;
+            endIndex = 7;
+        } else if (!hasFBT() && trackers.size() >= 3) {
+            startIndex = 0;
+            endIndex = 3;
+        }
+        if (startIndex >= 0) {
+            this.usingUnlabeledTrackers = true;
+
+            // unassigned trackers, assign them by distance
+            for (int t = startIndex + 3; t < endIndex + 3; t++) {
+                int closestIndex = -1;
+                float closestDistance = Float.MAX_VALUE;
+
+                // find the closest tracker to the reference point
+                for (int i = 0; i < trackers.size(); i++) {
+                    //int trackerIndex = trackers.get(i);
+                    Triple<DeviceSource, Integer, Matrix4fc> tracker = trackers.get(i);
+
+                    // if regular fbt is already detected, skip those trackers
+                    if (hasFBT()) {
+                        if (this.deviceSource[WAIST_TRACKER].equals(tracker.getLeft()) ||
+                            this.deviceSource[LEFT_FOOT_TRACKER].equals(tracker.getLeft()) ||
+                            this.deviceSource[RIGHT_FOOT_TRACKER].equals(tracker.getLeft()))
+                        {
+                            continue;
+                        }
+                    }
+
+                    tracker.getRight().getTranslation(tempV)
+                        .sub(posAvg.x, 0F, posAvg.z) // center around headset
+                        .rotateY(headsetYaw)
+                        .mul(scale);
+                    float dist = tempV.distance(FBT_REFERENCE_POSITIONS[t - 3]);
+                    if (dist < closestDistance) {
+                        closestDistance = dist;
+                        closestIndex = i;
+                    }
+                }
+
+                this.deviceSource[t].set(trackers.get(closestIndex).getLeft());
+                this.controllerPose[t].set(trackers.get(closestIndex).getRight());
+                trackers.remove(closestIndex);
+            }
+        } else {
+            this.usingUnlabeledTrackers = false;
+        }
+
+        // rotation difference to forward
+        for (int t = 3; t < (hasExtendedFBT() ? TRACKABLE_DEVICE_COUNT : 6); t++) {
             Matrix4f rotationOffset = this.controllerPose[t].rotateLocalY(headsetYaw, new Matrix4f());
             rotationOffset.getUnnormalizedRotation(this.dh.vrSettings.fbtRotations[t - 3]).conjugate();
         }
 
-        for (int t = 3; t < (hasExtendedFBT() ? trackableDeviceCount : 6); t++) {
-            Vector3f offset = fbtReferencePositions[t - 3].mul(scale, new Vector3f()).sub(
+        // position difference to model position
+        for (int t = 3; t < (hasExtendedFBT() ? TRACKABLE_DEVICE_COUNT : 6); t++) {
+            Vector3f offset = FBT_REFERENCE_POSITIONS[t - 3].mul(scale, new Vector3f()).sub(
                 this.controllerPose[t].getTranslation(tempV)
                 .sub(posAvg.x, 0F, posAvg.z) // center around headset
                 .rotateY(headsetYaw)); // remove body rotation
@@ -1221,15 +1295,37 @@ public abstract class MCVR {
     }
 
     /**
+     * resets what trackers are used for the fbt trackers
+     */
+    public void resetFBT() {
+        for(int i = 3; i < TRACKABLE_DEVICE_COUNT; i++) {
+            this.deviceSource[i].reset();
+        }
+    }
+
+    /**
      * @return List of trackers, with device type and poseMatrix
      */
-    public List<Pair<Integer, Matrix4fc>> getTrackers() {
-        List<Pair<Integer, Matrix4fc>> poses = new ArrayList<>();
-        if (hasFBT()) {
-            for(int i = 3; i < (hasExtendedFBT() ? trackableDeviceCount : 6); i++) {
-                poses.add(Pair.of(i, this.controllerPose[i]));
+    public List<Triple<DeviceSource, Integer, Matrix4fc>> getTrackers() {
+        List<Triple<DeviceSource, Integer, Matrix4fc>> poses = new ArrayList<>();
+        for(int i = 3; i < TRACKABLE_DEVICE_COUNT; i++) {
+            if (this.deviceSource[i].isValid()) {
+                poses.add(Triple.of(this.deviceSource[i], i, this.controllerPose[i]));
             }
         }
+
+        if (this.oscTrackers.hasTrackers()) {
+            for (int i = 0; i < this.oscTrackers.trackers.length; i++) {
+                OSCTracker tracker = this.oscTrackers.trackers[i];
+                int finalI = i;
+                if (tracker.isTracking() &&
+                    poses.stream().noneMatch(t -> t.getLeft().is(DeviceSource.Source.OSC, finalI)))
+                {
+                    poses.add(Triple.of(new DeviceSource(DeviceSource.Source.OSC, i), -1, tracker.pose));
+                }
+            }
+        }
+
         return poses;
     }
 
@@ -1270,17 +1366,28 @@ public abstract class MCVR {
     /**
      * @return if there is a tracker for the camera
      */
-    public abstract boolean hasCameraTracker();
+    public boolean hasCameraTracker() {
+        return this.deviceSource[CAMERA_TRACKER].isValid();
+    }
 
     /**
      * @return if feet and waist trackers are available
      */
-    public abstract boolean hasFBT();
+    public boolean hasFBT() {
+        return this.deviceSource[WAIST_TRACKER].isValid() &&
+            this.deviceSource[LEFT_FOOT_TRACKER].isValid() &&
+            this.deviceSource[RIGHT_FOOT_TRACKER].isValid();
+    }
 
     /**
      * @return if elbow and knee trackers are available
      */
-    public abstract boolean hasExtendedFBT();
+    public boolean hasExtendedFBT() {
+        return hasFBT() && this.deviceSource[LEFT_ELBOW_TRACKER].isValid() &&
+            this.deviceSource[RIGHT_ELBOW_TRACKER].isValid() &&
+            this.deviceSource[LEFT_KNEE_TRACKER].isValid() &&
+            this.deviceSource[RIGHT_KNEE_TRACKER].isValid();
+    }
 
     /**
      * @param action VRInputAction to query origins for

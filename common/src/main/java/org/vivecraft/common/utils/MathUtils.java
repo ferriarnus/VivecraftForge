@@ -66,6 +66,30 @@ public class MathUtils {
     }
 
     /**
+     * @return wraps a radians value to be in the range -PI to +PI
+     */
+    public static float wrapRadians(float value) {
+        float wrapped = value % Mth.TWO_PI;
+        if (wrapped >= Mth.PI) {
+            wrapped -= Mth.TWO_PI;
+        }
+
+        if (wrapped < -Mth.PI) {
+            wrapped += Mth.TWO_PI;
+        }
+
+        return wrapped;
+    }
+
+    /**
+     * lerps the radians rotation from start to end
+     * @return lerped rotation
+     */
+    public static float rotLerpRad(float delta, float start, float end) {
+        return start + delta * wrapRadians(end - start);
+    }
+
+    /**
      * lerp for Minecrafts double Vector
      * @param start start point
      * @param end end point

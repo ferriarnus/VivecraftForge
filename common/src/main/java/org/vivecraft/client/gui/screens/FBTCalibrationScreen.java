@@ -81,6 +81,9 @@ public class FBTCalibrationScreen extends Screen {
 
     private void reset() {
         this.calibrated = false;
+        if (VRState.VR_INITIALIZED) {
+            ClientDataHolderVR.getInstance().vr.resetFBT();
+        }
         ClientDataHolderVR.getInstance().vrSettings.fbtCalibrated = false;
         ClientDataHolderVR.getInstance().vrSettings.fbtExtendedCalibrated = false;
         ClientDataHolderVR.getInstance().vrSettings.unlabeledTrackersUsed = this.usingUnlabeledTrackers;

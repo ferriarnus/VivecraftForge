@@ -33,6 +33,9 @@ subprojects {
         implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-linux")
         implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-macos")
         implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-windows")
+
+        // for OSC tracker support
+        implementation("com.illposed.osc:javaosc-core:0.9")
     }
 
     tasks.withType(JavaCompile).configureEach {

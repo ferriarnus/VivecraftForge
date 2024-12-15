@@ -1,9 +1,11 @@
 package org.vivecraft.client_vr;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client_vr.provider.MCVR;
@@ -148,7 +150,9 @@ public class VRData {
         }
 
         // fbt
-        if (mcVR.hasFBT() && dataHolder.vrSettings.fbtCalibrated) {
+        if (mcVR.hasFBT() && dataHolder.vrSettings.fbtCalibrated &&
+            !(Minecraft.getInstance().screen instanceof FBTCalibrationScreen))
+        {
             this.fbtMode = FBTMode.ARMS_LEGS;
             this.waist = new VRDevicePose(this,
                 mcVR.getAimRotation(MCVR.WAIST_TRACKER),

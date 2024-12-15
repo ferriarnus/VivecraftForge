@@ -31,6 +31,13 @@ public class Vector3fHistory {
     }
 
     /**
+     * @return if the history is empty
+     */
+    public boolean isEmpty() {
+        return this.data.isEmpty();
+    }
+
+    /**
      * @return the newest Vector3f
      */
     public Vector3fc latest() {

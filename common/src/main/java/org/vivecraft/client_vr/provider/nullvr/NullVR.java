@@ -3,6 +3,7 @@ package org.vivecraft.client_vr.provider.nullvr;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
+import org.apache.commons.lang3.tuple.Triple;
 import org.joml.*;
 import org.lwjgl.glfw.GLFW;
 import org.vivecraft.client.VivecraftVRMod;
@@ -11,6 +12,7 @@ import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.MethodHolder;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.provider.ControllerType;
+import org.vivecraft.client_vr.provider.DeviceSource;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.provider.VRRenderer;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.VRInputAction;
@@ -39,8 +41,8 @@ public class NullVR extends MCVR {
 
     private ControllerTransform controllerType = ControllerTransform.NULL;
 
-    private final Vector3f[] deviceOffsets = new Vector3f[trackableDeviceCount];
-    private final Quaternionf[] deviceRotations = new Quaternionf[trackableDeviceCount];
+    private final Vector3f[] deviceOffsets = new Vector3f[TRACKABLE_DEVICE_COUNT];
+    private final Quaternionf[] deviceRotations = new Quaternionf[TRACKABLE_DEVICE_COUNT];
 
     public NullVR(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh, VivecraftVRMod.INSTANCE);
@@ -66,7 +68,7 @@ public class NullVR extends MCVR {
         this.deviceOffsets[LEFT_KNEE_TRACKER] = this.deviceOffsets[RIGHT_KNEE_TRACKER]
             .mul(-1,1,1, new Vector3f());
 
-        for(int i = 0; i < trackableDeviceCount; i++) {
+        for(int i = 0; i < TRACKABLE_DEVICE_COUNT; i++) {
             this.deviceRotations[i] = new Quaternionf();
         }
     }
@@ -77,6 +79,7 @@ public class NullVR extends MCVR {
 
     @Override
     public void destroy() {
+        super.destroy();
         this.initialized = false;
     }
 
@@ -130,8 +133,6 @@ public class NullVR extends MCVR {
                 ((float) this.mc.getWindow().getScreenWidth() / (float) this.mc.getWindow().getScreenHeight());
             this.dh.vrSettings.keyholeX = 1;
 
-            this.updateAim();
-
             boolean swapHands = this.dh.vrSettings.reverseHands;
 
             this.controllerPose[MAIN_CONTROLLER] = this.controllerType.tipR.invert(new Matrix4f());
@@ -146,18 +147,23 @@ public class NullVR extends MCVR {
             this.controllerPose[OFFHAND_CONTROLLER]
                 .setTranslation(this.deviceOffsets[swapHands ? RIGHT_CONTROLLER : LEFT_CONTROLLER]);
 
-            // waist
-            this.controllerPose[WAIST_TRACKER].rotation(this.deviceRotations[WAIST_TRACKER]);
-            this.controllerPose[WAIST_TRACKER].setTranslation(this.deviceOffsets[WAIST_TRACKER]);
-
             this.hmdPose.rotation(this.deviceRotations[HEAD_TRACKER]);
             this.hmdPose.setTranslation(this.deviceOffsets[HEAD_TRACKER]);
 
-            // fbt trackers index 4-9
-            for (int i = 4; i < trackableDeviceCount; i++) {
-                this.controllerPose[i].rotation(this.deviceRotations[i]);
-                this.controllerPose[i].setTranslation(this.deviceOffsets[i]);
+            // fbt trackers index 3-9
+            for (int i = 3; i < TRACKABLE_DEVICE_COUNT; i++) {
+                if (this.deviceSource[i].source != DeviceSource.Source.OSC ||
+                    !this.oscTrackers.trackers[this.deviceSource[i].deviceIndex].isTracking())
+                {
+                    this.deviceSource[i].set(DeviceSource.Source.NULL,
+                        i < (this.fbtMode == FBTMode.ARMS_LEGS ? 6 : this.fbtMode == FBTMode.WITH_JOINTS ? 10 : 0) ? i :
+                            -1);
+                    this.controllerPose[i].rotation(this.deviceRotations[i]);
+                    this.controllerPose[i].setTranslation(this.deviceOffsets[i]);
+                }
             }
+
+            this.updateAim();
 
             this.dh.vrSettings.xSensitivity = xSens;
             this.dh.vrSettings.keyholeX = xKey;
@@ -207,13 +213,25 @@ public class NullVR extends MCVR {
     }
 
     @Override
-    public boolean hasFBT() {
-        return this.fbtMode != FBTMode.ARMS_ONLY;
-    }
-
-    @Override
-    public boolean hasExtendedFBT() {
-        return this.fbtMode == FBTMode.WITH_JOINTS;
+    public List<Triple<DeviceSource, Integer, Matrix4fc>> getTrackers() {
+        List<Triple<DeviceSource, Integer, Matrix4fc>> trackers = super.getTrackers();
+        int trackerCount = this.fbtMode == FBTMode.ARMS_LEGS ? 3 : this.fbtMode == FBTMode.WITH_JOINTS ? 7 : 0;
+        for(int i = 3; i < 3 + trackerCount; i++) {
+            int type = -1;
+            // check if we already know the role of the tracker
+            for (int t = 0; t < TRACKABLE_DEVICE_COUNT; t++) {
+                if (this.deviceSource[i].is(DeviceSource.Source.NULL, i)) {
+                    type = t;
+                }
+            }
+            int finalI = i;
+            if (trackers.stream().noneMatch(t -> t.getLeft().is(DeviceSource.Source.NULL, finalI)))
+            {
+                trackers.add(Triple.of(new DeviceSource(DeviceSource.Source.NULL, i), type,
+                    new Matrix4f().rotation(this.deviceRotations[i]).setTranslation(this.deviceOffsets[i])));
+            }
+        }
+        return trackers;
     }
 
     @Override

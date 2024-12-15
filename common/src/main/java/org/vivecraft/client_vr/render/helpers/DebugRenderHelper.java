@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.joml.*;
 import org.vivecraft.client.VRPlayersClient;
 import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
@@ -21,6 +21,7 @@ import org.vivecraft.client_vr.VRData;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
+import org.vivecraft.client_vr.provider.DeviceSource;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.common.network.FBTMode;
@@ -190,17 +191,20 @@ public class DebugRenderHelper {
         };
 
         // show all trackers
-        for (Pair<Integer, Matrix4fc> tracker : MCVR.get().getTrackers()) {
+        for (Triple<DeviceSource, Integer, Matrix4fc> tracker : MCVR.get().getTrackers()) {
             Vector3f pos = tracker.getRight().getTranslation(new Vector3f());
             Vec3 trackerPos = VRPlayer.roomToWorldPos(pos, data).subtract(camPos);
             pos.set((float) trackerPos.x, (float) trackerPos.y, (float) trackerPos.z);
 
             if (showNames) {
-                if (tracker.getLeft() >= 0) {
-                    addNamedCube(poseStack, pos, orientation, labels[tracker.getLeft()], 0.05F, DARK_GRAY);
+                if (tracker.getMiddle() >= 0) {
+                    addNamedCube(poseStack, pos, orientation, Component.translatable("vivecraft.formatting.name_value",
+                            Component.literal(tracker.getLeft().source.toString()), labels[tracker.getMiddle()]), 0.05F,
+                        DARK_GRAY);
                 } else {
-                    addNamedCube(poseStack, pos, orientation,
-                        Component.translatable("vivecraft.messages.tracker.unknown"), 0.05F, DARK_GRAY);
+                    addNamedCube(poseStack, pos, orientation, Component.translatable("vivecraft.formatting.name_value",
+                        Component.literal(tracker.getLeft().source.toString() + tracker.getLeft().deviceIndex),
+                        Component.translatable("vivecraft.messages.tracker.unknown")), 0.05F, DARK_GRAY);
                 }
             } else {
                 addCube(poseStack, pos, 0.05F, DARK_GRAY);

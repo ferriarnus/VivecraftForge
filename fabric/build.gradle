@@ -68,6 +68,8 @@ dependencies {
     include(implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-macos"))
     include(implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-windows"))
 
+    include(implementation("com.illposed.osc:javaosc-core:0.9"))
+
 }
 
 processResources {
