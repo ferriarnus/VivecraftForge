@@ -570,10 +570,15 @@ public abstract class VRRenderer {
                 }
             }
 
-            RenderPassManager.INSTANCE.vanillaRenderTarget.resize(
-                ((WindowExtension) (Object) Minecraft.getInstance().getWindow()).vivecraft$getActualScreenWidth(),
-                ((WindowExtension) (Object) Minecraft.getInstance().getWindow()).vivecraft$getActualScreenHeight(),
-                Minecraft.ON_OSX);
+            if (((WindowExtension) (Object) Minecraft.getInstance().getWindow()).vivecraft$getActualScreenWidth() > 0 &&
+                ((WindowExtension) (Object) Minecraft.getInstance().getWindow()).vivecraft$getActualScreenHeight() > 0)
+            {
+                // we use the vanilla target to draw the mirror, so need to keep its size up to date
+                RenderPassManager.INSTANCE.vanillaRenderTarget.resize(
+                    ((WindowExtension) (Object) Minecraft.getInstance().getWindow()).vivecraft$getActualScreenWidth(),
+                    ((WindowExtension) (Object) Minecraft.getInstance().getWindow()).vivecraft$getActualScreenHeight(),
+                    Minecraft.ON_OSX);
+            }
         }
 
         if (this.reinitFrameBuffers) {
