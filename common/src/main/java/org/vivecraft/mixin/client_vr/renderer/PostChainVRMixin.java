@@ -44,7 +44,9 @@ public class PostChainVRMixin {
         ResourceLocation name, CallbackInfo ci) throws IOException
     {
         if (VRState.VR_INITIALIZED && this.screenTarget == RenderPassManager.INSTANCE.vanillaRenderTarget) {
-            for (RenderPass pass : ClientDataHolderVR.getInstance().vrRenderer.getRenderPasses()) {
+            for (RenderPass pass : RenderPass.values()) {
+                // create one post chain for each active render pass
+                if (pass == RenderPass.GUI || WorldRenderPass.getByRenderPass(pass) == null) continue;
                 this.vivecraft$VRPostChains.put(pass,
                     new PostChain(textureManager, resourceManager, WorldRenderPass.getByRenderPass(pass).target, name));
             }

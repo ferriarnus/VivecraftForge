@@ -36,7 +36,7 @@ public class WorldRenderPass implements AutoCloseable {
             case THIRD -> MIXED_REALITY;
             case SCOPEL -> LEFT_TELESCOPE;
             case SCOPER -> RIGHT_TELESCOPE;
-            case CAMERA -> CENTER;
+            case CAMERA -> CAMERA;
             default -> STEREO_XR;
         };
     }
