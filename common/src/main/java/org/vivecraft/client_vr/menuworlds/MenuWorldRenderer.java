@@ -192,12 +192,13 @@ public class MenuWorldRenderer {
         //rotate World
         poseStack.mulPose(Axis.YP.rotationDegrees(this.worldRotation));
 
-        // small offset to center on source block, and add the partial block offset, this shouldn't be too noticable on the fog
-        poseStack.translate(-0.5, -this.blockAccess.getGround() + (int) this.blockAccess.getGround(), -0.5);
+        // small offset to center on source block, and add the partial block offset, this shouldn't be too noticeable on the fog
+        poseStack.translate(-0.5, -Mth.frac(this.blockAccess.getGround()), -0.5);
 
         // not sure why this needs to be rotated twice, but it works
-        Vec3 offset = new Vec3(0.5, -this.blockAccess.getGround() + (int) this.blockAccess.getGround(), 0.5).yRot(this.worldRotation * 0.0174533f);
-        Vec3 eyePosition = getEyePos().add(offset).yRot(-this.worldRotation * 0.0174533f);
+        Vec3 offset = new Vec3(0.5, -Mth.frac(this.blockAccess.getGround()), 0.5)
+            .yRot(this.worldRotation * Mth.DEG_TO_RAD);
+        Vec3 eyePosition = getEyePos().add(offset).yRot(-this.worldRotation * Mth.DEG_TO_RAD);
 
         this.fogRenderer.levelFogColor();
 

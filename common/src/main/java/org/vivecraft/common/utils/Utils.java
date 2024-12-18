@@ -48,7 +48,7 @@ public class Utils {
         } else if (!(entity instanceof EnderDragon) && // no ender dragon, the code doesn't work for it
             entity instanceof LivingEntity livingEntity) {
 
-            float yRot = -(livingEntity.yBodyRot) * 0.017453292F;
+            float yRot = -livingEntity.yBodyRot * Mth.DEG_TO_RAD;
             // offset head in entity rotation
             Vec3 headPos = entity.getEyePosition()
                 .add(new Vec3(Mth.sin(yRot), 0, Mth.cos(yRot))

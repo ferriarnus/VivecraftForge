@@ -1254,22 +1254,22 @@ public class VREffectsHelper {
 
         bufferbuilder.vertex(poseStack.last().pose(), -1.0F, 1.0F, 0.0F)
             .color(brightness, brightness, brightness, 1.0F)
-            .uv(crosshairSprite.getU0(), crosshairSprite.getV1())
+            .uv(crosshairSprite.getU1(), crosshairSprite.getV0())
             .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
             .normal(0.0F, 0.0F, 1.0F).endVertex();
         bufferbuilder.vertex(poseStack.last().pose(), 1.0F, 1.0F, 0.0F)
             .color(brightness, brightness, brightness, 1.0F)
-            .uv(crosshairSprite.getU1(), crosshairSprite.getV1())
+            .uv(crosshairSprite.getU0(), crosshairSprite.getV0())
             .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
             .normal(0.0F, 0.0F, 1.0F).endVertex();
         bufferbuilder.vertex(poseStack.last().pose(), 1.0F, -1.0F, 0.0F)
             .color(brightness, brightness, brightness, 1.0F)
-            .uv(crosshairSprite.getU1(), crosshairSprite.getV0())
+            .uv(crosshairSprite.getU0(), crosshairSprite.getV1())
             .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
             .normal(0.0F, 0.0F, 1.0F).endVertex();
         bufferbuilder.vertex(poseStack.last().pose(), -1.0F, -1.0F, 0.0F)
             .color(brightness, brightness, brightness, 1.0F)
-            .uv(crosshairSprite.getU0(), crosshairSprite.getV0())
+            .uv(crosshairSprite.getU1(), crosshairSprite.getV1())
             .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
             .normal(0.0F, 0.0F, 1.0F).endVertex();
 

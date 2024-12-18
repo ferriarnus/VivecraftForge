@@ -4,6 +4,7 @@ import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.ptr.IntByReference;
+import net.minecraft.util.Mth;
 import org.vivecraft.client_vr.settings.VRSettings;
 
 public class jinfinadeck implements Library {
@@ -55,7 +56,7 @@ public class jinfinadeck implements Library {
             POWER = GetFloorSpeedMagnitude();
             DIRECTION = 1;
             IS_MOVING = GetTreadmillRunState();
-            YAW *= 57.296F;
+            YAW *= Mth.RAD_TO_DEG;
         } catch (Exception exception) {
             VRSettings.LOGGER.error("Vivecraft: Infinadeck Error:", exception);
         }
