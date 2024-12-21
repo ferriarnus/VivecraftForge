@@ -46,6 +46,7 @@ public class ServerConfig {
     public static ConfigBuilder.StringValue MESSAGES_KICK_VIVE_ONLY;
     public static ConfigBuilder.StringValue MESSAGES_KICK_VR_ONLY;
 
+    public static ConfigBuilder.BooleanValue DUAL_WIELDING;
     public static ConfigBuilder.DoubleValue CREEPER_SWELL_DISTANCE;
     public static ConfigBuilder.DoubleValue BOW_STANDING_MULTIPLIER;
     public static ConfigBuilder.DoubleValue BOW_SEATED_MULTIPLIER;
@@ -234,6 +235,10 @@ public class ServerConfig {
             .push("creeperSwellDistance")
             .comment("Distance at which creepers swell and explode for VR players. Vanilla: 3")
             .defineInRange(1.75, 0.1, 10.0);
+        DUAL_WIELDING = BUILDER
+            .push("dualWielding")
+            .comment("Allows vr players to hit with their offhand items")
+            .define(true);
 
         BUILDER
             .push("bow")

@@ -24,11 +24,11 @@ public class ServerVRPlayers {
         if (player == null) {
             return false;
         }
-        ServerVivePlayer serverviveplayer = getVivePlayer(player);
-        if (serverviveplayer == null) {
+        ServerVivePlayer serverVivePlayer = getVivePlayer(player);
+        if (serverVivePlayer == null) {
             return false;
         }
-        return serverviveplayer.isVR();
+        return serverVivePlayer.isVR();
     }
 
     /**
@@ -36,9 +36,9 @@ public class ServerVRPlayers {
      * @param player player to set the pose fore
      */
     public static void overridePose(ServerPlayer player) {
-        ServerVivePlayer serverviveplayer = getVivePlayer(player);
+        ServerVivePlayer serverVivePlayer = getVivePlayer(player);
 
-        if (serverviveplayer != null && serverviveplayer.isVR() && serverviveplayer.crawling) {
+        if (serverVivePlayer != null && serverVivePlayer.isVR() && serverVivePlayer.crawling) {
             player.setPose(Pose.SWIMMING);
         }
     }

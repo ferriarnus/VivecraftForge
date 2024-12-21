@@ -12,9 +12,13 @@ public class CommonNetworkHelper {
     public static final ResourceLocation CHANNEL = new ResourceLocation("vivecraft:data");
 
     // maximum supported network version
-    public static final int MAX_SUPPORTED_NETWORK_VERSION = 1;
+    public static final int MAX_SUPPORTED_NETWORK_VERSION = 2;
     // minimum supported network version
     public static final int MIN_SUPPORTED_NETWORK_VERSION = 0;
+
+    public static final int NETWORK_VERSION_LEGACY = -1;
+    public static final int NETWORK_VERSION_FBT = 1;
+    public static final int NETWORK_VERSION_DUAL_WIELDING = 2;
 
     public static void serializeF(FriendlyByteBuf buffer, Vector3fc vec3) {
         buffer.writeFloat(vec3.x());

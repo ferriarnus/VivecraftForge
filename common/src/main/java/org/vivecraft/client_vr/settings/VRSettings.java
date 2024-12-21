@@ -204,7 +204,7 @@ public class VRSettings {
     //Control
     @SettingField(VrOptions.REVERSE_HANDS)
     public boolean reverseHands = false;
-    //@SettingField(VrOptions.REVERSE_BOW)
+    @SettingField(VrOptions.REVERSE_BOW)
     public boolean reverseShootingEye = false;
     @SettingField(value = VrOptions.WORLD_SCALE)
     public float worldScale = 1.0f;

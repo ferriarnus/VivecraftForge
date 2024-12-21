@@ -17,12 +17,8 @@ public class ProjectileUtilMixin {
     private static Vec3 vivecraft$roomscaleBowVector(Entity instance, float partialTick, Operation<Vec3> original) {
         if (instance instanceof ServerPlayer serverPlayer) {
             ServerVivePlayer serverVivePlayer = ServerVRPlayers.getVivePlayer(serverPlayer);
-            if (serverVivePlayer != null && serverVivePlayer.isVR() && !serverVivePlayer.isSeated() &&
-                serverVivePlayer.draw > 0.0)
-            {
-                return serverVivePlayer.getControllerPos(1)
-                    .subtract(serverVivePlayer.getControllerPos(0))
-                    .normalize();
+            if (serverVivePlayer != null && serverVivePlayer.isVR()) {
+                return serverVivePlayer.getAimDir();
             }
         }
         return original.call(instance, partialTick);

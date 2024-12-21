@@ -110,11 +110,11 @@ public class VRPlayersClient {
         }
 
         Vector3fc hmdDir = vrPlayerState.hmd().orientation().transform(MathUtils.BACK, new Vector3f());
-        Vector3fc controller0Dir = vrPlayerState.controller0().orientation().transform(MathUtils.BACK, new Vector3f());
-        Vector3fc controller1Dir = vrPlayerState.controller1().orientation().transform(MathUtils.BACK, new Vector3f());
+        Vector3fc controller0Dir = vrPlayerState.mainHand().orientation().transform(MathUtils.BACK, new Vector3f());
+        Vector3fc controller1Dir = vrPlayerState.offHand().orientation().transform(MathUtils.BACK, new Vector3f());
 
         RotInfo rotInfo = new RotInfo();
-        rotInfo.leftHanded = vrPlayerState.reverseHands();
+        rotInfo.leftHanded = vrPlayerState.leftHanded();
         rotInfo.seated = vrPlayerState.seated();
 
         rotInfo.hmd = this.donors.getOrDefault(uuid, 0);
@@ -123,12 +123,12 @@ public class VRPlayersClient {
         rotInfo.mainHandRot = controller0Dir;
         rotInfo.headRot = hmdDir;
 
-        rotInfo.offHandPos = vrPlayerState.controller1().position();
-        rotInfo.mainHandPos = vrPlayerState.controller0().position();
+        rotInfo.offHandPos = vrPlayerState.offHand().position();
+        rotInfo.mainHandPos = vrPlayerState.mainHand().position();
         rotInfo.headPos = vrPlayerState.hmd().position();
 
-        rotInfo.offHandQuat = vrPlayerState.controller1().orientation();
-        rotInfo.mainHandQuat = vrPlayerState.controller0().orientation();
+        rotInfo.offHandQuat = vrPlayerState.offHand().orientation();
+        rotInfo.mainHandQuat = vrPlayerState.mainHand().orientation();
         rotInfo.headQuat = vrPlayerState.hmd().orientation();
 
         rotInfo.worldScale = worldScale;

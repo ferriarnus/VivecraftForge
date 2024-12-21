@@ -3,6 +3,7 @@ package org.vivecraft.common.network.packet.c2s;
 import net.minecraft.network.FriendlyByteBuf;
 import org.vivecraft.common.network.packet.PayloadIdentifier;
 import org.vivecraft.common.network.packet.VivecraftPayload;
+import org.vivecraft.server.ServerNetworking;
 
 /**
  * Vivecraft packet sent from Clients to the Server
@@ -26,11 +27,14 @@ public interface VivecraftPayloadC2S extends VivecraftPayload {
             case TELEPORT -> TeleportPayloadC2S.read(buffer);
             case CLIMBING -> new ClimbingPayloadC2S();
             case HEIGHT -> HeightPayloadC2S.read(buffer);
-            case ACTIVEHAND -> ActiveHandPayloadC2S.read(buffer);
+            case ACTIVEHAND -> ActiveLimbPayloadC2S.read(buffer);
             case CRAWL -> CrawlPayloadC2S.read(buffer);
             case IS_VR_ACTIVE -> VRActivePayloadC2S.read(buffer);
             case VR_PLAYER_STATE -> VRPlayerStatePayloadC2S.read(buffer);
-            default -> throw new IllegalStateException("Vivecraft: Got unexpected packet on the server: " + id);
+            default -> {
+                ServerNetworking.LOGGER.error("Vivecraft: Got unknown payload identifier on server: {}", id);
+                yield null;
+            }
         };
     }
 }

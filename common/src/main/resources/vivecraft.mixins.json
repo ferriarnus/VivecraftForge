@@ -96,6 +96,7 @@
     "server.ServerPlayerMixin",
     "server.TrackedEntityAccessor",
     "server.players.PlayerListMixin",
+    "world.entity.InventoryMixin",
     "world.entity.LivingEntityMixin",
     "world.entity.PlayerMixin",
     "world.entity.ai.goal.SwellGoalMixin",

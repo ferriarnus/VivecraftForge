@@ -22,6 +22,7 @@ import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.Xplat;
+import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client_vr.MethodHolder;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -154,7 +155,7 @@ public class InteractTracker extends Tracker {
 
             // roomscale Bow shooting, only activate for the hand with the arrow
             if (!this.active[c] && this.dh.bowTracker.isNotched() &&
-                c == (this.dh.vrSettings.reverseShootingEye ? 1 : 0))
+                c == ((this.dh.vrSettings.reverseShootingEye && ClientNetworking.supportsReversedBow()) ? 1 : 0))
             {
                 this.inBow[c] = true;
                 this.active[c] = true;

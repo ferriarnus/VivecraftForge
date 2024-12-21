@@ -17,10 +17,10 @@ import javax.annotation.Nullable;
  * holds all data from a player
  * @param seated if the player is in seated mode
  * @param hmd device Pose of the headset
- * @param reverseHands if true, {@code controller0} is the left hand, else {@code controller1} is
- * @param controller0 device Pose of the main interaction hand
- * @param reverseHands1legacy same as {@code reverseHands}, just here for legacy compatibility
- * @param controller1 device Pose of the offhand
+ * @param leftHanded if true, {@code mainHand} is the left hand, else {@code offHand} is
+ * @param mainHand device Pose of the main hand
+ * @param reverseHands1legacy same as {@code leftHanded}, just here for legacy compatibility
+ * @param offHand device Pose of the offhand
  * @param fbtMode determines what additional trackers are in the player state
  * @param waist waist tracker pos, can be {@code null}
  * @param rightFoot right foot tracker pos, can be {@code null}
@@ -30,8 +30,8 @@ import javax.annotation.Nullable;
  * @param rightElbow right elbow tracker pos, can be {@code null}
  * @param leftElbow left elbow tracker pos, can be {@code null}
  */
-public record VrPlayerState(boolean seated, Pose hmd, boolean reverseHands, Pose controller0,
-                            boolean reverseHands1legacy, Pose controller1,
+public record VrPlayerState(boolean seated, Pose hmd, boolean leftHanded, Pose mainHand,
+                            boolean reverseHands1legacy, Pose offHand,
                             FBTMode fbtMode, @Nullable Pose waist,
                             @Nullable Pose rightFoot, @Nullable Pose leftFoot,
                             @Nullable Pose rightKnee, @Nullable Pose leftKnee,
@@ -47,24 +47,24 @@ public record VrPlayerState(boolean seated, Pose hmd, boolean reverseHands, Pose
         this(
             other.seated,
             other.hmd,
-            other.reverseHands,
-            other.controller0,
+            other.leftHanded,
+            other.mainHand,
             other.reverseHands1legacy,
-            other.controller1,
-            version < 1 ? FBTMode.ARMS_ONLY : other.fbtMode,
-            version < 1 ? null : other.waist,
-            version < 1 ? null : other.rightFoot,
-            version < 1 ? null : other.leftFoot,
-            version < 1 ? null : other.rightKnee,
-            version < 1 ? null : other.leftKnee,
-            version < 1 ? null : other.rightElbow,
-            version < 1 ? null : other.leftElbow
+            other.offHand,
+            version < CommonNetworkHelper.NETWORK_VERSION_FBT ? FBTMode.ARMS_ONLY : other.fbtMode,
+            version < CommonNetworkHelper.NETWORK_VERSION_FBT ? null : other.waist,
+            version < CommonNetworkHelper.NETWORK_VERSION_FBT ? null : other.rightFoot,
+            version < CommonNetworkHelper.NETWORK_VERSION_FBT ? null : other.leftFoot,
+            version < CommonNetworkHelper.NETWORK_VERSION_FBT ? null : other.rightKnee,
+            version < CommonNetworkHelper.NETWORK_VERSION_FBT ? null : other.leftKnee,
+            version < CommonNetworkHelper.NETWORK_VERSION_FBT ? null : other.rightElbow,
+            version < CommonNetworkHelper.NETWORK_VERSION_FBT ? null : other.leftElbow
         );
     }
 
     public static VrPlayerState create(VRPlayer vrPlayer) {
         FBTMode fbtMode = vrPlayer.vrdata_world_post.fbtMode;
-        if (ClientNetworking.USED_NETWORK_VERSION < 1) {
+        if (ClientNetworking.USED_NETWORK_VERSION < CommonNetworkHelper.NETWORK_VERSION_FBT) {
             // don't send fbt data to legacy servers
             fbtMode = FBTMode.ARMS_ONLY;
         }
@@ -188,10 +188,10 @@ public record VrPlayerState(boolean seated, Pose hmd, boolean reverseHands, Pose
     public void serialize(FriendlyByteBuf buffer) {
         buffer.writeBoolean(this.seated);
         this.hmd.serialize(buffer);
-        buffer.writeBoolean(this.reverseHands);
-        this.controller0.serialize(buffer);
-        buffer.writeBoolean(this.reverseHands);
-        this.controller1.serialize(buffer);
+        buffer.writeBoolean(this.leftHanded);
+        this.mainHand.serialize(buffer);
+        buffer.writeBoolean(this.leftHanded);
+        this.offHand.serialize(buffer);
         // only send those, if it is there and the server supports it
         if (this.fbtMode != FBTMode.ARMS_ONLY) {
             buffer.writeByte(this.fbtMode.ordinal());

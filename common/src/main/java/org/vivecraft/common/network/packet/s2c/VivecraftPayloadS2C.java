@@ -1,6 +1,7 @@
 package org.vivecraft.common.network.packet.s2c;
 
 import net.minecraft.network.FriendlyByteBuf;
+import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.network.packet.PayloadIdentifier;
 import org.vivecraft.common.network.packet.VivecraftPayload;
 
@@ -28,7 +29,11 @@ public interface VivecraftPayloadS2C extends VivecraftPayload {
             case NETWORK_VERSION -> NetworkVersionPayloadS2C.read(buffer);
             case VR_SWITCHING -> VRSwitchingPayloadS2C.read(buffer);
             case IS_VR_ACTIVE -> VRActivePayloadS2C.read(buffer);
-            default -> throw new IllegalStateException("Vivecraft: Got unexpected packet on the client: " + id);
+            case DUAL_WIELDING -> DualWieldingPayloadS2C.read(buffer);
+            default -> {
+                VRSettings.LOGGER.error("Vivecraft: Got unknown payload identifier on client: {}", id);
+                yield null;
+            }
         };
     }
 }

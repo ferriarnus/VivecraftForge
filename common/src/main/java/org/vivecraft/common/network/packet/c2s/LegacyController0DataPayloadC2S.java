@@ -6,10 +6,10 @@ import org.vivecraft.common.network.packet.PayloadIdentifier;
 
 /**
  * legacy packet, holds the reversed hand flag and the main hand controller pose
- * @param reverseHands if the player has reversed hands set
- * @param controller1Pose pose of the players offhand controller
+ * @param leftHanded if the player has reversed hands set
+ * @param mainHand pose of the players offhand controller
  */
-public record LegacyController0DataPayloadC2S(boolean reverseHands, Pose controller1Pose) implements VivecraftPayloadC2S {
+public record LegacyController0DataPayloadC2S(boolean leftHanded, Pose mainHand) implements VivecraftPayloadC2S {
     @Override
     public PayloadIdentifier payloadId() {
         return PayloadIdentifier.CONTROLLER0DATA;
@@ -18,8 +18,8 @@ public record LegacyController0DataPayloadC2S(boolean reverseHands, Pose control
     @Override
     public void write(FriendlyByteBuf buffer) {
         buffer.writeByte(payloadId().ordinal());
-        buffer.writeBoolean(this.reverseHands);
-        this.controller1Pose.serialize(buffer);
+        buffer.writeBoolean(this.leftHanded);
+        this.mainHand.serialize(buffer);
     }
 
     public static LegacyController0DataPayloadC2S read(FriendlyByteBuf buffer) {

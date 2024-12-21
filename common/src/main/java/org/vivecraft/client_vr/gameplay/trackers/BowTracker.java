@@ -127,7 +127,7 @@ public class BowTracker extends Tracker {
             int arrowHand = 0;
 
             // reverse bow hands
-            if (this.dh.vrSettings.reverseShootingEye) {
+            if (this.dh.vrSettings.reverseShootingEye && ClientNetworking.supportsReversedBow()) {
                 bowHand = 0;
                 arrowHand = 1;
             }
@@ -211,14 +211,13 @@ public class BowTracker extends Tracker {
                 this.dh.vr.triggerHapticPulse(arrowHand, 500);
                 this.dh.vr.triggerHapticPulse(bowHand, 3000);
                 ClientNetworking.sendServerPacket(new DrawPayloadC2S(this.getDrawPercent()));
-
-                // TODO: for REVERSE_BOW
-                // ClientNetworking.sendActiveHand((byte) arrowHand);
+                ClientNetworking.sendActiveHand(InteractionHand.values()[arrowHand]);
 
                 this.mc.gameMode.releaseUsingItem(player);
 
                 // reset to 0, in case user switches modes.
                 ClientNetworking.sendServerPacket(new DrawPayloadC2S(0.0F));
+                ClientNetworking.sendActiveHand(InteractionHand.MAIN_HAND);
                 this.isDrawing = false;
             }
 

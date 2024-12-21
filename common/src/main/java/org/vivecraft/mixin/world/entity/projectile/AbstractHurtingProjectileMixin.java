@@ -17,9 +17,9 @@ public class AbstractHurtingProjectileMixin {
     @WrapOperation(method = "hurt", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getLookAngle()Lnet/minecraft/world/phys/Vec3;"))
     private Vec3 vivecraft$deflect(Entity instance, Operation<Vec3> original) {
         if (instance instanceof ServerPlayer player) {
-            ServerVivePlayer serverviveplayer = ServerVRPlayers.getVivePlayer(player);
-            if (serverviveplayer != null && serverviveplayer.isVR()) {
-                return serverviveplayer.getHMDDir();
+            ServerVivePlayer serverVivePlayer = ServerVRPlayers.getVivePlayer(player);
+            if (serverVivePlayer != null && serverVivePlayer.isVR()) {
+                return serverVivePlayer.getHMDDir();
             }
         }
         return original.call(instance);

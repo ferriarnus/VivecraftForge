@@ -5,10 +5,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+import org.vivecraft.common.network.*;
 import org.vivecraft.common.utils.MathUtils;
-import org.vivecraft.common.network.CommonNetworkHelper;
-import org.vivecraft.common.network.Pose;
-import org.vivecraft.common.network.VrPlayerState;
 
 import javax.annotation.Nullable;
 
@@ -20,7 +18,7 @@ public class ServerVivePlayer {
     public float draw;
     public float worldScale = 1.0F;
     public float heightScale = 1.0F;
-    public byte activeHand = 0;
+    public Limb activeLimb = Limb.MAIN_HAND;
     public boolean crawling;
     // if the player has VR active
     private boolean isVR = false;
@@ -36,30 +34,48 @@ public class ServerVivePlayer {
     }
 
     /**
-     * transforms the local {@code direction} vector on controller {@code controller} into world space
-     * @param controller controller to get the direction on
+     * transforms the local {@code direction} vector on limb {@code limb} into world space
+     * @param limb limb to get the direction on, if not available, will use the MAIN_HAND
      * @param direction local direction to transform
      * @return direction in world space
      */
-    public Vec3 getControllerVectorCustom(int controller, Vector3fc direction) {
-        if (this.isSeated()) {
-            controller = 0;
-        }
-
+    public Vec3 getLimbVectorCustom(Limb limb, Vector3fc direction) {
         if (this.vrPlayerState != null) {
-            Pose controllerPose = controller == 0 ? this.vrPlayerState.controller0() : this.vrPlayerState.controller1();
-            return new Vec3(controllerPose.orientation().transform(direction, new Vector3f()));
+            if (this.isSeated() || (this.vrPlayerState.fbtMode() == FBTMode.ARMS_ONLY && limb.ordinal() > 1)) {
+                limb = Limb.MAIN_HAND;
+            }
+
+            Pose limbPose = switch (limb) {
+                case OFF_HAND -> this.vrPlayerState.offHand();
+                case LEFT_FOOT -> this.vrPlayerState.leftFoot();
+                case RIGHT_FOOT -> this.vrPlayerState.rightFoot();
+                default -> this.vrPlayerState.mainHand();
+            };
+
+            return new Vec3(limbPose.orientation().transform(direction, new Vector3f()));
         } else {
             return this.player.getLookAngle();
         }
     }
 
     /**
-     * @param controller controller to get the direction from
+     * @param limb limb to get the direction from, if not available, will use the MAIN_HAND
      * @return forward direction of the given controller
      */
-    public Vec3 getControllerDir(int controller) {
-        return this.getControllerVectorCustom(controller, MathUtils.BACK);
+    public Vec3 getLimbDir(Limb limb) {
+        return this.getLimbVectorCustom(limb, MathUtils.BACK);
+    }
+
+    /**
+     * @return the direction the player is aiming, accounts for the roomscale bow
+     */
+    public Vec3 getAimDir() {
+        if (!this.isSeated() && this.draw > 0.0F) {
+            return this.getLimbPos(this.activeLimb.opposite())
+                .subtract(this.getLimbPos(this.activeLimb)).normalize();
+        } else {
+            return this.getLimbDir(this.activeLimb);
+        }
     }
 
     /**
@@ -89,18 +105,21 @@ public class ServerVivePlayer {
     }
 
     /**
-     * @param c controller to get the position for
+     * @param limb limb to get the position for, if not available, will use the MAIN_HAND
      * @param realPosition if true disables the seated override
      * @return controller position in world space
      */
-    public Vec3 getControllerPos(int c, boolean realPosition) {
+    public Vec3 getLimbPos(Limb limb, boolean realPosition) {
         if (this.vrPlayerState != null) {
+            if (this.vrPlayerState.fbtMode() == FBTMode.ARMS_ONLY && limb.ordinal() > 1) {
+                limb = Limb.MAIN_HAND;
+            }
 
             // in seated the realPosition is at the head,
             // so reconstruct the seated position when wanting the visual position
             if (this.isSeated() && !realPosition) {
                 Vec3 dir = this.getHMDDir();
-                dir = dir.yRot(Mth.DEG_TO_RAD * (c == 0 ? -35.0F : 35.0F));
+                dir = dir.yRot(Mth.DEG_TO_RAD * (limb == Limb.MAIN_HAND ? -35.0F : 35.0F));
                 dir = new Vec3(dir.x, 0.0D, dir.z);
                 dir = dir.normalize();
                 return this.getHMDPos().add(
@@ -109,9 +128,12 @@ public class ServerVivePlayer {
                     dir.z * 0.3F * this.worldScale);
             }
 
-            Vector3fc conPos = c == 0 ?
-                this.vrPlayerState.controller0().position() :
-                this.vrPlayerState.controller1().position();
+            Vector3fc conPos = switch(limb) {
+                case OFF_HAND -> this.vrPlayerState.offHand().position();
+                case LEFT_FOOT -> this.vrPlayerState.leftFoot().position();
+                case RIGHT_FOOT -> this.vrPlayerState.rightFoot().position();
+                default -> this.vrPlayerState.mainHand().position();
+            };
 
             return this.player.position().add(
                 this.offset.x + conPos.x(),
@@ -123,11 +145,11 @@ public class ServerVivePlayer {
     }
 
     /**
-     * @param c controller to get the position for
+     * @param limb to get the position for, if not available, will use the MAIN_HAND
      * @return controller position in world space
      */
-    public Vec3 getControllerPos(int c) {
-        return getControllerPos(c, false);
+    public Vec3 getLimbPos(Limb limb) {
+        return getLimbPos(limb, false);
     }
 
     /**

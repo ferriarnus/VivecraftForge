@@ -8,7 +8,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerPlayerConnection;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import org.slf4j.Logger;
@@ -17,6 +19,7 @@ import org.vivecraft.client.Xplat;
 import org.vivecraft.common.CommonDataHolder;
 import org.vivecraft.common.network.CommonNetworkHelper;
 import org.vivecraft.common.network.FBTMode;
+import org.vivecraft.common.network.Limb;
 import org.vivecraft.common.network.VrPlayerState;
 import org.vivecraft.common.network.packet.PayloadIdentifier;
 import org.vivecraft.common.network.packet.c2s.*;
@@ -49,6 +52,7 @@ public class ServerNetworking {
     public static void handlePacket(
         VivecraftPayloadC2S c2sPayload, ServerPlayer player, Consumer<VivecraftPayloadS2C> packetConsumer)
     {
+        if (c2sPayload == null) return;
         ServerVivePlayer vivePlayer = ServerVRPlayers.getVivePlayer(player);
 
         // clients are expected to send a VERSION packet first
@@ -101,7 +105,7 @@ public class ServerNetworking {
                     }
                 } else {
                     // client didn't send a version, so it's a legacy client
-                    vivePlayer.networkVersion = -1;
+                    vivePlayer.networkVersion = CommonNetworkHelper.NETWORK_VERSION_LEGACY;
                     if (ServerConfig.DEBUG.get()) {
                         LOGGER.info("Vivecraft: {} using legacy networking", player.getScoreboardName());
                     }
@@ -158,6 +162,10 @@ public class ServerNetworking {
                 packetConsumer.accept(
                     new VRSwitchingPayloadS2C(ServerConfig.VR_SWITCHING_ENABLED.get() && !ServerConfig.VR_ONLY.get()));
 
+                if (vivePlayer.networkVersion >= CommonNetworkHelper.NETWORK_VERSION_DUAL_WIELDING) {
+                    packetConsumer.accept(new DualWieldingPayloadS2C(ServerConfig.DUAL_WIELDING.get()));
+                }
+
                 packetConsumer.accept(new NetworkVersionPayloadS2C(vivePlayer.networkVersion));
             }
             case IS_VR_ACTIVE -> {
@@ -184,8 +192,27 @@ public class ServerNetworking {
                 player.fallDistance = 0.0F;
                 player.connection.aboveGroundTickCount = 0;
             }
-            case ACTIVEHAND ->
-                vivePlayer.activeHand = vivePlayer.isSeated() ? 0 : ((ActiveHandPayloadC2S) c2sPayload).hand();
+            case ACTIVEHAND -> {
+                Limb newLimb = vivePlayer.isSeated() ? Limb.MAIN_HAND : ((ActiveLimbPayloadC2S) c2sPayload).limb();
+                if (vivePlayer.activeLimb != newLimb) {
+                    // handle equipment changes
+                    ItemStack oldItem = player.getItemBySlot(EquipmentSlot.MAINHAND);
+                    vivePlayer.activeLimb = newLimb;
+                    ItemStack newItem = player.getItemBySlot(EquipmentSlot.MAINHAND);
+
+                    // attribute modification, based on vanilla code: LivingEntity#collectEquipmentChanges
+                    if (player.equipmentHasChanged(oldItem, newItem)) {
+                        if (!oldItem.isEmpty()) {
+                            player.getAttributes()
+                                .removeAttributeModifiers(oldItem.getAttributeModifiers(EquipmentSlot.MAINHAND));
+                        }
+                        if (!newItem.isEmpty()) {
+                            player.getAttributes()
+                                .addTransientAttributeModifiers(newItem.getAttributeModifiers(EquipmentSlot.MAINHAND));
+                        }
+                    }
+                }
+            }
             case CRAWL -> {
                 vivePlayer.crawling = ((CrawlPayloadC2S) c2sPayload).crawling();
                 if (vivePlayer.crawling) {
@@ -214,14 +241,14 @@ public class ServerNetworking {
                     vivePlayer.vrPlayerState = new VrPlayerState(
                         headData.seated(), // isSeated
                         headData.hmdPose(), // head pose
-                        controller0Data.reverseHands(), // reverseHands 0
-                        controller0Data.controller1Pose(), // controller0 pose
-                        controller1Data.reverseHands(), // reverseHands 1
-                        controller1Data.controller0Pose(),
+                        controller0Data.leftHanded(), // leftHanded 0
+                        controller0Data.mainHand(), // mainHand pose
+                        controller1Data.leftHanded(), // leftHanded 1
+                        controller1Data.offHand(), // offHand pose
                         FBTMode.ARMS_ONLY, null,
                         null, null,
                         null, null,
-                        null, null); // controller1 pose
+                        null, null);
 
                     LEGACY_DATA_MAP.remove(player.getUUID());
                 }

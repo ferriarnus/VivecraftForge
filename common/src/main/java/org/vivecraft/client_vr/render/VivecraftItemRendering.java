@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.TorchBlock;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.ItemTags;
@@ -169,7 +170,7 @@ public class VivecraftItemRendering {
                 int bowHand = 1;
 
                 // bow in main hand
-                if (DH.vrSettings.reverseShootingEye) {
+                if (DH.vrSettings.reverseShootingEye && ClientNetworking.supportsReversedBow()) {
                     bowHand = 0;
                 }
 

@@ -334,29 +334,37 @@ public class DebugRenderHelper {
         addCube(poseStack, cubePos, size, color);
 
         if (label != null) {
-            poseStack.pushPose();
-            poseStack.translate(cubePos.x(), cubePos.y() + 0.05F, cubePos.z());
-            poseStack.mulPose(rot);
-            poseStack.scale(-0.005F, -0.005F, 0.005F);
-
-            MC.font.drawInBatch(label, MC.font.width(label) * -0.5F, -MC.font.lineHeight, -1, false,
-                poseStack.last().pose(), MC.renderBuffers().bufferSource(), Font.DisplayMode.NORMAL, 0,
-                LightTexture.FULL_BRIGHT);
-            poseStack.popPose();
+            renderTextAtRelativePosition(poseStack, cubePos.x(), cubePos.y(), cubePos.z(), rot, label);
         }
     }
 
     public static void renderTextAtDevice(PoseStack poseStack, int device, String text) {
+        renderTextAtPosition(poseStack, DATA_HOLDER.vrPlayer.getVRDataWorld().getDevice(device).getPosition(), text);
+    }
+
+    public static void renderTextAtPosition(PoseStack poseStack, Vec3 position, String text) {
         VRData data = DATA_HOLDER.vrPlayer.getVRDataWorld();
         Vec3 camPos = RenderHelper.getSmoothCameraPosition(DATA_HOLDER.currentPass, data);
-        Quaternionf orientation = data.getEye(DATA_HOLDER.currentPass).getMatrix()
+        Quaternionf rot = data.getEye(DATA_HOLDER.currentPass).getMatrix()
             .getNormalizedRotation(new Quaternionf())
             .rotateY(Mth.PI);
-        Vec3 pos = data.getDevice(device).getPosition().subtract(camPos);
+        Vec3 pos = position.subtract(camPos);
 
+        renderTextAtRelativePosition(poseStack, pos.x, pos.y, pos.z, rot, text);
+    }
+
+    public static void renderTextAtRelativePosition(
+        PoseStack poseStack, double x, double y, double z, Quaternionf rot, String text)
+    {
+        renderTextAtRelativePosition(poseStack, x, y, z, rot, Component.literal(text));
+    }
+
+    public static void renderTextAtRelativePosition(
+        PoseStack poseStack, double x, double y, double z, Quaternionf rot, Component text)
+    {
         poseStack.pushPose();
-        poseStack.translate(pos.x(), pos.y() + 0.05F, pos.z());
-        poseStack.mulPose(orientation);
+        poseStack.translate(x, y + 0.05F, z);
+        poseStack.mulPose(rot);
         poseStack.scale(-0.005F, -0.005F, 0.005F);
 
         MC.font.drawInBatch(text, MC.font.width(text) * -0.5F, -MC.font.lineHeight, -1, false,

@@ -346,7 +346,7 @@ public class VRArmHelper {
      * @return the overridden item, based on bow state
      */
     private static ItemStack getBowOverride(ItemStack itemStack, InteractionHand interactionHand) {
-        if (DATA_HOLDER.vrSettings.reverseShootingEye) {
+        if (DATA_HOLDER.vrSettings.reverseShootingEye && ClientNetworking.supportsReversedBow()) {
             // reverse bow hands
             interactionHand = interactionHand == InteractionHand.MAIN_HAND ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         }

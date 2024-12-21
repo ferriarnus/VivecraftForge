@@ -39,6 +39,7 @@ import net.minecraft.util.profiling.ProfileResults;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
@@ -469,10 +470,10 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
     }
 
     @WrapOperation(method = "startUseItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;hitResult:Lnet/minecraft/world/phys/HitResult;", ordinal = 1))
-    private HitResult vivecraft$activeHand(Minecraft instance, Operation<HitResult> original, @Local InteractionHand hand, @Local ItemStack itemstack) {
+    private HitResult vivecraft$sendActiveHandStart(Minecraft instance, Operation<HitResult> original, @Local InteractionHand hand, @Local ItemStack itemstack) {
         if (VRState.VR_RUNNING) {
             if (ClientDataHolderVR.getInstance().vrSettings.seated || !TelescopeTracker.isTelescope(itemstack)) {
-                ClientNetworking.sendActiveHand((byte) hand.ordinal());
+                ClientNetworking.sendActiveHand(hand);
             } else {
                 // no telescope use in standing vr
                 return null;
@@ -480,6 +481,13 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
         }
 
         return original.call(instance);
+    }
+
+    @Inject(method = "startUseItem", at = @At("RETURN"))
+    private void vivecraft$sendActiveHandStartReset(CallbackInfo ci) {
+        if (VRState.VR_RUNNING) {
+            ClientNetworking.sendActiveHand(InteractionHand.MAIN_HAND);
+        }
     }
 
     @WrapOperation(method = "startUseItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;)V"))
@@ -700,10 +708,14 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
         }
     }
 
-    @Inject(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;releaseUsingItem(Lnet/minecraft/world/entity/player/Player;)V"))
-    private void vivecraft$sendActiveHand(CallbackInfo ci) {
+    @WrapOperation(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;releaseUsingItem(Lnet/minecraft/world/entity/player/Player;)V"))
+    private void vivecraft$sendActiveHandRelease(MultiPlayerGameMode instance, Player player, Operation<Void> original) {
         if (VRState.VR_RUNNING) {
-            ClientNetworking.sendActiveHand((byte) this.player.getUsedItemHand().ordinal());
+            ClientNetworking.sendActiveHand(this.player.getUsedItemHand());
+        }
+        original.call(instance, player);
+        if (VRState.VR_RUNNING) {
+            ClientNetworking.sendActiveHand(InteractionHand.MAIN_HAND);
         }
     }
 

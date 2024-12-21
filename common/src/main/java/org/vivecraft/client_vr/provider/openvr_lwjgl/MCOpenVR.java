@@ -1603,7 +1603,7 @@ public class MCOpenVR extends MCVR {
     /**
      * reads digital (on/off) data for the given InputAction
      * @param action InputAction to check
-     * @param hand if specified checks the input oon that hand, else it's a global check
+     * @param hand if specified checks the input on that hand, else it's a global check
      * @throws RuntimeException if OpenVR gives an error
      */
     private void readDigitalData(VRInputAction action, ControllerType hand) {
@@ -1625,7 +1625,7 @@ public class MCOpenVR extends MCVR {
     /**
      * reads analog (x/y/z axis) data for the given InputAction
      * @param action InputAction to check
-     * @param hand if specified checks the input oon that hand, else it's a global check
+     * @param hand if specified checks the input on that hand, else it's a global check
      * @throws RuntimeException if OpenVR gives an error
      */
     private void readAnalogData(VRInputAction action, ControllerType hand) {

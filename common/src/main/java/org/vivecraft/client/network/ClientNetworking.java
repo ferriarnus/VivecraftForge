@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
@@ -22,6 +23,7 @@ import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.CommonDataHolder;
 import org.vivecraft.common.VRServerPerms;
 import org.vivecraft.common.network.CommonNetworkHelper;
+import org.vivecraft.common.network.Limb;
 import org.vivecraft.common.network.VrPlayerState;
 import org.vivecraft.common.network.packet.c2s.*;
 import org.vivecraft.common.network.packet.s2c.*;
@@ -40,14 +42,16 @@ public class ClientNetworking {
     public static boolean SERVER_ALLOWS_CLIMBEY = false;
     public static boolean SERVER_ALLOWS_CRAWLING = false;
     public static boolean SERVER_ALLOWS_VR_SWITCHING = false;
+    public static boolean SERVER_ALLOWS_DUAL_WIELDING = false;
+
     // assume a legacy server by default, to not send invalid packets
-    // -1 == legacy server
-    public static int USED_NETWORK_VERSION = -1;
+    public static int USED_NETWORK_VERSION = CommonNetworkHelper.NETWORK_VERSION_LEGACY;
     private static float WORLDSCALE_LAST = 0.0F;
     private static float HEIGHT_LAST = 0.0F;
     private static float CAPTURED_YAW;
     private static float CAPTURED_PITCH;
     private static boolean OVERRIDE_ACTIVE;
+    public static Limb LAST_SENT_LIMB = Limb.MAIN_HAND;
 
     public static boolean NEEDS_RESET = true;
 
@@ -60,7 +64,8 @@ public class ClientNetworking {
         SERVER_ALLOWS_CLIMBEY = false;
         SERVER_ALLOWS_CRAWLING = false;
         SERVER_ALLOWS_VR_SWITCHING = false;
-        USED_NETWORK_VERSION = -1;
+        SERVER_ALLOWS_DUAL_WIELDING = false;
+        USED_NETWORK_VERSION = CommonNetworkHelper.NETWORK_VERSION_LEGACY;
 
         // clear VR player data
         VRPlayersClient.clear();
@@ -106,7 +111,7 @@ public class ClientNetworking {
 
         var vrPlayerState = VrPlayerState.create(vrPlayer);
 
-        if (USED_NETWORK_VERSION >= 0) {
+        if (USED_NETWORK_VERSION != CommonNetworkHelper.NETWORK_VERSION_LEGACY) {
             sendServerPacket(new VRPlayerStatePayloadC2S(vrPlayerState));
         } else {
             sendLegacyPackets(vrPlayerState);
@@ -133,11 +138,11 @@ public class ClientNetworking {
     public static void sendLegacyPackets(VrPlayerState vrPlayerState) {
         // main controller packet
         sendServerPacket(new LegacyController0DataPayloadC2S(ClientDataHolderVR.getInstance().vrSettings.reverseHands,
-            vrPlayerState.controller0()));
+            vrPlayerState.mainHand()));
 
         // offhand controller packet
         sendServerPacket(new LegacyController1DataPayloadC2S(ClientDataHolderVR.getInstance().vrSettings.reverseHands,
-            vrPlayerState.controller1()));
+            vrPlayerState.offHand()));
 
         // hmd packet
         sendServerPacket(
@@ -158,6 +163,11 @@ public class ClientNetworking {
         return ClientDataHolderVR.getInstance().vrSettings.overrides.getSetting(VRSettings.VrOptions.LIMIT_TELEPORT).getBoolean();
     }
 
+    public static boolean supportsReversedBow() {
+        // old plugins hardcode the hand order
+        return USED_NETWORK_VERSION >= CommonNetworkHelper.NETWORK_VERSION_DUAL_WIELDING || !SERVER_HAS_VIVECRAFT;
+    }
+
     public static int getTeleportUpLimit() {
         return ClientDataHolderVR.getInstance().vrSettings.overrides.getSetting(VRSettings.VrOptions.TELEPORT_UP_LIMIT).getInt();
     }
@@ -170,9 +180,19 @@ public class ClientNetworking {
         return ClientDataHolderVR.getInstance().vrSettings.overrides.getSetting(VRSettings.VrOptions.TELEPORT_HORIZ_LIMIT).getInt();
     }
 
-    public static void sendActiveHand(byte c) {
+    public static void sendActiveHand(InteractionHand hand) {
         if (SERVER_WANTS_DATA) {
-            sendServerPacket(new ActiveHandPayloadC2S(c));
+            sendActiveLimb(hand == InteractionHand.MAIN_HAND ? Limb.MAIN_HAND : Limb.OFF_HAND);
+        }
+    }
+
+    public static void sendActiveLimb(Limb limb) {
+        if (SERVER_WANTS_DATA) {
+            // only send if the hand is different from last time, don't need to spam packets
+            if (limb != LAST_SENT_LIMB) {
+                sendServerPacket(new ActiveLimbPayloadC2S(limb));
+                LAST_SENT_LIMB = limb;
+            }
         }
     }
 
@@ -203,6 +223,7 @@ public class ClientNetworking {
     }
 
     public static void handlePacket(VivecraftPayloadS2C s2cPayload) {
+        if (s2cPayload == null) return;
         ClientDataHolderVR dataholder = ClientDataHolderVR.getInstance();
         Minecraft mc = Minecraft.getInstance();
         switch (s2cPayload.payloadId()) {
@@ -303,6 +324,8 @@ public class ClientNetworking {
                     dataholder.vrPlayer.vrSwitchWarning = false;
                 }
             }
+            case DUAL_WIELDING ->
+                ClientNetworking.SERVER_ALLOWS_DUAL_WIELDING = ((DualWieldingPayloadS2C) s2cPayload).allowed();
         }
     }
 }

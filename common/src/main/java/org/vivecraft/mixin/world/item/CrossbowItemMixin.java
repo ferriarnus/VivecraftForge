@@ -17,9 +17,9 @@ public class CrossbowItemMixin {
     @WrapOperation(method = "shootProjectile", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getViewVector(F)Lnet/minecraft/world/phys/Vec3;"))
     private static Vec3 vivecraft$vrAim(LivingEntity instance, float partialTick, Operation<Vec3> original) {
         if (instance instanceof ServerPlayer player) {
-            ServerVivePlayer serverviveplayer = ServerVRPlayers.getVivePlayer(player);
-            if (serverviveplayer != null && serverviveplayer.isVR()) {
-                return serverviveplayer.getControllerDir(serverviveplayer.activeHand);
+            ServerVivePlayer serverVivePlayer = ServerVRPlayers.getVivePlayer(player);
+            if (serverVivePlayer != null && serverVivePlayer.isVR()) {
+                return serverVivePlayer.getLimbDir(serverVivePlayer.activeLimb);
             }
         }
         return original.call(instance, partialTick);

@@ -33,8 +33,8 @@ public abstract class FishingHookMixin extends Entity {
         if (instance instanceof ServerPlayer serverPlayer) {
             ServerVivePlayer serverVivePlayer = ServerVRPlayers.getVivePlayer(serverPlayer);
             if (serverVivePlayer != null && serverVivePlayer.isVR()) {
-                controllerDir.set(serverVivePlayer.getControllerDir(serverVivePlayer.activeHand));
-                controllerPos.set(serverVivePlayer.getControllerPos(serverVivePlayer.activeHand));
+                controllerDir.set(serverVivePlayer.getLimbDir(serverVivePlayer.activeLimb));
+                controllerPos.set(serverVivePlayer.getLimbPos(serverVivePlayer.activeLimb));
 
                 return -(float) Math.toDegrees(Math.asin(controllerDir.get().y / controllerDir.get().length()));
             }

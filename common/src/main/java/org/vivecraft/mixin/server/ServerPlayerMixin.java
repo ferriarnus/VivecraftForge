@@ -86,16 +86,15 @@ public abstract class ServerPlayerMixin extends PlayerMixin {
         ServerLevel instance, ParticleOptions type, double posX, double posY, double posZ, int particleCount,
         double xOffset, double yOffset, double zOffset, double speed, Operation<Integer> original)
     {
-        ServerVivePlayer serverviveplayer = vivecraft$getVivePlayer();
-        if (serverviveplayer != null && serverviveplayer.isVR()) {
-            // spawn particles at controller, have to assume controller 0
-            Vec3 aim = serverviveplayer.getControllerDir(0);
+        ServerVivePlayer serverVivePlayer = vivecraft$getVivePlayer();
+        if (serverVivePlayer != null && serverVivePlayer.isVR()) {
+            Vec3 aim = serverVivePlayer.getLimbDir(serverVivePlayer.activeLimb);
             float yaw = (float) Math.atan2(-aim.x, aim.z);
 
             xOffset = -Mth.sin(yaw);
             zOffset = Mth.cos(yaw);
 
-            Vec3 pos = serverviveplayer.getControllerPos(0);
+            Vec3 pos = serverVivePlayer.getLimbPos(serverVivePlayer.activeLimb);
 
             return original.call(instance, type,
                 pos.x + xOffset, pos.y, pos.z + zOffset,
@@ -115,8 +114,8 @@ public abstract class ServerPlayerMixin extends PlayerMixin {
         ServerVivePlayer serverVivePlayer = vivecraft$getVivePlayer();
         if (!dropAround && serverVivePlayer != null && serverVivePlayer.isVR()) {
             // spawn item from players hand
-            Vec3 pos = serverVivePlayer.getControllerPos(0);
-            Vec3 aim = serverVivePlayer.getControllerDir(0);
+            Vec3 pos = serverVivePlayer.getLimbPos(serverVivePlayer.activeLimb);
+            Vec3 aim = serverVivePlayer.getLimbDir(serverVivePlayer.activeLimb);
 
             // item speed, taken from Player#drop
             final float speed = 0.3F;

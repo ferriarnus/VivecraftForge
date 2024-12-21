@@ -17,9 +17,9 @@ public class ThrownTridentMixin {
     @WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getEyePosition()Lnet/minecraft/world/phys/Vec3;"))
     private Vec3 vivecraft$tridentTargetPos(Entity instance, Operation<Vec3> original) {
         if (instance instanceof ServerPlayer player) {
-            ServerVivePlayer serverviveplayer = ServerVRPlayers.getVivePlayer(player);
-            if (serverviveplayer != null && serverviveplayer.isVR()) {
-                return serverviveplayer.getControllerPos(0);
+            ServerVivePlayer serverVivePlayer = ServerVRPlayers.getVivePlayer(player);
+            if (serverVivePlayer != null && serverVivePlayer.isVR()) {
+                return serverVivePlayer.getLimbPos(serverVivePlayer.activeLimb);
             }
         }
         return original.call(instance);

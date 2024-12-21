@@ -24,8 +24,10 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.Xplat;
+import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.common.network.FBTMode;
+import org.vivecraft.common.network.Limb;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client_vr.BlockTags;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -39,7 +41,7 @@ import org.vivecraft.mod_compat_vr.epicfight.EpicFightHelper;
 import java.util.List;
 
 public class SwingTracker extends Tracker {
-    private static final int[] CONTROLLER_AND_FEET = new int[]{MCVR.MAIN_CONTROLLER, MCVR.OFFHAND_CONTROLLER, MCVR.LEFT_FOOT_TRACKER, MCVR.RIGHT_FOOT_TRACKER};
+    private static final int[] CONTROLLER_AND_FEET = new int[]{MCVR.MAIN_CONTROLLER, MCVR.OFFHAND_CONTROLLER, MCVR.RIGHT_FOOT_TRACKER, MCVR.LEFT_FOOT_TRACKER};
     private static final float SPEED_THRESH = 3.0F;
 
     private final Vec3[] lastWeaponEndAir = new Vec3[]{Vec3.ZERO, Vec3.ZERO, Vec3.ZERO, Vec3.ZERO};
@@ -222,6 +224,7 @@ public class SwingTracker extends Tracker {
                             // Minecraft.getInstance().physicalGuiManager.preClickAction();
 
                             if (!EpicFightHelper.isLoaded() || !EpicFightHelper.attack()) {
+                                ClientNetworking.sendActiveLimb(Limb.values()[i]);
                                 // only attack if epic fight didn't trigger
                                 this.mc.gameMode.attack(player, entity);
                             } else {
@@ -312,6 +315,9 @@ public class SwingTracker extends Tracker {
                             totalHits = (int) (totalHits + Math.min(speed - speedTreshhold, 4.0F));
                             //this.mc.physicalGuiManager.preClickAction();
 
+                            // send hitting hand
+                            ClientNetworking.sendActiveLimb(Limb.values()[i]);
+
                             // this will either destroy the block if in creative or set it as the current block.
                             // does nothing in survival if you are already hitting this block.
                             this.mc.gameMode.startDestroyBlock(blockHit.getBlockPos(), blockHit.getDirection());
@@ -347,6 +353,9 @@ public class SwingTracker extends Tracker {
                 }
             }
         }
+
+        // reset hitting hand
+        ClientNetworking.sendActiveLimb(Limb.MAIN_HAND);
 
         this.mc.getProfiler().pop();
     }

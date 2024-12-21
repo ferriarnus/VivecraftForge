@@ -24,16 +24,15 @@ public class ProjectileMixin {
             ServerVivePlayer serverVivePlayer = ServerVRPlayers.getVivePlayer(player);
             if (serverVivePlayer != null && serverVivePlayer.isVR()) {
                 Projectile projectile = (Projectile) (Object) this;
+
+                // aim direction
+                direction.set(serverVivePlayer.getAimDir());
+
                 if (projectile instanceof AbstractArrow && !(projectile instanceof ThrownTrident) &&
                     !serverVivePlayer.isSeated() && serverVivePlayer.draw > 0.0F)
                 {
-                    // roomscale bow direction
-                    direction.set(serverVivePlayer.getControllerPos(1)
-                        .subtract(serverVivePlayer.getControllerPos(0)).normalize());
                     // modify velocity based on draw range
                     return velocity * serverVivePlayer.draw;
-                } else {
-                    direction.set(serverVivePlayer.getControllerDir(serverVivePlayer.activeHand));
                 }
             }
         }

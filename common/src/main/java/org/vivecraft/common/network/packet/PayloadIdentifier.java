@@ -19,5 +19,6 @@ public enum PayloadIdentifier {
     NETWORK_VERSION,
     VR_SWITCHING,
     IS_VR_ACTIVE,
-    VR_PLAYER_STATE
+    VR_PLAYER_STATE,
+    DUAL_WIELDING
 }

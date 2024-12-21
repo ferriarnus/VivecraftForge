@@ -242,7 +242,7 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
     @Override
     protected void vivecraft$beforeReleaseUsingItem(CallbackInfo ci) {
         if (VRState.VR_RUNNING && vivecraft$isLocalPlayer(this)) {
-            ClientNetworking.sendActiveHand((byte) this.getUsedItemHand().ordinal());
+            ClientNetworking.sendActiveHand(this.getUsedItemHand());
         }
     }
 
