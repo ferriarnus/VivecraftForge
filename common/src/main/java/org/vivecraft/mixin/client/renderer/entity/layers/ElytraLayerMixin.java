@@ -17,7 +17,7 @@ import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.common.utils.MathUtils;
 
@@ -39,7 +39,7 @@ public abstract class ElytraLayerMixin<T extends LivingEntity, M extends EntityM
         PoseStack instance, float x, float y, float z, Operation<Void> original,
         @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true, ordinal = 2) float partialTick)
     {
-        VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(entity.getUUID());
+        ClientVRPlayers.RotInfo rotInfo = ClientVRPlayers.getInstance().getRotationsForPlayer(entity.getUUID());
         // only do this if it's a player model and a vr player
         if (getParentModel() instanceof PlayerModel<?> model && rotInfo != null) {
             this.vivecraft$bodyRot.rotationZYX(model.body.zRot, -model.body.yRot, -model.body.xRot);

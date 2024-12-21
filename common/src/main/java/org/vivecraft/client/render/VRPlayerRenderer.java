@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.phys.Vec3;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.render.armor.VRArmorModel_WithArms;
 import org.vivecraft.client.render.armor.VRArmorLayer;
 import org.vivecraft.client.render.armor.VRArmorModel_WithArmsLegs;
@@ -121,7 +121,7 @@ public class VRPlayerRenderer extends PlayerRenderer {
 
         poseStack.pushPose();
 
-        VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
+        ClientVRPlayers.RotInfo rotInfo = ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID());
         if (rotInfo != null) {
             float scale = rotInfo.heightScale;
             if (VRState.VR_RUNNING && player == Minecraft.getInstance().player) {
@@ -191,7 +191,7 @@ public class VRPlayerRenderer extends PlayerRenderer {
                 hideHand(HumanoidArm.RIGHT, ClientDataHolderVR.getInstance().vrSettings.modelArmsMode ==
                     VRSettings.ModelArmsMode.OFF);
             } else {
-                boolean leftHanded = VRPlayersClient.getInstance().isVRAndLeftHanded(player.getUUID());
+                boolean leftHanded = ClientVRPlayers.getInstance().isVRAndLeftHanded(player.getUUID());
                 if (ClientDataHolderVR.getInstance().menuHandOff) {
                     hideHand(leftHanded ? HumanoidArm.RIGHT : HumanoidArm.LEFT, false);
                 }
@@ -224,12 +224,12 @@ public class VRPlayerRenderer extends PlayerRenderer {
     @Override
     protected void setupRotations(AbstractClientPlayer player, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTick) {
         if (ClientDataHolderVR.getInstance().currentPass != RenderPass.GUI &&
-            VRPlayersClient.getInstance().isVRPlayer(player))
+            ClientVRPlayers.getInstance().isVRPlayer(player))
         {
             if (player == Minecraft.getInstance().player) {
                 rotationYaw = ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().getBodyYaw();
             } else {
-                VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
+                ClientVRPlayers.RotInfo rotInfo = ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID());
                 rotationYaw = Mth.RAD_TO_DEG * rotInfo.getBodyYawRad();
             }
         }

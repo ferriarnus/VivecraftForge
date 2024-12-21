@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.render.VRPlayerModel;
 
 @Mixin(PlayerModel.class)
@@ -39,7 +39,7 @@ public class PlayerModelMixin<T extends LivingEntity> extends HumanoidModel<T> {
         LivingEntity player, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw,
         float headPitch, CallbackInfo ci)
     {
-        if (VRPlayersClient.getInstance().isVRPlayer(player)) {
+        if (ClientVRPlayers.getInstance().isVRPlayer(player)) {
             VRPlayerModel.animateVRModel((PlayerModel<LivingEntity>) (Object) this, player, limbSwing, limbSwingAmount,
                 this.vivecraft$tempV, this.vivecraft$tempV2, this.vivecraft$tempM);
 

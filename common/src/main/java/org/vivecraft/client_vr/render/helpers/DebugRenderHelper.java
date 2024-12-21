@@ -14,7 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.tuple.Triple;
 import org.joml.*;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRData;
@@ -75,8 +75,8 @@ public class DebugRenderHelper {
                 .getSmoothCameraPosition(DATA_HOLDER.currentPass, DATA_HOLDER.vrPlayer.getVRDataWorld());
 
             for(Player p : MC.player.level().players()) {
-                if (VRPlayersClient.getInstance().isVRPlayer(p)) {
-                    VRPlayersClient.RotInfo info = VRPlayersClient.getInstance().getRotationsForPlayer(p.getUUID());
+                if (ClientVRPlayers.getInstance().isVRPlayer(p)) {
+                    ClientVRPlayers.RotInfo info = ClientVRPlayers.getInstance().getRotationsForPlayer(p.getUUID());
 
                     if (bufferbuilder == null) {
                         RenderSystem.setShader(GameRenderer::getPositionColorShader);

@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.common.utils.MathUtils;
 
@@ -55,7 +55,7 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
         @Local(argsOnly = true) AbstractClientPlayer player, @Local(argsOnly = true, ordinal = 2) float partialTick,
         @Share("xRot") LocalFloatRef xRotation, @Share("yRot") LocalFloatRef yRotation)
     {
-        VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
+        ClientVRPlayers.RotInfo rotInfo = ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID());
         // only do this if it's a vr player
         if (rotInfo != null) {
             this.vivecraft$bodyRot.rotationZYX(getParentModel().body.zRot, -getParentModel().body.yRot,
@@ -96,7 +96,7 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
         float xRot, @Local(argsOnly = true) AbstractClientPlayer player,
         @Local(ordinal = 2, argsOnly = true) float partialTick, @Share("xRot") LocalFloatRef xRotation)
     {
-        if (VRPlayersClient.getInstance().isVRPlayer(player)) {
+        if (ClientVRPlayers.getInstance().isVRPlayer(player)) {
             // rotate the cape with the body
             // cancel out crouch
             if (player.isCrouching()) {
@@ -115,7 +115,7 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
         float speedRot, @Local(argsOnly = true) AbstractClientPlayer player,
         @Share("xRot") LocalFloatRef xRotation)
     {
-        if (VRPlayersClient.getInstance().isVRPlayer(player)) {
+        if (ClientVRPlayers.getInstance().isVRPlayer(player)) {
             // limit the up rotation when walking forward, depending on body rotation
             float rot = xRotation.get() / Mth.HALF_PI;
             if (rot >= 0) {
@@ -132,7 +132,7 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
         float yRot, @Local(argsOnly = true) AbstractClientPlayer player,
         @Share("yRot") LocalFloatRef yRotation)
     {
-        if (VRPlayersClient.getInstance().isVRPlayer(player)) {
+        if (ClientVRPlayers.getInstance().isVRPlayer(player)) {
             // rotate the cape with side body rotation
             yRot += Mth.RAD_TO_DEG * yRotation.get();
         }

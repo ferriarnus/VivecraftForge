@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 
 /**
  * MCA uses a fixed offset for the breasts, this changes it to be relative to the body rotation
@@ -43,7 +43,7 @@ public abstract class PlayerEntityExtendedModelMixin {
 
     @Inject(method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V", at = @At("TAIL"))
     private void vivecraft$moveBreasts(CallbackInfo ci, @Local(argsOnly = true) LivingEntity villager) {
-        if (VRPlayersClient.getInstance().isVRPlayer(villager)) {
+        if (ClientVRPlayers.getInstance().isVRPlayer(villager)) {
 
             ModelPart body = ((PlayerModel) (Object) this).body;
             this.vivecraft$rotMatrix.rotationZYX(body.zRot, body.yRot, body.xRot);

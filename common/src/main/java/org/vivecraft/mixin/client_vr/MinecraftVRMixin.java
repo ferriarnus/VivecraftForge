@@ -52,7 +52,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.gui.VivecraftClickEvent;
 import org.vivecraft.client.gui.screens.ErrorScreen;
@@ -590,7 +590,7 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
         }
 
         this.profiler.push("vrPlayers");
-        VRPlayersClient.getInstance().tick();
+        ClientVRPlayers.getInstance().tick();
 
         this.profiler.popPush("Vivecraft Keybindings");
         vivecraft$processAlwaysAvailableKeybindings();
@@ -818,7 +818,7 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
 
             if (this.player != null) {
                 // remove vr player instance
-                VRPlayersClient.getInstance().disableVR(this.player.getUUID());
+                ClientVRPlayers.getInstance().disableVR(this.player.getUUID());
             }
             if (this.gameRenderer != null) {
                 // update active effect, since VR does block t hem

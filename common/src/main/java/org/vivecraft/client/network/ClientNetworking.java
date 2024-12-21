@@ -13,7 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.Xplat;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
@@ -68,7 +68,7 @@ public class ClientNetworking {
         USED_NETWORK_VERSION = CommonNetworkHelper.NETWORK_VERSION_LEGACY;
 
         // clear VR player data
-        VRPlayersClient.clear();
+        ClientVRPlayers.clear();
         // clear teleport
         VRServerPerms.INSTANCE.setTeleportSupported(false);
         if (VRState.VR_INITIALIZED) {
@@ -116,7 +116,7 @@ public class ClientNetworking {
         } else {
             sendLegacyPackets(vrPlayerState);
         }
-        VRPlayersClient.getInstance()
+        ClientVRPlayers.getInstance()
             .update(Minecraft.getInstance().player.getGameProfile().getId(), vrPlayerState, worldScale,
                 userHeight / AutoCalibration.DEFAULT_HEIGHT, true);
     }
@@ -252,7 +252,7 @@ public class ClientNetworking {
             case IS_VR_ACTIVE -> {
                 VRActivePayloadS2C packet = (VRActivePayloadS2C) s2cPayload;
                 if (!packet.vr()) {
-                    VRPlayersClient.getInstance().disableVR(packet.playerID());
+                    ClientVRPlayers.getInstance().disableVR(packet.playerID());
                 }
             }
             case REQUESTDATA -> ClientNetworking.SERVER_WANTS_DATA = true;
@@ -276,7 +276,7 @@ public class ClientNetworking {
             case TELEPORT -> ClientNetworking.SERVER_SUPPORTS_DIRECT_TELEPORT = true;
             case UBERPACKET -> {
                 UberPacketPayloadS2C packet = (UberPacketPayloadS2C) s2cPayload;
-                VRPlayersClient.getInstance().update(packet.playerID(), packet.state(), packet.worldScale(), packet.heightScale());
+                ClientVRPlayers.getInstance().update(packet.playerID(), packet.state(), packet.worldScale(), packet.heightScale());
             }
             case SETTING_OVERRIDE -> {
                 for (Map.Entry<String, String> override : ((SettingOverridePayloadS2C) s2cPayload).overrides().entrySet()) {

@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
@@ -249,7 +249,7 @@ public class VRData {
     }
 
     /**
-     * IMPORTANT!!! when changing this, also change {@link VRPlayersClient.RotInfo#getBodyYawRad()}
+     * IMPORTANT!!! when changing this, also change {@link ClientVRPlayers.RotInfo#getBodyYawRad()}
      * @return the yaw direction the player body is facing, in radians
      */
     public float getBodyYawRad() {

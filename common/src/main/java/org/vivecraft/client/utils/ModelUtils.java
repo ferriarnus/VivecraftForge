@@ -5,7 +5,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import org.joml.*;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.render.VRFirstPersonArmSwing;
 import org.vivecraft.common.utils.MathUtils;
@@ -82,7 +82,7 @@ public class ModelUtils {
      * @param rotInfo RotInfo for the given player
      * @return 0-1 of how far the player is bending over
      */
-    public static float getBendProgress(LivingEntity entity, VRPlayersClient.RotInfo rotInfo, Vector3fc headPivot) {
+    public static float getBendProgress(LivingEntity entity, ClientVRPlayers.RotInfo rotInfo, Vector3fc headPivot) {
         // no bending when spinning
         if (entity.isAutoSpinAttack()) return 0.0F;
 
@@ -113,7 +113,7 @@ public class ModelUtils {
      * @param out Vector3f to store the result in
      */
     public static void worldToModel(
-        LivingEntity player, Vector3fc position, VRPlayersClient.RotInfo rotInfo, float bodyYaw,
+        LivingEntity player, Vector3fc position, ClientVRPlayers.RotInfo rotInfo, float bodyYaw,
         boolean useWorldScale, Vector3f out)
     {
         out.set(position);
@@ -173,7 +173,7 @@ public class ModelUtils {
      * @return {@code out} vector
      */
     public static Vector3f modelToWorld(
-        LivingEntity player, Vector3fc modelPosition, VRPlayersClient.RotInfo rotInfo, float bodyYaw,
+        LivingEntity player, Vector3fc modelPosition, ClientVRPlayers.RotInfo rotInfo, float bodyYaw,
         boolean applyScale, boolean useWorldScale, Vector3f out)
     {
         return modelToWorld(player, modelPosition.x(), modelPosition.y(), modelPosition.z(), rotInfo, bodyYaw,
@@ -194,7 +194,7 @@ public class ModelUtils {
      * @return {@code out} vector
      */
     public static Vector3f modelToWorld(
-        LivingEntity player, float x, float y, float z, VRPlayersClient.RotInfo rotInfo, float bodyYaw,
+        LivingEntity player, float x, float y, float z, ClientVRPlayers.RotInfo rotInfo, float bodyYaw,
         boolean applyScale, boolean useWorldScale, Vector3f out)
     {
         final float scale = 0.9375F * rotInfo.heightScale;
@@ -233,7 +233,7 @@ public class ModelUtils {
      * @param tempM Matrix3f object to work with, contains the rotation after the call
      */
     public static void pointModelAtLocal(
-        LivingEntity player, ModelPart part, Vector3fc target, Quaternionfc targetRot, VRPlayersClient.RotInfo rotInfo,
+        LivingEntity player, ModelPart part, Vector3fc target, Quaternionfc targetRot, ClientVRPlayers.RotInfo rotInfo,
         float bodyYaw, boolean useWorldScale, Vector3f tempVDir, Vector3f tempVUp, Matrix3f tempM)
     {
         // convert target to model
@@ -353,7 +353,7 @@ public class ModelUtils {
      */
     public static void estimateJointDir(
         ModelPart upper, ModelPart lower, Quaternionfc lowerRot, float bodyYaw, boolean jointDown,
-        @Nullable Vector3fc jointPos, LivingEntity player, VRPlayersClient.RotInfo rotInfo, boolean useWorldScale,
+        @Nullable Vector3fc jointPos, LivingEntity player, ClientVRPlayers.RotInfo rotInfo, boolean useWorldScale,
         Vector3f tempV, Vector3f tempV2)
     {
         if (jointPos != null) {

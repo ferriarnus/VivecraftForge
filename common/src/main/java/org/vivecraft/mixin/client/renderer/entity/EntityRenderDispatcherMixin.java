@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.extensions.EntityRenderDispatcherExtension;
 import org.vivecraft.client.render.VRPlayerRenderer;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -93,7 +93,7 @@ public abstract class EntityRenderDispatcherMixin implements ResourceManagerRelo
             (player.getClass() == LocalPlayer.class || player.getClass() == RemotePlayer.class))
         {
             String skinType = player.getSkin().model().id();
-            VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
+            ClientVRPlayers.RotInfo rotInfo = ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID());
             if (rotInfo != null) {
                 VRPlayerRenderer vrPlayerRenderer;
                 if (rotInfo.seated ||

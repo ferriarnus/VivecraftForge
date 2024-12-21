@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 
 public class HMDLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
 
@@ -27,7 +27,7 @@ public class HMDLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<Abst
 
         // check that the model actually is a vrPlayer model, some mods override the model
         if (this.getParentModel().head.visible && this.getParentModel() instanceof VRPlayerModel<?> vrPlayerModel) {
-            VRPlayersClient.RotInfo rotinfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
+            ClientVRPlayers.RotInfo rotinfo = ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID());
             if (rotinfo != null) {
                 ResourceLocation hmd = switch (rotinfo.hmd) {
                     case 1 -> BLACK_HMD;

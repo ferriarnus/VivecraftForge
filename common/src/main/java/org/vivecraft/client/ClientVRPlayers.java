@@ -30,9 +30,9 @@ import org.vivecraft.common.network.VrPlayerState;
 
 import java.util.*;
 
-public class VRPlayersClient {
+public class ClientVRPlayers {
 
-    private static VRPlayersClient INSTANCE;
+    private static ClientVRPlayers INSTANCE;
 
     private final Minecraft mc;
     private final Map<UUID, RotInfo> vivePlayers = new HashMap<>();
@@ -45,9 +45,9 @@ public class VRPlayersClient {
 
     private final Random rand = new Random();
 
-    public static VRPlayersClient getInstance() {
+    public static ClientVRPlayers getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new VRPlayersClient();
+            INSTANCE = new ClientVRPlayers();
         }
 
         return INSTANCE;
@@ -63,7 +63,7 @@ public class VRPlayersClient {
         LOCAL_PLAYER_ROT_INFO_FRAME_INDEX = -1;
     }
 
-    private VRPlayersClient() {
+    private ClientVRPlayers() {
         this.mc = Minecraft.getInstance();
     }
 

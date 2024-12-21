@@ -17,7 +17,7 @@ import org.joml.Vector3fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_xr.render_pass.RenderPassType;
@@ -29,8 +29,8 @@ public abstract class FishingHookRendererVRMixin {
     private float vivecraft$fishingLineStartRotation(
         float delta, float start, float end, Operation<Float> original, @Local Player player)
     {
-        VRPlayersClient.RotInfo info;
-        if (player != Minecraft.getInstance().player && VRPlayersClient.getInstance().isVRPlayer(player) && (info = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID())).seated) {
+        ClientVRPlayers.RotInfo info;
+        if (player != Minecraft.getInstance().player && ClientVRPlayers.getInstance().isVRPlayer(player) && (info = ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID())).seated) {
             // other players in seated mode
             return Mth.RAD_TO_DEG * info.getBodyYawRad();
         } else {
@@ -43,7 +43,7 @@ public abstract class FishingHookRendererVRMixin {
         double value, FishingHook fishingHook, @Local(ordinal = 1, argsOnly = true) float partialTick,
         @Local Player player, @Share("linePos") LocalRef<Vec3> linePos)
     {
-        VRPlayersClient.RotInfo info;
+        ClientVRPlayers.RotInfo info;
         if (!RenderPassType.isVanilla() && player == Minecraft.getInstance().player) {
             // own player
             int c = player.getMainHandItem().getItem() instanceof FishingRodItem ? 0 : 1;
@@ -53,7 +53,7 @@ public abstract class FishingHookRendererVRMixin {
 
             linePos.set(aimSource.add(aimDirection.x, aimDirection.y, aimDirection.z));
             return linePos.get().x;
-        } else if (VRPlayersClient.getInstance().isVRPlayer(player) && !(info = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID())).seated) {
+        } else if (ClientVRPlayers.getInstance().isVRPlayer(player) && !(info = ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID())).seated) {
             // other players in standing mode
             Vector3fc aimSource = player.getMainHandItem().getItem() instanceof FishingRodItem ? info.mainHandPos : info.offHandPos;
             // just set it to the hand, everything else looks silly

@@ -18,7 +18,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import org.joml.*;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.utils.ClientUtils;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -37,7 +37,7 @@ import java.lang.Math;
 public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
     public ModelPart vrHMD;
 
-    protected VRPlayersClient.RotInfo rotInfo;
+    protected ClientVRPlayers.RotInfo rotInfo;
     protected float bodyYaw;
     protected boolean laying;
     protected float xRot;
@@ -85,11 +85,11 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T> {
         PlayerModel<LivingEntity> model, LivingEntity player, float limbSwing, float limbSwingAmount, Vector3f tempV,
         Vector3f tempV2, Matrix3f tempM)
     {
-        VRPlayersClient.RotInfo rotInfo = null;
+        ClientVRPlayers.RotInfo rotInfo = null;
 
         // don't do any animations for dummy players
         if (player.getClass() == LocalPlayer.class || player.getClass() == RemotePlayer.class) {
-            rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(player.getUUID());
+            rotInfo = ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID());
         }
 
         if (rotInfo == null) {

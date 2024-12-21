@@ -2,7 +2,7 @@ package org.vivecraft.client.network;
 
 import net.minecraft.world.entity.player.Player;
 import org.apache.commons.io.IOUtils;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client_vr.settings.VRSettings;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class SupporterReceiver {
 
                             for (Player player : QUEUED_PLAYERS) {
                                 if (bits[0].equalsIgnoreCase(player.getGameProfile().getName())) {
-                                    VRPlayersClient.getInstance().setHMD(player.getUUID(), i);
+                                    ClientVRPlayers.getInstance().setHMD(player.getUUID(), i);
                                 }
                             }
                         } catch (Exception e) {
@@ -66,7 +66,7 @@ public class SupporterReceiver {
             synchronized (LOCK) {
                 if (CACHE == null) {
                     QUEUED_PLAYERS.add(p);
-                    VRPlayersClient.getInstance().setHMD(p.getUUID(), 0);
+                    ClientVRPlayers.getInstance().setHMD(p.getUUID(), 0);
 
                     if (!DOWNLOAD_STARTED) {
                         DOWNLOAD_STARTED = true;
@@ -87,7 +87,7 @@ public class SupporterReceiver {
                         }).start();
                     }
                 } else {
-                    VRPlayersClient.getInstance().setHMD(p.getUUID(), CACHE.getOrDefault(p.getGameProfile().getName().toLowerCase(), 0));
+                    ClientVRPlayers.getInstance().setHMD(p.getUUID(), CACHE.getOrDefault(p.getGameProfile().getName().toLowerCase(), 0));
                 }
             }
         }

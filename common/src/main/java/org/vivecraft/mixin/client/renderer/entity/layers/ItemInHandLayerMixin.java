@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.vivecraft.client.VRPlayersClient;
+import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client.render.VRPlayerModel;
 import org.vivecraft.client.render.VRPlayerModel_WithArms;
@@ -40,7 +40,7 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
     private boolean vivecraft$isRightMainHand(boolean isRightMainHand, @Local(argsOnly = true) LivingEntity entity) {
         if (this.getParentModel() instanceof VRPlayerModel) {
             // we ignore the vanilla main arm setting, and use our own
-            return !VRPlayersClient.getInstance().isVRAndLeftHanded(entity.getUUID());
+            return !ClientVRPlayers.getInstance().isVRAndLeftHanded(entity.getUUID());
         } else {
             return isRightMainHand;
         }
@@ -72,7 +72,7 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
         if (ClientNetworking.SERVER_ALLOWS_CLIMBEY && entity instanceof Player && !ClimbTracker.isClaws(itemStack) &&
             getParentModel() instanceof VRPlayerModel)
         {
-            VRPlayersClient.RotInfo rotInfo = VRPlayersClient.getInstance().getRotationsForPlayer(entity.getUUID());
+            ClientVRPlayers.RotInfo rotInfo = ClientVRPlayers.getInstance().getRotationsForPlayer(entity.getUUID());
             if (rotInfo != null) {
                 boolean mainHand = arm == (rotInfo.leftHanded ? HumanoidArm.LEFT : HumanoidArm.RIGHT);
                 ItemStack otherStack = mainHand ? entity.getOffhandItem() : entity.getMainHandItem();
