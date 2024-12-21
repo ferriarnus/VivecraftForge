@@ -277,9 +277,12 @@ public class VRPlayersClient {
             lerpRotInfo.mainHandPos = lastRotInfo.mainHandPos.lerp(newRotInfo.mainHandPos, partialTick, new Vector3f());
             lerpRotInfo.headPos = lastRotInfo.headPos.lerp(newRotInfo.headPos, partialTick, new Vector3f());
 
-            lerpRotInfo.offHandQuat = newRotInfo.offHandQuat;
-            lerpRotInfo.mainHandQuat = newRotInfo.mainHandQuat;
-            lerpRotInfo.headQuat = newRotInfo.headQuat;
+            lerpRotInfo.offHandQuat = lastRotInfo.offHandQuat.nlerp(newRotInfo.offHandQuat, partialTick,
+                new Quaternionf());
+            lerpRotInfo.mainHandQuat = lastRotInfo.mainHandQuat.nlerp(newRotInfo.mainHandQuat, partialTick,
+                new Quaternionf());
+            lerpRotInfo.headQuat = lastRotInfo.headQuat.nlerp(newRotInfo.headQuat, partialTick,
+                new Quaternionf());
 
             lerpRotInfo.offHandRot = lastRotInfo.offHandRot.lerp(newRotInfo.offHandRot, partialTick, new Vector3f());
             lerpRotInfo.mainHandRot = lastRotInfo.mainHandRot.lerp(newRotInfo.mainHandRot, partialTick, new Vector3f());
@@ -300,9 +303,12 @@ public class VRPlayersClient {
                 lerpRotInfo.leftFootPos = lastRotInfo.leftFootPos.lerp(newRotInfo.leftFootPos, partialTick,
                     new Vector3f());
 
-                lerpRotInfo.waistQuat = newRotInfo.waistQuat;
-                lerpRotInfo.rightFootQuat = newRotInfo.rightFootQuat;
-                lerpRotInfo.leftFootQuat = newRotInfo.leftFootQuat;
+                lerpRotInfo.waistQuat = lastRotInfo.waistQuat.nlerp(newRotInfo.waistQuat, partialTick,
+                    new Quaternionf());
+                lerpRotInfo.rightFootQuat = lastRotInfo.rightFootQuat.nlerp(newRotInfo.rightFootQuat, partialTick,
+                    new Quaternionf());
+                lerpRotInfo.leftFootQuat = lastRotInfo.leftFootQuat.nlerp(newRotInfo.leftFootQuat, partialTick,
+                    new Quaternionf());
 
                 if (lastRotInfo.fbtMode == FBTMode.WITH_JOINTS && newRotInfo.fbtMode == FBTMode.WITH_JOINTS) {
                     lerpRotInfo.leftKneePos = lastRotInfo.leftKneePos.lerp(newRotInfo.leftKneePos, partialTick,
@@ -314,10 +320,14 @@ public class VRPlayersClient {
                     lerpRotInfo.rightElbowPos = lastRotInfo.rightElbowPos.lerp(newRotInfo.rightElbowPos, partialTick,
                         new Vector3f());
 
-                    lerpRotInfo.leftKneeQuat = newRotInfo.leftKneeQuat;
-                    lerpRotInfo.rightKneeQuat = newRotInfo.rightKneeQuat;
-                    lerpRotInfo.leftElbowQuat = newRotInfo.leftElbowQuat;
-                    lerpRotInfo.rightElbowQuat = newRotInfo.rightElbowQuat;
+                    lerpRotInfo.leftKneeQuat = lastRotInfo.leftKneeQuat.nlerp(newRotInfo.leftKneeQuat, partialTick,
+                        new Quaternionf());
+                    lerpRotInfo.rightKneeQuat = lastRotInfo.rightKneeQuat.nlerp(newRotInfo.rightKneeQuat, partialTick,
+                        new Quaternionf());
+                    lerpRotInfo.leftElbowQuat = lastRotInfo.leftElbowQuat.nlerp(newRotInfo.leftElbowQuat, partialTick,
+                        new Quaternionf());
+                    lerpRotInfo.rightElbowQuat = lastRotInfo.rightElbowQuat.nlerp(newRotInfo.rightElbowQuat, partialTick,
+                        new Quaternionf());
                 }
             }
 
