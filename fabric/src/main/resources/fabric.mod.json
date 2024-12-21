@@ -34,6 +34,7 @@
     "vivecraft.blur.mixins.json",
     "vivecraft.bedrockify.mixins.json",
     "vivecraft.dynamicfps.mixins.json",
+    "vivecraft.emf.mixins.json",
     "vivecraft.sodium.mixins.json",
     "vivecraft.iris.mixins.json",
     "vivecraft.mca.mixins.json",

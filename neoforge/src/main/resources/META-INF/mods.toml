@@ -47,6 +47,8 @@ config = "vivecraft.cataclysm.mixins.json"
 [[mixins]]
 config = "vivecraft.dynamicfps.mixins.json"
 [[mixins]]
+config = "vivecraft.emf.mixins.json"
+[[mixins]]
 config = "vivecraft.sodium.mixins.json"
 [[mixins]]
 config = "vivecraft.iris.mixins.json"

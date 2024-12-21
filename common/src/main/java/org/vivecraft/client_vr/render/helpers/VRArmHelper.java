@@ -61,6 +61,7 @@ public class VRArmHelper {
         PoseStack poseStack)
     {
         MC.getProfiler().push("hands");
+        ClientDataHolderVR.IS_FP_HAND = true;
 
         // backup projection matrix, not doing that breaks sodium water on 1.19.3
         RenderSystem.backupProjectionMatrix();
@@ -96,6 +97,7 @@ public class VRArmHelper {
         }
 
         RenderSystem.restoreProjectionMatrix();
+        ClientDataHolderVR.IS_FP_HAND = false;
         MC.getProfiler().pop();
     }
 

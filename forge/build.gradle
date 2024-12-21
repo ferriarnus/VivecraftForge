@@ -17,6 +17,7 @@ loom {
         mixinConfig "vivecraft.alexmobs.mixins.json"
         mixinConfig "vivecraft.blur.mixins.json"
         mixinConfig "vivecraft.bedrockify.mixins.json"
+        mixinConfig "vivecraft.emf.mixins.json"
         mixinConfig "vivecraft.cataclysm.mixins.json"
         mixinConfig "vivecraft.dynamicfps.mixins.json"
         mixinConfig "vivecraft.sodium.mixins.json"
