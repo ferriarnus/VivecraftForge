@@ -15,11 +15,13 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.vivecraft.client.extensions.SparkParticleExtension;
 import org.vivecraft.client.utils.ClientUtils;
+import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.AutoCalibration;
+import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -201,36 +203,47 @@ public class VRPlayersClient {
                     // donor butt sparkles
                     if (this.donors.getOrDefault(player.getUUID(), 0) > 3 && this.rand.nextInt(10) < 4) {
                         RotInfo rotInfo = this.vivePlayers.get(player.getUUID());
-                        Vector3f look = player.getLookAngle().toVector3f();
+                        float xzOffset = player.isShiftKeyDown() ? 6F : 0F;
+                        float yOffset = player.isShiftKeyDown() ? 0.6F : 0.8F;
+
+                        Vec3 pos = player.position();
+                        Vector3f look;
                         if (rotInfo != null) {
-                            look = rotInfo.offHandPos.sub(rotInfo.mainHandPos, look).rotateY(-Mth.HALF_PI);
-
-                            if (rotInfo.leftHanded) {
-                                look = look.mul(-1.0F);
-                            } else if (rotInfo.seated) {
-                                look.set(rotInfo.mainHandRot);
+                            look = MathUtils.FORWARD.rotateY(-rotInfo.getBodyYawRad(), new Vector3f());
+                            if (player.isVisuallySwimming()) {
+                                yOffset = 0.3F * rotInfo.heightScale;
+                                xzOffset = 14f * rotInfo.heightScale;
+                            } else {
+                                if (rotInfo.fbtMode != FBTMode.ARMS_ONLY) {
+                                    // use waist
+                                    pos = pos.add(rotInfo.waistPos.x(), rotInfo.waistPos.y(), rotInfo.waistPos.z());
+                                    yOffset = 0F;
+                                } else {
+                                    Vector3f pivot = rotInfo.headQuat.transform(0F, -0.2F, 0.1F, new Vector3f())
+                                        .add(rotInfo.headPos);
+                                    float bend = ModelUtils.getBendProgress(player, rotInfo, pivot);
+                                    if (ClientDataHolderVR.getInstance().vrSettings.playerModelType ==
+                                        VRSettings.PlayerModelType.SPLIT_ARMS_LEGS)
+                                    {
+                                        yOffset = (1F - bend) * 0.8F * rotInfo.heightScale;
+                                        xzOffset = bend * 14f * rotInfo.heightScale;
+                                    } else {
+                                        yOffset = 0.8F * rotInfo.heightScale;
+                                        xzOffset = 14f * rotInfo.heightScale * Mth.sin(bend * Mth.PI);
+                                    }
+                                    player.getEyePosition();
+                                }
                             }
-
-                            // Hands are at origin or something, usually happens if they don't track
-                            if (look.length() < 1.0E-4F) {
-                                look.set(rotInfo.headRot);
-                            }
+                        } else {
+                            look = MathUtils.FORWARD.rotateY(-Mth.DEG_TO_RAD * player.yBodyRot, new Vector3f());
                         }
-                        look = look.mul(0.1F);
-
-                        // Use hmd pos for self, so we don't have butt sparkles in face
-                        Vec3 pos = rotInfo != null && player == this.mc.player ?
-                            player.position().add(rotInfo.headPos.x(), rotInfo.headPos.y(), rotInfo.headPos.z()) :
-                            player.getEyePosition(1.0F);
+                        look = look.mul(0.05F);
 
                         Particle particle = this.mc.particleEngine.createParticle(
                             ParticleTypes.FIREWORK,
-                            pos.x + (player.isShiftKeyDown() ? -look.x * 3.0D : 0.0D) +
-                                (this.rand.nextFloat() - 0.5F) * 0.02F,
-                            pos.y - (player.isShiftKeyDown() ? 1.0F : 0.8F) +
-                                (this.rand.nextFloat() - 0.5F) * 0.02F,
-                            pos.z + (player.isShiftKeyDown() ? -look.z * 3.0D : 0.0D) +
-                                (this.rand.nextFloat() - 0.5F) * 0.02F,
+                            pos.x - look.x * xzOffset + (this.rand.nextFloat() - 0.5F) * 0.02F,
+                            pos.y + yOffset + (this.rand.nextFloat() - 0.5F) * 0.02F,
+                            pos.z - look.z * xzOffset + (this.rand.nextFloat() - 0.5F) * 0.02F,
                             -look.x + (this.rand.nextFloat() - 0.5F) * 0.01F,
                             (this.rand.nextFloat() - 0.05F) * 0.05F,
                             -look.z + (this.rand.nextFloat() - 0.5F) * 0.01F);
