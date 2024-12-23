@@ -1,5 +1,6 @@
 package org.vivecraft.client_vr.provider.nullvr;
 
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -9,10 +10,18 @@ import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.provider.VRRenderer;
+import org.vivecraft.client_vr.render.RenderConfigException;
+import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.VRSettings;
 
 public class NullVRStereoRenderer extends VRRenderer {
+
+    protected int LeftEyeTextureId = -1;
+    protected int RightEyeTextureId = -1;
+    public RenderTarget framebufferEye0;
+    public RenderTarget framebufferEye1;
+
     public NullVRStereoRenderer(MCVR vr) {
         super(vr);
     }
@@ -34,7 +43,7 @@ public class NullVRStereoRenderer extends VRRenderer {
     }
 
     @Override
-    public void createRenderTexture(int lwidth, int lheight) {
+    public void createRenderTexture(int lwidth, int lheight) throws RenderConfigException {
         this.LeftEyeTextureId = GlStateManager._genTexture();
         int i = GlStateManager._getInteger(GL11.GL_TEXTURE_BINDING_2D);
         RenderSystem.bindTexture(this.LeftEyeTextureId);
@@ -62,6 +71,22 @@ public class NullVRStereoRenderer extends VRRenderer {
     }
 
     @Override
+    public RenderTarget getLeftEyeTarget() {
+        return framebufferEye0;
+    }
+
+    @Override
+    public RenderTarget getRightEyeTarget() {
+        return framebufferEye1;
+    }
+
+
+    @Override
+    public float[] getStencilMask(RenderPass eye) {
+        return null;
+    }
+
+    @Override
     public String getName() {
         return "NullVR";
     }
@@ -69,6 +94,17 @@ public class NullVRStereoRenderer extends VRRenderer {
     @Override
     protected void destroyBuffers() {
         super.destroyBuffers();
+
+        if (this.framebufferEye0 != null) {
+            this.framebufferEye0.destroyBuffers();
+            this.framebufferEye0 = null;
+        }
+
+        if (this.framebufferEye1 != null) {
+            this.framebufferEye1.destroyBuffers();
+            this.framebufferEye1 = null;
+        }
+
         if (this.LeftEyeTextureId > -1) {
             TextureUtil.releaseTextureId(this.LeftEyeTextureId);
             this.LeftEyeTextureId = -1;

@@ -1,7 +1,7 @@
-package org.vivecraft.client_vr.provider.openvr_lwjgl.control;
+package org.vivecraft.client_vr.provider.control;
 
+import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.provider.ControllerType;
-import org.vivecraft.client_vr.provider.openvr_lwjgl.MCOpenVR;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -63,10 +63,10 @@ public class HapticMusicPlayer {
             for (Object object : this.data) {
                 if (object instanceof Note note) {
                     if (note.controller != null) {
-                        MCOpenVR.get().triggerHapticPulse(note.controller, note.durationSeconds, note.frequency, note.amplitude, delayAccum);
+                        ClientDataHolderVR.getInstance().vr.triggerHapticPulse(note.controller, note.durationSeconds, note.frequency, note.amplitude, delayAccum);
                     } else {
-                        MCOpenVR.get().triggerHapticPulse(ControllerType.RIGHT, note.durationSeconds, note.frequency, note.amplitude, delayAccum);
-                        MCOpenVR.get().triggerHapticPulse(ControllerType.LEFT, note.durationSeconds, note.frequency, note.amplitude, delayAccum);
+                        ClientDataHolderVR.getInstance().vr.triggerHapticPulse(ControllerType.RIGHT, note.durationSeconds, note.frequency, note.amplitude, delayAccum);
+                        ClientDataHolderVR.getInstance().vr.triggerHapticPulse(ControllerType.LEFT, note.durationSeconds, note.frequency, note.amplitude, delayAccum);
                     }
                 } else if (object instanceof Delay delay) {
                     delayAccum += delay.durationSeconds;

@@ -7,7 +7,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import org.vivecraft.client.gui.framework.TwoHandedScreen;
 import org.vivecraft.client_vr.provider.MCVR;
-import org.vivecraft.client_vr.provider.openvr_lwjgl.VRInputAction;
+import org.vivecraft.client_vr.provider.control.VRInputAction;
 
 public class GuiRadial extends TwoHandedScreen {
     private boolean isShift = false;

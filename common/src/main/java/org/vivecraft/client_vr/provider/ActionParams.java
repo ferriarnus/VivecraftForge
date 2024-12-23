@@ -1,6 +1,6 @@
 package org.vivecraft.client_vr.provider;
 
-import org.vivecraft.client_vr.provider.openvr_lwjgl.control.VRInputActionSet;
+import org.vivecraft.client_vr.provider.control.VRInputActionSet;
 
 /**
  * holds the parameters for a VR action key

@@ -45,7 +45,7 @@ dependencies {
     compileOnly('com.electronwill.night-config:toml:3.6.6')
 
     //LaunchPopup
-    implementation 'com.github.Vivecraft:LaunchPopup:1.1.1'
+    implementation 'Vivecraft:LaunchPopup:1.1.1:LaunchPopup-1.1.1'
 }
 // extract the LaunchPopup classes
 jar {

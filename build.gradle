@@ -22,10 +22,7 @@ subprojects {
     dependencies {
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
         mappings loom.layered() {
-            // The following line declares the mojmap mappings, you may use other mappings as well
             officialMojangMappings()
-            // The following line declares the yarn mappings you may select this one as well.
-            // "net.fabricmc:yarn:1.18.2+build.4:v2"
             // parchment mappings as backup
             parchment("org.parchmentmc.data:parchment-${rootProject.minecraft_version}:${rootProject.parchment_version}@zip")
         }
@@ -33,6 +30,11 @@ subprojects {
         implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-linux")
         implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-macos")
         implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-windows")
+
+        // Use custom OpenXR lib for Android and GLES bindings
+        implementation("QuestCraftPlusPlus:lwjgl3:${rootProject.lwjgl_version}:lwjgl-openxr-${rootProject.lwjgl_version}")
+        implementation("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}:natives-linux")
+        implementation("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}:natives-windows")
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -152,17 +154,16 @@ allprojects {
         exclusiveContent {
             forRepository {
                 ivy {
-                    name = "Discord"
-                    url = "https://cdn.discordapp.com/attachments/"
+                    name = "GitHub"
+                    url = "https://github.com/"
                     patternLayout {
-                        artifact '/[organisation]/[module]/[revision].[ext]'
+                        artifact '/[organisation]/[module]/releases/download/[revision]/[classifier].jar'
                     }
                     metadataSources { artifact() }
                 }
             }
             filter {
-                // discords are always just numbers
-                includeGroupByRegex "^\\d*\$"
+
             }
         }
     }

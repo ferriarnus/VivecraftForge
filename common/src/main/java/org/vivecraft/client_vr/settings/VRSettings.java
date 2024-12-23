@@ -142,6 +142,7 @@ public class VRSettings {
 
     public enum VRProvider implements OptionEnum<VRProvider> {
         OPENVR,
+        OPENXR,
         NULLVR
     }
 
@@ -1728,7 +1729,7 @@ public class VRSettings {
             @Override
             String getDisplayString(String prefix, Object value) {
                 if (VRState.VR_ENABLED) {
-                    RenderTarget eye0 = ClientDataHolderVR.getInstance().vrRenderer.framebufferEye0;
+                    RenderTarget eye0 = ClientDataHolderVR.getInstance().vrRenderer.getLeftEyeTarget();
                     return prefix + Math.round((float) value * 100) + "% (" +
                         (int) Math.ceil(eye0.viewWidth * Math.sqrt((float) value)) + "x" +
                         (int) Math.ceil(eye0.viewHeight * Math.sqrt((float) value)) + ")";

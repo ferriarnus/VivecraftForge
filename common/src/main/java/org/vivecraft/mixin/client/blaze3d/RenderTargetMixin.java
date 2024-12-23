@@ -23,6 +23,8 @@ public abstract class RenderTargetMixin implements RenderTargetExtension {
     public int width;
     @Shadow
     public int height;
+    @Shadow
+    protected int colorTextureId;
     @Unique
     private int vivecraft$texId = -1;
     @Unique
@@ -53,6 +55,10 @@ public abstract class RenderTargetMixin implements RenderTargetExtension {
     }
 
     @Override
+    public void vivecraft$setColorid(int colorid) {
+        this.colorTextureId = colorid;
+    }
+
     @Unique
     public void vivecraft$setLinearFilter(boolean linearFilter) {
         this.vivecraft$linearFilter = linearFilter;

@@ -11,6 +11,7 @@ import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.menuworlds.MenuWorldRenderer;
 import org.vivecraft.client_vr.provider.nullvr.NullVR;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.MCOpenVR;
+import org.vivecraft.client_vr.provider.openxr.MCOpenXR;
 import org.vivecraft.client_vr.render.RenderConfigException;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_xr.render_pass.RenderPassManager;
@@ -50,11 +51,13 @@ public class VRState {
             }
 
             ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
-            if (dh.vrSettings.stereoProviderPluginID == VRSettings.VRProvider.OPENVR) {
-                dh.vr = new MCOpenVR(Minecraft.getInstance(), dh);
-            } else {
-                dh.vr = new NullVR(Minecraft.getInstance(), dh);
+            Minecraft instance = Minecraft.getInstance();
+            switch (dh.vrSettings.stereoProviderPluginID) {
+                case OPENVR -> dh.vr = new MCOpenVR(instance, dh);
+                case OPENXR -> dh.vr = new MCOpenXR(instance, dh);
+                default -> dh.vr = new NullVR(instance, dh);
             }
+
             if (!dh.vr.init()) {
                 throw new RenderConfigException(Component.translatable("vivecraft.messages.vriniterror"),
                     Component.translatable("vivecraft.messages.rendersetupfailed", dh.vr.initStatus, dh.vr.getName()));
@@ -65,7 +68,7 @@ public class VRState {
             // everything related to VR is created now
             VR_INITIALIZED = true;
 
-            dh.vrRenderer.setupRenderConfiguration();
+            dh.vrRenderer.setupRenderConfiguration(false); //For openXR, setup but don't render yet
             RenderPassManager.setVanillaRenderPass();
 
             dh.vrPlayer = new VRPlayer();

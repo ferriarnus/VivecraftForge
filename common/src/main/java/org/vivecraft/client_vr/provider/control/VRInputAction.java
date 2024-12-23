@@ -1,4 +1,4 @@
-package org.vivecraft.client_vr.provider.openvr_lwjgl;
+package org.vivecraft.client_vr.provider.control;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
@@ -8,11 +8,10 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client.Xplat;
+import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.client_vr.provider.HandedKeyBinding;
 import org.vivecraft.client_vr.provider.InputSimulator;
-import org.vivecraft.client_vr.provider.MCVR;
-import org.vivecraft.client_vr.provider.openvr_lwjgl.control.VRInputActionSet;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -215,17 +214,17 @@ public class VRInputAction {
      */
     public boolean isEnabled() {
         if (!this.isEnabledRaw(this.currentHand)) return false;
-        if (MCOpenVR.get() == null) return false;
+        if (ClientDataHolderVR.getInstance().vr == null) return false;
 
         long lastOrigin = this.getLastOrigin();
-        ControllerType hand = MCOpenVR.get().getOriginControllerType(lastOrigin);
+        ControllerType hand = ClientDataHolderVR.getInstance().vr.getOriginControllerType(lastOrigin);
 
         if (hand == null && this.isHanded()) return false;
 
         // iterate over all actions, and check if another action has a higher priority
-        for (VRInputAction action : MCOpenVR.get().getInputActions()) {
+        for (VRInputAction action : ClientDataHolderVR.getInstance().vr.getInputActions()) {
             if (action != this && action.isEnabledRaw(hand) && action.isActive() &&
-                action.getPriority() > this.getPriority() && MCVR.get().getOrigins(action).contains(lastOrigin))
+                action.getPriority() > this.getPriority() && ClientDataHolderVR.getInstance().vr.getOrigins(action).contains(lastOrigin))
             {
                 if (action.isHanded()) {
                     return !((HandedKeyBinding) action.keyBinding).isPriorityOnController(hand);

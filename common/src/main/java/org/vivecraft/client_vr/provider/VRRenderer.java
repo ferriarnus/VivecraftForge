@@ -26,6 +26,7 @@ import org.vivecraft.client.extensions.RenderTargetExtension;
 import org.vivecraft.client.utils.TextUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRTextureTarget;
+import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.extensions.WindowExtension;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
@@ -48,13 +49,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class VRRenderer {
+
     // projection matrices
     public Matrix4f[] eyeProj = new Matrix4f[2];
     private float lastFarClip = 0F;
 
     // render buffers
-    public RenderTarget framebufferEye0;
-    public RenderTarget framebufferEye1;
     protected int LeftEyeTextureId = -1;
     protected int RightEyeTextureId = -1;
     public RenderTarget framebufferMR;
@@ -100,7 +100,7 @@ public abstract class VRRenderer {
      * @param width width of the texture
      * @param height height of the texture
      */
-    public abstract void createRenderTexture(int width, int height);
+    public abstract void createRenderTexture(int width, int height) throws RenderConfigException;
 
     /**
      * gets the cached projection matrix if the farClip distance matches with the last, else gets a new one from the VR runtime
@@ -141,6 +141,15 @@ public abstract class VRRenderer {
      */
     public abstract boolean providesStencilMask();
 
+    /**
+     * @return the left eye rendertarget
+     */
+    public abstract RenderTarget getLeftEyeTarget();
+
+    /**
+     * @return the right eye rendertarget
+     */
+    public abstract RenderTarget getRightEyeTarget();
     /**
      * gets an array with the vertex info of the stencil mesh, if there is one provided by this renderer
      * @param eye which eye the stencil should be for
@@ -469,7 +478,7 @@ public abstract class VRRenderer {
      * @throws RenderConfigException in case something failed to initialize or the gpu vendor is unsupported
      * @throws IOException can be thrown by the WorldRenderPass init when trying to load the shaders
      */
-    public void setupRenderConfiguration() throws RenderConfigException, IOException {
+    public void setupRenderConfiguration(boolean render) throws RenderConfigException, IOException {
         Minecraft minecraft = Minecraft.getInstance();
         ClientDataHolderVR dataholder = ClientDataHolderVR.getInstance();
 
@@ -563,6 +572,10 @@ public abstract class VRRenderer {
             }
         }
 
+        //for OPENXR, it needs to reinit
+        this.eyeProj[0] = this.getProjectionMatrix(0, ((GameRendererExtension) minecraft.gameRenderer).vivecraft$getMinClipDistance(), lastFarClip);
+        this.eyeProj[1] = this.getProjectionMatrix(1, ((GameRendererExtension) minecraft.gameRenderer).vivecraft$getMinClipDistance(), lastFarClip);
+
         if (this.reinitFrameBuffers) {
             RenderHelper.checkGLError("Start Init");
 
@@ -604,32 +617,7 @@ public abstract class VRRenderer {
 
             destroyBuffers();
 
-            if (this.LeftEyeTextureId == -1) {
-                this.createRenderTexture(eyew, eyeh);
-
-                if (this.LeftEyeTextureId == -1) {
-                    throw new RenderConfigException(
-                        Component.translatable("vivecraft.messages.renderiniterror", this.getName()),
-                        Component.literal(this.getLastError()));
-                }
-
-                VRSettings.LOGGER.info("Vivecraft: VR Provider supplied render texture IDs: {}, {}", this.LeftEyeTextureId, this.RightEyeTextureId);
-                VRSettings.LOGGER.info("Vivecraft: VR Provider supplied texture resolution: {} x {}", eyew, eyeh);
-            }
-
-            RenderHelper.checkGLError("Render Texture setup");
-
-            if (this.framebufferEye0 == null) {
-                this.framebufferEye0 = new VRTextureTarget("L Eye", eyew, eyeh, false, this.LeftEyeTextureId, true, false, false);
-                VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye0);
-                RenderHelper.checkGLError("Left Eye framebuffer setup");
-            }
-
-            if (this.framebufferEye1 == null) {
-                this.framebufferEye1 = new VRTextureTarget("R Eye", eyew, eyeh, false, this.RightEyeTextureId, true, false, false);
-                VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye1);
-                RenderHelper.checkGLError("Right Eye framebuffer setup");
-            }
+            this.createRenderTexture(eyew, eyeh);
 
             float resolutionScale = ResolutionControlHelper.isLoaded() ? ResolutionControlHelper.getCurrentScaleFactor() : 1.0F;
 
@@ -872,18 +860,6 @@ public abstract class VRRenderer {
         if (this.fsaaLastPassResultFBO != null) {
             this.fsaaLastPassResultFBO.destroyBuffers();
             this.fsaaLastPassResultFBO = null;
-        }
-
-        if (this.framebufferEye0 != null) {
-            this.framebufferEye0.destroyBuffers();
-            this.framebufferEye0 = null;
-            this.LeftEyeTextureId = -1;
-        }
-
-        if (this.framebufferEye1 != null) {
-            this.framebufferEye1.destroyBuffers();
-            this.framebufferEye1 = null;
-            this.RightEyeTextureId = -1;
         }
     }
 

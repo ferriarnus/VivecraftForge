@@ -510,7 +510,7 @@ public class GuiHandler {
                         direction = DH.vrPlayer.vrdata_world_render.getController(0).getDirection();
                         guirot = guirot.mul(DH.vr.getAimRotation(0), guirot);
                     } else {
-                        guirot = guirot.mul(DH.vr.hmdRotation, guirot);
+                        guirot = guirot.mul(DH.vr.getEyeRotation(RenderPass.CENTER), guirot);
                     }
 
                     guipos = new Vec3(
