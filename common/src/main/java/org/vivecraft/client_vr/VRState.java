@@ -8,13 +8,14 @@ import org.vivecraft.client.gui.screens.ErrorScreen;
 import org.vivecraft.client.gui.screens.GarbageCollectorScreen;
 import org.vivecraft.client.utils.TextUtils;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
+import org.vivecraft.client_vr.gameplay.trackers.Tracker;
 import org.vivecraft.client_vr.menuworlds.MenuWorldRenderer;
 import org.vivecraft.client_vr.provider.nullvr.NullVR;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.MCOpenVR;
 import org.vivecraft.client_vr.render.RenderConfigException;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_xr.render_pass.RenderPassManager;
-import org.vivecraft.mod_compat_vr.ShadersHelper;
+import org.vivecraft.mod_compat_vr.shaders.ShadersHelper;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 
 import java.lang.management.ManagementFactory;
@@ -69,22 +70,9 @@ public class VRState {
             RenderPassManager.setVanillaRenderPass();
 
             dh.vrPlayer = new VRPlayer();
-            dh.vrPlayer.registerTracker(dh.backpackTracker);
-            dh.vrPlayer.registerTracker(dh.bowTracker);
-            dh.vrPlayer.registerTracker(dh.climbTracker);
-            dh.vrPlayer.registerTracker(dh.autoFood);
-            dh.vrPlayer.registerTracker(dh.jumpTracker);
-            dh.vrPlayer.registerTracker(dh.rowTracker);
-            dh.vrPlayer.registerTracker(dh.runTracker);
-            dh.vrPlayer.registerTracker(dh.sneakTracker);
-            dh.vrPlayer.registerTracker(dh.swimTracker);
-            dh.vrPlayer.registerTracker(dh.swingTracker);
-            dh.vrPlayer.registerTracker(dh.interactTracker);
-            dh.vrPlayer.registerTracker(dh.teleportTracker);
-            dh.vrPlayer.registerTracker(dh.horseTracker);
-            dh.vrPlayer.registerTracker(dh.vehicleTracker);
-            dh.vrPlayer.registerTracker(dh.crawlTracker);
-            dh.vrPlayer.registerTracker(dh.cameraTracker);
+            for(Tracker t : dh.getTrackers()) {
+                dh.vrPlayer.registerTracker(t);
+            }
 
             dh.menuWorldRenderer = new MenuWorldRenderer();
 
@@ -150,10 +138,14 @@ public class VRState {
         if (disableVRSetting) {
             dh.vrSettings.vrEnabled = false;
             dh.vrSettings.saveOptions();
-        }
-        // fixes an issue with DH shaders where the depth texture gets stuck
-        if (Xplat.isModLoaded("distanthorizons") && disableVRSetting) {
-            ShadersHelper.maybeReloadShaders();
+
+            // fixes an issue with DH shaders where the depth texture gets stuck
+            if (Xplat.isModLoaded("distanthorizons")) {
+                ShadersHelper.maybeReloadShaders();
+            }
+
+            // this reloads any PostChain, at least in vanilla
+            Minecraft.getInstance().levelRenderer.onResourceManagerReload(Minecraft.getInstance().getResourceManager());
         }
     }
 }

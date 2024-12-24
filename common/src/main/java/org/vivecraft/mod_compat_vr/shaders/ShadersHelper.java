@@ -1,4 +1,4 @@
-package org.vivecraft.mod_compat_vr;
+package org.vivecraft.mod_compat_vr.shaders;
 
 import org.vivecraft.mod_compat_vr.iris.IrisHelper;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;

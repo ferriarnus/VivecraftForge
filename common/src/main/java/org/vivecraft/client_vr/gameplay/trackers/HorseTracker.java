@@ -51,8 +51,6 @@ public class HorseTracker extends Tracker {
 
     @Override
     public void reset(LocalPlayer player) {
-        super.reset(player);
-
         if (this.horse != null) {
             this.horse.setNoAi(false);
         }

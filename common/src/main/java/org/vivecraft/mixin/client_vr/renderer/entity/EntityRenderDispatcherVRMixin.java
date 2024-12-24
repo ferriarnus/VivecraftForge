@@ -42,6 +42,14 @@ public abstract class EntityRenderDispatcherVRMixin implements EntityRenderDispa
         }
     }
 
+    @Inject(method = "distanceToSqr*", at = @At("HEAD"), cancellable = true)
+    private void vivecraft$checkCameraNull(CallbackInfoReturnable<Double> cir) {
+        // in case someone wants to get the camera distance, before the camera got set
+        if (this.camera == null) {
+            cir.setReturnValue(0.0D);
+        }
+    }
+
     @Inject(method = "onResourceManagerReload", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderers;createPlayerRenderers(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Ljava/util/Map;"))
     private void vivecraft$reload(ResourceManager resourceManager, CallbackInfo ci, @Local EntityRendererProvider.Context context) {
         this.vivecraft$armSkinMap.put("default", new VRArmRenderer(context, false));

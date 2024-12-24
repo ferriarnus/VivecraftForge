@@ -46,7 +46,7 @@ import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
-import org.vivecraft.mod_compat_vr.ShadersHelper;
+import org.vivecraft.mod_compat_vr.shaders.ShadersHelper;
 import org.vivecraft.mod_compat_vr.immersiveportals.ImmersivePortalsHelper;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 
@@ -702,7 +702,7 @@ public class VREffectsHelper {
             return;
         }
         if (!MC.player.isAlive()) return;
-        if (MC.player.getVehicle() != null) return;
+        if (MC.player.isPassenger() || MC.player != MC.getCameraEntity()) return;
         // no indicator when swimming/crawling
         if (((PlayerExtension) MC.player).vivecraft$getRoomYOffsetFromPose() < 0.0D) return;
 

@@ -130,10 +130,6 @@ public abstract class GameRendererVRMixin
     @Final
     private Camera mainCamera;
 
-    @Shadow
-    @Nullable
-    private PostChain postEffect;
-
     @Redirect(method = "<init>", at = @At(value = "NEW", target = "net/minecraft/client/Camera"))
     private Camera vivecraft$replaceCamera() {
         return new XRCamera();
@@ -143,28 +139,6 @@ public abstract class GameRendererVRMixin
     private void vivecraft$shutdownVREffects(CallbackInfo ci) {
         if (VRState.VR_INITIALIZED) {
             RenderPassManager.setVanillaRenderPass();
-            RenderPassManager.INSTANCE.vanillaPostEffect = null;
-            if (WorldRenderPass.STEREO_XR != null && WorldRenderPass.STEREO_XR.postEffect != null) {
-                WorldRenderPass.STEREO_XR.postEffect.close();
-                WorldRenderPass.STEREO_XR.postEffect = null;
-            }
-            if (WorldRenderPass.CENTER != null && WorldRenderPass.CENTER.postEffect != null) {
-                WorldRenderPass.CENTER.postEffect.close();
-                WorldRenderPass.CENTER.postEffect = null;
-            }
-        }
-    }
-
-    @Inject(method = "loadEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/PostChain;resize(II)V", shift = Shift.AFTER))
-    private void vivecraft$loadVREffects(ResourceLocation resourceLocation, CallbackInfo ci) throws IOException {
-        if (VRState.VR_INITIALIZED) {
-            RenderPassManager.INSTANCE.vanillaPostEffect = this.postEffect;
-            if (WorldRenderPass.STEREO_XR != null) {
-                WorldRenderPass.STEREO_XR.postEffect = WorldRenderPass.createPostChain(resourceLocation, WorldRenderPass.STEREO_XR.target);
-            }
-            if (WorldRenderPass.CENTER != null) {
-                WorldRenderPass.CENTER.postEffect = WorldRenderPass.createPostChain(resourceLocation, WorldRenderPass.CENTER.target);
-            }
         }
     }
 
@@ -476,7 +450,7 @@ public abstract class GameRendererVRMixin
             }
         }
 
-        this.vivecraft$cacheRVEPos((LivingEntity) this.minecraft.getCameraEntity());
+        this.vivecraft$cacheRVEPos(this.minecraft.getCameraEntity());
         this.vivecraft$setupRVE();
         this.vivecraft$setupOverlayStatus();
     }
@@ -515,7 +489,7 @@ public abstract class GameRendererVRMixin
     @Inject(method = "renderLevel", at = @At(value = "TAIL"))
     private void vivecraft$restoreRVE(CallbackInfo ci) {
         if (!RenderPassType.isVanilla()) {
-            this.vivecraft$restoreRVEPos((LivingEntity) this.minecraft.getCameraEntity());
+            this.vivecraft$restoreRVEPos(this.minecraft.getCameraEntity());
         }
     }
 
@@ -526,7 +500,7 @@ public abstract class GameRendererVRMixin
             VRData.VRDevicePose eyePose = vivecraft$DATA_HOLDER.vrPlayer.vrdata_world_render
                 .getEye(vivecraft$DATA_HOLDER.currentPass);
             Vec3 eye = eyePose.getPosition();
-            LivingEntity entity = (LivingEntity) this.minecraft.getCameraEntity();
+            Entity entity = this.minecraft.getCameraEntity();
             entity.setPosRaw(eye.x, eye.y, eye.z);
             entity.xOld = eye.x;
             entity.yOld = eye.y;
@@ -537,8 +511,10 @@ public abstract class GameRendererVRMixin
             entity.setXRot(-eyePose.getPitch());
             entity.xRotO = entity.getXRot();
             entity.setYRot(eyePose.getYaw());
-            entity.yHeadRot = entity.getYRot();
-            entity.yHeadRotO = entity.getYRot();
+            if (entity instanceof LivingEntity livingEntity) {
+                livingEntity.yHeadRot = entity.getYRot();
+                livingEntity.yHeadRotO = entity.getYRot();
+            }
             // non 0 to fix some division by 0 issues
             entity.eyeHeight = 0.0001F;
         }
@@ -546,7 +522,7 @@ public abstract class GameRendererVRMixin
 
     @Override
     @Unique
-    public void vivecraft$cacheRVEPos(LivingEntity entity) {
+    public void vivecraft$cacheRVEPos(Entity entity) {
         if (this.minecraft.getCameraEntity() != null && !this.vivecraft$cached) {
             this.vivecraft$rveX = entity.getX();
             this.vivecraft$rveY = entity.getY();
@@ -557,18 +533,23 @@ public abstract class GameRendererVRMixin
             this.vivecraft$rveprevX = entity.xo;
             this.vivecraft$rveprevY = entity.yo;
             this.vivecraft$rveprevZ = entity.zo;
-            this.vivecraft$rveyaw = entity.yHeadRot;
             this.vivecraft$rvepitch = entity.getXRot();
-            this.vivecraft$rvelastyaw = entity.yHeadRotO;
             this.vivecraft$rvelastpitch = entity.xRotO;
             this.vivecraft$rveHeight = entity.getEyeHeight();
+            if (entity instanceof LivingEntity livingEntity) {
+                this.vivecraft$rveyaw = livingEntity.yHeadRot;
+                this.vivecraft$rvelastyaw = livingEntity.yHeadRotO;
+            } else {
+                this.vivecraft$rveyaw = entity.getYRot();
+                this.vivecraft$rvelastyaw = entity.yRotO;;
+            }
             this.vivecraft$cached = true;
         }
     }
 
     @Override
     @Unique
-    public void vivecraft$restoreRVEPos(LivingEntity entity) {
+    public void vivecraft$restoreRVEPos(Entity entity) {
         if (entity != null) {
             entity.setPosRaw(this.vivecraft$rveX, this.vivecraft$rveY, this.vivecraft$rveZ);
             entity.xOld = this.vivecraft$rvelastX;
@@ -577,13 +558,15 @@ public abstract class GameRendererVRMixin
             entity.xo = this.vivecraft$rveprevX;
             entity.yo = this.vivecraft$rveprevY;
             entity.zo = this.vivecraft$rveprevZ;
-            entity.setYRot(this.vivecraft$rveyaw);
             entity.setXRot(this.vivecraft$rvepitch);
-            entity.yRotO = this.vivecraft$rvelastyaw;
             entity.xRotO = this.vivecraft$rvelastpitch;
-            entity.yHeadRot = this.vivecraft$rveyaw;
-            entity.yHeadRotO = this.vivecraft$rvelastyaw;
+            entity.setYRot(this.vivecraft$rveyaw);
+            entity.yRotO = this.vivecraft$rvelastyaw;
             entity.eyeHeight = this.vivecraft$rveHeight;
+            if (entity instanceof LivingEntity livingEntity) {
+                livingEntity.yHeadRot = this.vivecraft$rveyaw;
+                livingEntity.yHeadRotO = this.vivecraft$rvelastyaw;
+            }
             this.vivecraft$cached = false;
         }
     }

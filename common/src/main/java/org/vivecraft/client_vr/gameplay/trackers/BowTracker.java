@@ -83,6 +83,11 @@ public class BowTracker extends Tracker {
     }
 
     @Override
+    public boolean itemInUse(LocalPlayer player) {
+        return this.isDrawing;
+    }
+
+    @Override
     public boolean isActive(LocalPlayer player) {
         if (player == null) {
             return false;

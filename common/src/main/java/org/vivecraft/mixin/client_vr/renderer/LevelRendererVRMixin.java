@@ -18,10 +18,10 @@ import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
@@ -47,7 +47,7 @@ import org.vivecraft.client_vr.render.helpers.VREffectsHelper;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_xr.render_pass.RenderPassManager;
 import org.vivecraft.client_xr.render_pass.RenderPassType;
-import org.vivecraft.mod_compat_vr.ShadersHelper;
+import org.vivecraft.mod_compat_vr.shaders.ShadersHelper;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 
 import javax.annotation.Nullable;
@@ -77,20 +77,6 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
     private ClientLevel level;
     @Shadow
     private PostChain transparencyChain;
-    @Shadow
-    private RenderTarget translucentTarget;
-    @Shadow
-    private RenderTarget itemEntityTarget;
-    @Shadow
-    private RenderTarget particlesTarget;
-    @Shadow
-    private RenderTarget weatherTarget;
-    @Shadow
-    private RenderTarget cloudsTarget;
-    @Shadow
-    private PostChain entityEffect;
-    @Shadow
-    private RenderTarget entityTarget;
     @Final
     @Shadow
     private RenderBuffers renderBuffers;
@@ -133,13 +119,6 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
     private void vivecraft$reinitVR(ResourceManager resourceManager, CallbackInfo ci) {
         if (VRState.VR_INITIALIZED) {
             ClientDataHolderVR.getInstance().vrRenderer.reinitFrameBuffers("Resource Reload");
-        }
-    }
-
-    @Inject(method = "renderLevel", at = @At("HEAD"))
-    private void vivecraft$setShaders(CallbackInfo ci) {
-        if (!RenderPassType.isVanilla()) {
-            this.vivecraft$setShaderGroup();
         }
     }
 
@@ -186,7 +165,7 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
     {
         if (!RenderPassType.isVanilla() && entity == this.minecraft.getCameraEntity()) {
             capturedEntity.set(entity);
-            ((GameRendererExtension) this.minecraft.gameRenderer).vivecraft$restoreRVEPos((LivingEntity) capturedEntity.get());
+            ((GameRendererExtension) this.minecraft.gameRenderer).vivecraft$restoreRVEPos(capturedEntity.get());
         }
         this.vivecraft$renderedEntity = entity;
     }
@@ -197,7 +176,7 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
         @Share("capturedEntity") LocalRef<Entity> capturedEntity)
     {
         if (capturedEntity.get() != null) {
-            ((GameRendererExtension) this.minecraft.gameRenderer).vivecraft$cacheRVEPos((LivingEntity) capturedEntity.get());
+            ((GameRendererExtension) this.minecraft.gameRenderer).vivecraft$cacheRVEPos(capturedEntity.get());
             ((GameRendererExtension) this.minecraft.gameRenderer).vivecraft$setupRVE();
         }
         this.vivecraft$renderedEntity = null;
@@ -356,98 +335,41 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
     }
 
     @Inject(method = {"initOutline", "initTransparency"}, at = @At("HEAD"))
-    private void vivecraft$restorePostChain(CallbackInfo ci) {
+    private void vivecraft$ensureVanillaPass(CallbackInfo ci) {
         if (VRState.VR_INITIALIZED) {
-            vivecraft$restoreVanillaPostChains();
-            ClientDataHolderVR.getInstance().vrRenderer.reinitFrameBuffers("Outline/Transparency shaders Reloaded");
+            RenderPassManager.setVanillaRenderPass();
         }
     }
 
-    @Inject(method = "initOutline", at = @At("TAIL"))
-    private void vivecraft$captureOutlineChain(CallbackInfo ci) {
-        RenderPassManager.INSTANCE.vanillaOutlineChain = this.entityEffect;
+    @WrapOperation(method = "initTransparency", at = @At(value = "NEW", target = "net/minecraft/resources/ResourceLocation"))
+    private ResourceLocation vivecraft$vrTransparency(String location, Operation<ResourceLocation> original) {
+        if (VRState.VR_INITIALIZED) {
+            return original.call("shaders/post/vrtransparency.json");
+        } else {
+            return original.call(location);
+        }
     }
 
     @Inject(method = "initTransparency", at = @At("TAIL"))
-    private void vivecraft$captureTransparencyChain(CallbackInfo ci) {
-        RenderPassManager.INSTANCE.vanillaTransparencyChain = this.transparencyChain;
+    private void vivecraft$getVRTargets(CallbackInfo ci) {
+        if (VRState.VR_INITIALIZED && this.transparencyChain != null) {
+            this.vivecraft$alphaSortVRHandsFramebuffer = this.transparencyChain.getTempTarget("vrhands");
+            this.vivecraft$alphaSortVROccludedFramebuffer = this.transparencyChain.getTempTarget("vroccluded");
+            this.vivecraft$alphaSortVRUnoccludedFramebuffer = this.transparencyChain.getTempTarget("vrunoccluded");
+        }
     }
 
     @Inject(method = "deinitTransparency", at = @At("TAIL"))
-    private void vivecraft$removeTransparencyChain(CallbackInfo ci) {
-        RenderPassManager.INSTANCE.vanillaTransparencyChain = null;
-    }
-
-    @Inject(method = "close", at = @At("TAIL"))
-    private void vivecraft$removePostChains(CallbackInfo ci) {
-        RenderPassManager.INSTANCE.vanillaOutlineChain = null;
-        RenderPassManager.INSTANCE.vanillaTransparencyChain = null;
+    private void vivecraft$removeVRTargets(CallbackInfo ci) {
+        this.vivecraft$alphaSortVRHandsFramebuffer = null;
+        this.vivecraft$alphaSortVROccludedFramebuffer = null;
+        this.vivecraft$alphaSortVRUnoccludedFramebuffer = null;
     }
 
     @Override
     @Unique
     public Entity vivecraft$getRenderedEntity() {
         return this.vivecraft$renderedEntity;
-    }
-
-    @Override
-    @Unique
-    public void vivecraft$restoreVanillaPostChains() {
-        this.transparencyChain = RenderPassManager.INSTANCE.vanillaTransparencyChain;
-
-        if (this.transparencyChain != null) {
-            this.translucentTarget = this.transparencyChain.getTempTarget("translucent");
-            this.itemEntityTarget = this.transparencyChain.getTempTarget("itemEntity");
-            this.particlesTarget = this.transparencyChain.getTempTarget("particles");
-            this.weatherTarget = this.transparencyChain.getTempTarget("weather");
-            this.cloudsTarget = this.transparencyChain.getTempTarget("clouds");
-        } else {
-            this.translucentTarget = null;
-            this.itemEntityTarget = null;
-            this.particlesTarget = null;
-            this.weatherTarget = null;
-            this.cloudsTarget = null;
-        }
-
-        this.entityEffect = RenderPassManager.INSTANCE.vanillaOutlineChain;
-        if (this.entityEffect != null) {
-            this.entityTarget = this.entityEffect.getTempTarget("final");
-        } else {
-            this.entityTarget = null;
-        }
-    }
-
-    @Unique
-    private void vivecraft$setShaderGroup() {
-        this.transparencyChain = RenderPassManager.WRP.transparencyChain;
-
-        if (this.transparencyChain != null) {
-            this.translucentTarget = this.transparencyChain.getTempTarget("translucent");
-            this.itemEntityTarget = this.transparencyChain.getTempTarget("itemEntity");
-            this.particlesTarget = this.transparencyChain.getTempTarget("particles");
-            this.weatherTarget = this.transparencyChain.getTempTarget("weather");
-            this.cloudsTarget = this.transparencyChain.getTempTarget("clouds");
-            this.vivecraft$alphaSortVRHandsFramebuffer = this.transparencyChain.getTempTarget("vrhands");
-            this.vivecraft$alphaSortVROccludedFramebuffer = this.transparencyChain.getTempTarget("vroccluded");
-            this.vivecraft$alphaSortVRUnoccludedFramebuffer = this.transparencyChain.getTempTarget("vrunoccluded");
-        } else {
-            this.translucentTarget = null;
-            this.itemEntityTarget = null;
-            this.particlesTarget = null;
-            this.weatherTarget = null;
-            this.cloudsTarget = null;
-            this.vivecraft$alphaSortVRHandsFramebuffer = null;
-            this.vivecraft$alphaSortVROccludedFramebuffer = null;
-            this.vivecraft$alphaSortVRUnoccludedFramebuffer = null;
-        }
-
-        this.entityEffect = RenderPassManager.WRP.outlineChain;
-
-        if (this.entityEffect != null) {
-            this.entityTarget = this.entityEffect.getTempTarget("final");
-        } else {
-            this.entityTarget = null;
-        }
     }
 
     @Override

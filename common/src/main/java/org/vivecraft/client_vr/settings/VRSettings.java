@@ -195,6 +195,8 @@ public class VRSettings {
     public String[] vrRadialItems = getRadialItemsDefault();
     @SettingField(config = "RADIALALT", separate = true)
     public String[] vrRadialItemsAlt = getRadialItemsAltDefault();
+    @SettingField(fixedSize = false)
+    public String[] vrServerBlacklist = getServerBlacklistDefault();
 
     @SettingField(VrOptions.RADIAL_NUMBER)
     public int vrRadialButtons = 8;
@@ -512,6 +514,10 @@ public class VRSettings {
     public ShaderGUIRender shaderGUIRender = ShaderGUIRender.AFTER_SHADER;
     @SettingField(VrOptions.SHADER_SHADOW_MODEL_LIMB_SCALE)
     public boolean shaderFullSizeShadowLimbs = true;
+    @SettingField(VrOptions.SHADER_SLOW)
+    public boolean disableShaderOptimization = false;
+    @SettingField(VrOptions.SHADER_PATCHING)
+    public boolean shaderPatching = true;
     @SettingField(VrOptions.DOUBLE_GUI_RESOLUTION)
     public boolean doubleGUIResolution = false;
     @SettingField(VrOptions.GUI_SCALE)
@@ -1420,6 +1426,8 @@ public class VRSettings {
         GUI_APPEAR_OVER_BLOCK(false, true), // Appear Over Block
         SHADER_GUI_RENDER(false, false), // Shaders GUI
         SHADER_SHADOW_MODEL_LIMB_SCALE(false, false), // Shaders if player shadows should use full size limbs or first person size
+        SHADER_SLOW(false, true, "options.off", "vivecraft.options.disableshaderoptimization.auto"), // disables shader optimizations
+        SHADER_PATCHING(false, true), // automatic shader patching for known incompatibilites
         DOUBLE_GUI_RESOLUTION(false, true), // 1440p GUI
         GUI_SCALE(true, true, 0, 6, 1, 0) { // GUI Scale
 
@@ -2199,6 +2207,10 @@ public class VRSettings {
         }
 
         return out;
+    }
+
+    public String[] getServerBlacklistDefault() {
+        return new String[]{"mc.hypixel.net"};
     }
 
     public int[] getKeyboardCodesDefault() {

@@ -16,15 +16,11 @@ public class EatingTracker extends Tracker {
     private static final float THRESHOLD = 0.25F;
     private static final long EAT_TIME = 2100L;
 
-    public boolean[] eating = new boolean[2];
+    private final boolean[] eating = new boolean[2];
     private long eatStart;
 
     public EatingTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
-    }
-
-    public boolean isEating() {
-        return this.eating[0] || this.eating[1];
     }
 
     @Override
@@ -52,6 +48,11 @@ public class EatingTracker extends Tracker {
             }
             return false;
         }
+    }
+
+    @Override
+    public boolean itemInUse(LocalPlayer player) {
+        return this.eating[0] || this.eating[1];
     }
 
     @Override

@@ -28,14 +28,24 @@ public class VivecraftMainSettings extends GuiListScreen {
 
         entries.add(new SettingsList.WidgetEntry(
             Component.translatable("vivecraft.options.screen.main"),
-            Button.builder(Component.translatable("vivecraft.options.screen.main"), button -> this.minecraft.setScreen(new GuiMainVRSettings(this)))
+            Button.builder(Component.translatable("vivecraft.options.screen.main"),
+                    button -> this.minecraft.setScreen(new GuiMainVRSettings(this)))
                 .size(SettingsList.WidgetEntry.VALUE_BUTTON_WIDTH, 20)
                 .build()
         ));
 
         entries.add(new SettingsList.WidgetEntry(
             Component.translatable("vivecraft.options.screen.server"),
-            Button.builder(Component.translatable("vivecraft.options.screen.server"), button -> this.minecraft.setScreen(new GuiServerSettings(this)))
+            Button.builder(Component.translatable("vivecraft.options.screen.server"),
+                    button -> this.minecraft.setScreen(new GuiServerSettings(this)))
+                .size(SettingsList.WidgetEntry.VALUE_BUTTON_WIDTH, 20)
+                .build()
+        ));
+
+        entries.add(new SettingsList.WidgetEntry(
+            Component.translatable("vivecraft.options.screen.blocklist"),
+            Button.builder(Component.translatable("vivecraft.options.screen.blocklist"),
+                    button -> this.minecraft.setScreen(new GuiBlacklistEditor(this)))
                 .size(SettingsList.WidgetEntry.VALUE_BUTTON_WIDTH, 20)
                 .build()
         ));

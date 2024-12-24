@@ -1,6 +1,6 @@
 package org.vivecraft.client_vr.extensions;
 
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
@@ -24,12 +24,12 @@ public interface GameRendererExtension {
     /**
      * cache the player position/rotation to be able to restore it later
      */
-    void vivecraft$cacheRVEPos(LivingEntity entity);
+    void vivecraft$cacheRVEPos(Entity entity);
 
     /**
      * restore the cached player position/rotation
      */
-    void vivecraft$restoreRVEPos(LivingEntity entity);
+    void vivecraft$restoreRVEPos(Entity entity);
 
     /**
      * @return the cached original player y position

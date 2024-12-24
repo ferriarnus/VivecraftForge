@@ -38,6 +38,8 @@ public class IrisHelper {
 
     private static Method CapturedRenderingState_getGbufferProjection;
 
+    public static boolean SLOW_MODE = false;
+
     public static boolean isLoaded() {
         return Xplat.isModLoaded("iris") || Xplat.isModLoaded("oculus");
     }

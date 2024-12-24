@@ -23,9 +23,4 @@ public interface LevelRendererExtension {
      * @return RenderTarget used for the hands when using fabulous graphics
      */
     RenderTarget vivecraft$getAlphaSortVRHandsFramebuffer();
-
-    /**
-     * restores the active PostChains to the vanilla pass ones
-     */
-    void vivecraft$restoreVanillaPostChains();
 }

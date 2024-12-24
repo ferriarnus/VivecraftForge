@@ -282,6 +282,9 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
 
     @Inject(method = "runTick", at = @At("HEAD"))
     private void vivecraft$toggleVRState(CallbackInfo callback) {
+        if (ClientDataHolderVR.getInstance().completelyDisabled) {
+            VRState.VR_ENABLED = false;
+        }
         if (VRState.VR_ENABLED) {
             VRState.initializeVR();
         } else if (VRState.VR_INITIALIZED) {
@@ -410,6 +413,22 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
         }
     }
 
+    @Inject(method = "setCameraEntity", at = @At("HEAD"))
+    private void vivecraft$rideEntity(Entity entity, CallbackInfo ci){
+        if (VRState.VR_INITIALIZED) {
+            if (entity != this.getCameraEntity()) {
+                // snap to entity, if it changed
+                ClientDataHolderVR.getInstance().vrPlayer.snapRoomOriginToPlayerEntity(entity, true, false);
+            }
+            if (entity != this.player) {
+                // ride the new camera entity
+                ClientDataHolderVR.getInstance().vehicleTracker.onStartRiding(entity);
+            } else {
+                ClientDataHolderVR.getInstance().vehicleTracker.onStopRiding();
+            }
+        }
+    }
+
     // the VR runtime handles the frame limit, no need to manually limit it 60fps
     @ModifyExpressionValue(method = "doWorldLoad", at = @At(value = "CONSTANT", args = "longValue=16"))
     private long vivecraft$noWaitOnLevelLoad(long original) {
@@ -419,10 +438,6 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
     @Inject(method = "resizeDisplay", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getMainRenderTarget()Lcom/mojang/blaze3d/pipeline/RenderTarget;"))
     private void vivecraft$restoreVanillaState(CallbackInfo ci) {
         if (VRState.VR_INITIALIZED) {
-            // restore vanilla post chains before the resize, or it will resize the wrong ones
-            if (this.levelRenderer != null) {
-                ((LevelRendererExtension) this.levelRenderer).vivecraft$restoreVanillaPostChains();
-            }
             if (VRState.VR_RUNNING) {
                 RenderPassManager.setGUIRenderPass();
             } else {
@@ -703,8 +718,7 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
         if (!VRState.VR_RUNNING || ClientDataHolderVR.getInstance().vrSettings.seated) {
             return useKeyDown;
         } else {
-            return useKeyDown || ClientDataHolderVR.getInstance().bowTracker.isActive(this.player) ||
-                ClientDataHolderVR.getInstance().autoFood.isEating();
+            return useKeyDown || ClientDataHolderVR.getInstance().vrPlayer.isTrackerUsingItem(this.player);
         }
     }
 

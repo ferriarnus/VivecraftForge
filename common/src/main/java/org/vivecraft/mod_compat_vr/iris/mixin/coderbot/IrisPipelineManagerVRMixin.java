@@ -5,6 +5,8 @@ import net.coderbot.iris.pipeline.WorldRenderingPipeline;
 import net.coderbot.iris.shaderpack.DimensionId;
 import net.coderbot.iris.shaderpack.materialmap.NamespacedId;
 import net.coderbot.iris.shadows.ShadowRenderTargets;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Desc;
@@ -19,6 +21,7 @@ import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_xr.render_pass.RenderPassManager;
 import org.vivecraft.client_xr.render_pass.RenderPassType;
 import org.vivecraft.client_xr.render_pass.WorldRenderPass;
+import org.vivecraft.mod_compat_vr.iris.IrisHelper;
 import org.vivecraft.mod_compat_vr.iris.extensions.PipelineManagerExtension;
 
 import java.util.HashMap;
@@ -103,6 +106,8 @@ public class IrisPipelineManagerVRMixin implements PipelineManagerExtension {
                 // main pipeline also sets this, but we don't want that, since it is unused
                 this.vivecraft$shadowRenderTargets = null;
 
+                boolean first = true;
+
                 for (RenderPass renderPass : RenderPass.values()) {
                     VRSettings.LOGGER.info("Vivecraft: Creating VR pipeline for dimension {}, RenderPass {}", newDimension, renderPass);
                     WorldRenderPass worldRenderPass = null;
@@ -127,6 +132,13 @@ public class IrisPipelineManagerVRMixin implements PipelineManagerExtension {
 
                     WorldRenderingPipeline pipe = this.pipelineFactory.apply(newDimension);
                     this.vivecraft$vrPipelinesPerDimension.get(newDimension).put(renderPass, pipe);
+
+                    if (first && IrisHelper.SLOW_MODE &&
+                        !ClientDataHolderVR.getInstance().vrSettings.disableShaderOptimization)
+                    {
+                        first = false;
+                        Minecraft.getInstance().gui.getChat().addMessage(Component.translatable("vivecraft.messages.slowshader"));
+                    }
                 }
                 // set to currently needed renderpass again
                 if (this.vivecraft$currentWorldRenderPass != null) {
