@@ -143,7 +143,9 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
 
     @Inject(method = "move", at = @At("HEAD"), cancellable = true)
     private void vivecraft$overwriteMove(MoverType type, Vec3 pos, CallbackInfo ci) {
-        if (!VRState.VR_RUNNING || !vivecraft$isLocalPlayer(this)) {
+        if (!VRState.VR_RUNNING || !vivecraft$isLocalPlayer(this) ||
+            Minecraft.getInstance().getCameraEntity() != (Object) this)
+        {
             return;
         }
         // stuckSpeedMultiplier gets zeroed in the super call.
@@ -275,14 +277,9 @@ public abstract class LocalPlayerVRMixin extends LocalPlayer_PlayerVRMixin imple
         double newY = this.getY();
         double newZ = this.getZ();
 
-        if (this.isPassenger()) {
-            Vec3 offset = ClientDataHolderVR.getInstance().vehicleTracker.Premount_Pos_Room;
-            offset = offset.yRot(ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_pre.rotation_radians);
-            x = x - offset.x;
-            y = ClientDataHolderVR.getInstance().vehicleTracker.getVehicleFloor(this.getVehicle(), y);
-            z = z - offset.z;
-            ClientDataHolderVR.getInstance().vrPlayer.setRoomOrigin(x, y, z, x + y + z == 0.0D);
-        } else {
+        if (Minecraft.getInstance().getCameraEntity() == (Object) this && this.isPassenger()) {
+            ClientDataHolderVR.getInstance().vehicleTracker.updateRiderPos(x, y, z, this.getVehicle());
+        } else if (!ClientDataHolderVR.getInstance().vehicleTracker.isRiding()) {
             Vec3 roomOrigin = ClientDataHolderVR.getInstance().vrPlayer.roomOrigin;
             VRPlayer.get().setRoomOrigin(
                 roomOrigin.x + (newX - oldX),

@@ -59,12 +59,12 @@ public abstract class FishingHookMixin extends Entity {
         @Share("dir") LocalRef<Vec3> controllerDir, @Share("pos") LocalRef<Vec3> controllerPos)
     {
         if (controllerPos.get() != null) {
-            instance.moveTo(
+            original.call(
+                instance,
                 controllerPos.get().x + controllerDir.get().x * 0.6F,
                 controllerPos.get().y + controllerDir.get().y * 0.6F,
                 controllerPos.get().z + controllerDir.get().z * 0.6F,
                 yRot, xRot);
-            original.call(instance, x, y, z, yRot, xRot);
         } else {
             original.call(instance, x, y, z, yRot, xRot);
         }

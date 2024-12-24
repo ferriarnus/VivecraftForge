@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_xr.render_pass.RenderPassType;
+import org.vivecraft.mod_compat_vr.iris.IrisHelper;
 
 @Pseudo
 @Mixin(targets = {
@@ -28,7 +29,7 @@ public class IrisShadowMatricesMixin {
     private static float vivecraft$modifyOffsetX(
         float xOffset, @Local(argsOnly = true) float shadowIntervalSize, @Share("curPos") LocalRef<Vec3> curPos)
     {
-        if (!RenderPassType.isVanilla()) {
+        if (!RenderPassType.isVanilla() && !IrisHelper.SLOW_MODE) {
             curPos.set(RenderHelper.getSmoothCameraPosition(ClientDataHolderVR.getInstance().currentPass, ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld()));
             if (ClientDataHolderVR.getInstance().isFirstPass) {
                 vivecraft$FIRST_PASS_POS = curPos.get();
@@ -43,7 +44,7 @@ public class IrisShadowMatricesMixin {
     private static float vivecraft$modifyOffsetY(
         float yOffset, @Local(argsOnly = true) float shadowIntervalSize, @Share("curPos") LocalRef<Vec3> curPos)
     {
-        if (!RenderPassType.isVanilla()) {
+        if (!RenderPassType.isVanilla() && !IrisHelper.SLOW_MODE) {
             return (float) (vivecraft$FIRST_PASS_POS.y % shadowIntervalSize - (vivecraft$FIRST_PASS_POS.y - curPos.get().y));
         } else {
             return yOffset;
@@ -54,7 +55,7 @@ public class IrisShadowMatricesMixin {
     private static float vivecraft$modifyOffsetZ(
         float zOffset, @Local(argsOnly = true) float shadowIntervalSize, @Share("curPos") LocalRef<Vec3> curPos)
     {
-        if (!RenderPassType.isVanilla()) {
+        if (!RenderPassType.isVanilla() && !IrisHelper.SLOW_MODE) {
             return (float) (vivecraft$FIRST_PASS_POS.z % shadowIntervalSize - (vivecraft$FIRST_PASS_POS.z - curPos.get().z));
         } else {
             return zOffset;

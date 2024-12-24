@@ -274,6 +274,9 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
 
     @Inject(method = "runTick", at = @At("HEAD"))
     private void vivecraft$toggleVRState(CallbackInfo callback) {
+        if (ClientDataHolderVR.getInstance().completelyDisabled) {
+            VRState.VR_ENABLED = false;
+        }
         if (VRState.VR_ENABLED) {
             VRState.initializeVR();
         } else if (VRState.VR_INITIALIZED) {
@@ -399,6 +402,22 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
             this.profiler.popPush("vrMirror");
             ShaderHelper.drawMirror();
             RenderHelper.checkGLError("post-mirror");
+        }
+    }
+
+    @Inject(method = "setCameraEntity", at = @At("HEAD"))
+    private void vivecraft$rideEntity(Entity entity, CallbackInfo ci){
+        if (VRState.VR_INITIALIZED) {
+            if (entity != this.getCameraEntity()) {
+                // snap to entity, if it changed
+                ClientDataHolderVR.getInstance().vrPlayer.snapRoomOriginToPlayerEntity(entity, true, false);
+            }
+            if (entity != this.player) {
+                // ride the new camera entity
+                ClientDataHolderVR.getInstance().vehicleTracker.onStartRiding(entity);
+            } else {
+                ClientDataHolderVR.getInstance().vehicleTracker.onStopRiding();
+            }
         }
     }
 

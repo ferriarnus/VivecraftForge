@@ -314,9 +314,9 @@ public class VRPlayer {
     }
 
     // set room
-    public void snapRoomOriginToPlayerEntity(LocalPlayer player, boolean reset, boolean instant) {
+    public void snapRoomOriginToPlayerEntity(Entity entity, boolean reset, boolean instant) {
         if (Thread.currentThread().getName().equals("Server thread") ||
-            player == null || player.position() == Vec3.ZERO ||
+            entity == null || entity.position() == Vec3.ZERO ||
             // avoid relocating the view while roomscale dismounting.
             this.dh.sneakTracker.sneakCounter > 0)
         {
@@ -330,10 +330,13 @@ public class VRPlayer {
             camPos = this.vrdata_world_pre.getHeadPivot().subtract(this.vrdata_world_pre.origin);
         }
 
-        double x = player.getX() - camPos.x;
-        double y = player.getZ() - camPos.z;
-        double z = player.getY() + ((PlayerExtension) player).vivecraft$getRoomYOffsetFromPose();
-        this.setRoomOrigin(x, z, y, reset);
+        double x = entity.getX() - camPos.x;
+        double y = entity.getY();
+        double z = entity.getZ() - camPos.z;
+        if (entity instanceof PlayerExtension extension) {
+            y += extension.vivecraft$getRoomYOffsetFromPose();
+        }
+        this.setRoomOrigin(x, y, z, reset);
     }
 
     // calculate the shortest difference between 2 angles.
@@ -430,7 +433,9 @@ public class VRPlayer {
             player.isSleeping() ||
             this.dh.jumpTracker.isjumping() ||
             this.dh.climbTracker.isGrabbingLadder() ||
-            !player.isAlive())
+            !player.isAlive() ||
+            // no movement when spectating
+            this.dh.vehicleTracker.isRiding())
         {
             return;
         }

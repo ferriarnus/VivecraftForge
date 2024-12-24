@@ -4,6 +4,8 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.irisshaders.iris.Iris;
+import net.irisshaders.iris.gl.buffer.ShaderStorageBufferHolder;
+import net.irisshaders.iris.gl.image.GlImage;
 import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
 import net.irisshaders.iris.shaderpack.programs.ProgramSet;
 import net.irisshaders.iris.shadows.ShadowRenderTargets;
@@ -11,10 +13,13 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_xr.render_pass.RenderPassType;
+import org.vivecraft.mod_compat_vr.iris.IrisHelper;
 import org.vivecraft.mod_compat_vr.iris.extensions.PipelineManagerExtension;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 @Pseudo
@@ -30,11 +35,25 @@ public class IrisRenderingPipelineVRMixin {
     @Shadow(remap = false)
     private Supplier<ShadowRenderTargets> shadowTargetsSupplier;
 
+    @Final
+    @Shadow(remap = false)
+    private Set<GlImage> customImages;
+
+    @Shadow(remap = false)
+    private ShaderStorageBufferHolder shaderStorageBufferHolder;
+
     // store shadowTargets of the first pipeline
     @Inject(method = "<init>", at = @At("TAIL"), remap = false)
-    private void vivecraft$storeShadowTargets(ProgramSet par1, CallbackInfo ci) {
-        if (((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$getShadowRenderTargets() == null) {
-            ((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$setShadowRenderTargets(this.shadowRenderTargets);
+    private void vivecraft$storeShadowTargets(ProgramSet programSet, CallbackInfo ci) {
+        IrisHelper.SLOW_MODE =
+            ClientDataHolderVR.getInstance().vrSettings.disableShaderOptimization || !this.customImages.isEmpty() ||
+                this.shaderStorageBufferHolder != null;
+
+        if (!IrisHelper.SLOW_MODE &&
+            ((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$getShadowRenderTargets() == null)
+        {
+            ((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$setShadowRenderTargets(
+                this.shadowRenderTargets);
         }
     }
 
@@ -43,7 +62,9 @@ public class IrisRenderingPipelineVRMixin {
         IrisRenderingPipeline instance, Supplier<ShadowRenderTargets> value, Operation<Void> original)
     {
         Supplier<ShadowRenderTargets> wrappedSupplier = () -> {
-            if (!RenderPassType.isVanilla() && this.shadowRenderTargets == null && ((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$getShadowRenderTargets() != null) {
+            if (!IrisHelper.SLOW_MODE && !RenderPassType.isVanilla() && this.shadowRenderTargets == null &&
+                ((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$getShadowRenderTargets() != null)
+            {
                 return (ShadowRenderTargets) ((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$getShadowRenderTargets();
             } else {
                 return value.get();
@@ -54,7 +75,7 @@ public class IrisRenderingPipelineVRMixin {
 
     @ModifyReturnValue(method = "shouldDisableVanillaEntityShadows()Z", at = @At("RETURN"), remap = false)
     private boolean vivecraft$shouldDisableEntityShadows(boolean noEntityShadows) {
-        return noEntityShadows || (!RenderPassType.isVanilla() &&
+        return noEntityShadows || (!IrisHelper.SLOW_MODE && !RenderPassType.isVanilla() &&
             ((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$getShadowRenderTargets() != null
         );
     }
@@ -74,7 +95,7 @@ public class IrisRenderingPipelineVRMixin {
     }, at = @At(value = "INVOKE", target = "Ljava/util/Objects;requireNonNull(Ljava/lang/Object;)Ljava/lang/Object;"), remap = false, expect = 0)
     private Object vivecraft$rerouteShadowTarget(Object obj) {
         // make sure we only change ShadowRenderTargets, since this might also inject into other lambdas
-        if (!RenderPassType.isVanilla() && obj instanceof ShadowRenderTargets || obj == null) {
+        if (!IrisHelper.SLOW_MODE && !RenderPassType.isVanilla() && obj instanceof ShadowRenderTargets || obj == null) {
             return Objects.requireNonNullElse(((PipelineManagerExtension) Iris.getPipelineManager()).vivecraft$getShadowRenderTargets(), obj);
         } else {
             return obj;

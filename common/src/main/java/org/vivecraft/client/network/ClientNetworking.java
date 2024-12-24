@@ -75,12 +75,14 @@ public class ClientNetworking {
 
     public static void sendVersionInfo() {
         // send version string, with currently running
-        Minecraft.getInstance().getConnection().send(createServerPacket(
-            new VersionPayloadC2S(
-                CommonDataHolder.getInstance().versionIdentifier,
-                VRState.VR_RUNNING,
-                CommonNetworkHelper.MAX_SUPPORTED_NETWORK_VERSION,
-                CommonNetworkHelper.MIN_SUPPORTED_NETWORK_VERSION)));
+        if (!ClientDataHolderVR.getInstance().completelyDisabled) {
+            Minecraft.getInstance().getConnection().send(createServerPacket(
+                new VersionPayloadC2S(
+                    CommonDataHolder.getInstance().versionIdentifier,
+                    VRState.VR_RUNNING,
+                    CommonNetworkHelper.MAX_SUPPORTED_NETWORK_VERSION,
+                    CommonNetworkHelper.MIN_SUPPORTED_NETWORK_VERSION)));
+        }
     }
 
     public static void sendVRPlayerPositions(VRPlayer vrPlayer) {

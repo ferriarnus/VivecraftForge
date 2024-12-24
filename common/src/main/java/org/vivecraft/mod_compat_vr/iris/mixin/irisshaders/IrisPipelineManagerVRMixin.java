@@ -4,6 +4,8 @@ import net.irisshaders.iris.pipeline.PipelineManager;
 import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
 import net.irisshaders.iris.shaderpack.materialmap.NamespacedId;
 import net.irisshaders.iris.shadows.ShadowRenderTargets;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Group;
@@ -98,6 +100,7 @@ public class IrisPipelineManagerVRMixin implements PipelineManagerExtension {
                 this.vivecraft$vrPipelinesCurrentDimension = this.vivecraft$vrPipelinesPerDimension.get(newDimension);
                 // main pipeline also sets this, but we don't want that, since it is unused
                 this.vivecraft$shadowRenderTargets = null;
+                boolean first = true;
 
                 for (RenderPass renderPass : RenderPass.values()) {
                     VRSettings.LOGGER.info("Vivecraft: Creating VR pipeline for dimension {}, RenderPass {}", newDimension, renderPass);
@@ -123,6 +126,13 @@ public class IrisPipelineManagerVRMixin implements PipelineManagerExtension {
 
                     WorldRenderingPipeline pipe = this.pipelineFactory.apply(newDimension);
                     this.vivecraft$vrPipelinesPerDimension.get(newDimension).put(renderPass, pipe);
+
+                    if (first && IrisHelper.SLOW_MODE &&
+                        !ClientDataHolderVR.getInstance().vrSettings.disableShaderOptimization)
+                    {
+                        first = false;
+                        Minecraft.getInstance().gui.getChat().addMessage(Component.translatable("vivecraft.messages.slowshader"));
+                    }
                 }
                 // set to currently needed renderpass again
                 if (this.vivecraft$currentWorldRenderPass != null) {

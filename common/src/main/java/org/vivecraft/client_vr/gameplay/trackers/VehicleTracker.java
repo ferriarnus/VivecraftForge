@@ -21,9 +21,11 @@ public class VehicleTracker extends Tracker {
     public Vec3 Premount_Pos_Room = Vec3.ZERO;
     public float vehicleInitialRotation = 0.0F;
     public int rotationCooldown = 0;
+    public int dismountCooldown = 0;
+
     private double rotationTarget = 0.0D;
     private int minecartStupidityCounter;
-    public int dismountCooldown = 0;
+    private boolean isRiding = false;
 
     public VehicleTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -43,6 +45,7 @@ public class VehicleTracker extends Tracker {
     @Override
     public void reset(LocalPlayer player) {
         this.minecartStupidityCounter = 2;
+        this.isRiding = false;
     }
 
     public double getVehicleFloor(Entity vehicle, double original) {
@@ -92,8 +95,14 @@ public class VehicleTracker extends Tracker {
                 this.rotationCooldown--;
             }
 
-            if (this.dh.vrSettings.vehicleRotation && this.mc.player.isPassenger() && this.rotationCooldown == 0) {
+            if (this.dh.vrSettings.vehicleRotation && this.rotationCooldown == 0 && (this.mc.player.isPassenger() ||
+                (this.mc.getCameraEntity() != null && this.mc.getCameraEntity() != this.mc.player)
+            ))
+            {
                 Entity entity = this.mc.player.getVehicle();
+                if (this.mc.getCameraEntity() != null && this.mc.getCameraEntity() != this.mc.player) {
+                    entity = this.mc.getCameraEntity();
+                }
                 this.rotationTarget = entity.getYRot();
 
                 if (entity instanceof AbstractHorse abstracthorse && !this.dh.horseTracker.isActive(this.mc.player)) {
@@ -161,14 +170,26 @@ public class VehicleTracker extends Tracker {
             } else {
                 this.minecartStupidityCounter = 3;
 
-                if (this.mc.player.isPassenger()) {
+                if (this.mc.getCameraEntity() != null && this.mc.getCameraEntity() != this.mc.player) {
+                    this.vehicleInitialRotation = this.mc.getCameraEntity().getYRot();
+                } else if (this.mc.player.isPassenger()) {
                     this.vehicleInitialRotation = this.mc.player.getVehicle().getYRot();
                 }
+            }
+
+            // vehicle movement
+            // passanger movement is done in LocalPlayerVRMixin#vivecraft$wrapSetPos
+            if (this.isRiding && this.mc.getCameraEntity() != null && this.mc.getCameraEntity() != this.mc.player) {
+                // try to make the eye height match
+                Vec3 ridingPos = this.mc.getCameraEntity().getEyePosition().subtract(0, this.mc.player.eyeHeight,0);
+
+                updateRiderPos(ridingPos.x, ridingPos.y, ridingPos.z, this.mc.getCameraEntity());
             }
         }
     }
 
     public void onStartRiding(Entity vehicle) {
+        this.isRiding = true;
         this.PreMount_World_Rotation = this.dh.vrPlayer.vrdata_world_pre.rotation_radians;
         Vec3 camPos = this.dh.vrPlayer.vrdata_room_pre.getHeadPivot();
         this.Premount_Pos_Room = new Vec3(camPos.x, 0.0D, camPos.z);
@@ -193,6 +214,7 @@ public class VehicleTracker extends Tracker {
     }
 
     public void onStopRiding() {
+        this.isRiding = false;
         this.dh.swingTracker.disableSwing = 10;
         this.dh.sneakTracker.sneakCounter = 0;
 
@@ -204,6 +226,18 @@ public class VehicleTracker extends Tracker {
             this.dh.vr.seatedRot = PreMount_World_Rotation;
         }
         */
+    }
+
+    public boolean isRiding() {
+        return this.isRiding;
+    }
+
+    public void updateRiderPos(double x, double y, double z, Entity entity) {
+        Vec3 offset = this.Premount_Pos_Room.yRot(this.dh.vrPlayer.vrdata_world_pre.rotation_radians);
+        x = x - offset.x;
+        y = getVehicleFloor(entity, y);
+        z = z - offset.z;
+        this.dh.vrPlayer.setRoomOrigin(x, y, z, x + y + z == 0.0D);
     }
 
     private float getMinecartRenderYaw(Minecart entity) {

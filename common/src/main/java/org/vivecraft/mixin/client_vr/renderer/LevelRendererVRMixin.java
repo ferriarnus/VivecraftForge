@@ -21,7 +21,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
@@ -49,7 +48,7 @@ import org.vivecraft.client_vr.render.helpers.VREffectsHelper;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_xr.render_pass.RenderPassManager;
 import org.vivecraft.client_xr.render_pass.RenderPassType;
-import org.vivecraft.mod_compat_vr.ShadersHelper;
+import org.vivecraft.mod_compat_vr.shaders.ShadersHelper;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 
 import javax.annotation.Nullable;
@@ -182,7 +181,7 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
     {
         if (!RenderPassType.isVanilla() && entity == this.minecraft.getCameraEntity()) {
             capturedEntity.set(entity);
-            ((GameRendererExtension) this.minecraft.gameRenderer).vivecraft$restoreRVEPos((LivingEntity) capturedEntity.get());
+            ((GameRendererExtension) this.minecraft.gameRenderer).vivecraft$restoreRVEPos(capturedEntity.get());
         }
         this.vivecraft$renderedEntity = entity;
     }
@@ -193,7 +192,7 @@ public abstract class LevelRendererVRMixin implements ResourceManagerReloadListe
         @Share("capturedEntity") LocalRef<Entity> capturedEntity)
     {
         if (capturedEntity.get() != null) {
-            ((GameRendererExtension) this.minecraft.gameRenderer).vivecraft$cacheRVEPos((LivingEntity) capturedEntity.get());
+            ((GameRendererExtension) this.minecraft.gameRenderer).vivecraft$cacheRVEPos(capturedEntity.get());
             ((GameRendererExtension) this.minecraft.gameRenderer).vivecraft$setupRVE();
         }
         this.vivecraft$renderedEntity = null;

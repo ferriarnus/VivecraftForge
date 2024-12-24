@@ -9,7 +9,7 @@ import org.vivecraft.client.gui.framework.VROptionEntry;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.settings.VRHotkeys;
 import org.vivecraft.client_vr.settings.VRSettings;
-import org.vivecraft.mod_compat_vr.ShadersHelper;
+import org.vivecraft.mod_compat_vr.shaders.ShadersHelper;
 
 public class GuiRenderOpticsSettings extends GuiVROptionsBase {
     private static final VRSettings.VrOptions[] VR_DISPLAY_OPTIONS = new VRSettings.VrOptions[]{
@@ -42,11 +42,17 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
         Minecraft.getInstance().setScreen(new GuiMixedRealitySettings(this));
         return true;
     })};
-    private final VROptionEntry[] postEffects = new VROptionEntry[]{new VROptionEntry(
+    private final VROptionEntry[] postAndShader = new VROptionEntry[]{
+        new VROptionEntry(
         "vivecraft.options.screen.posteffects.button", (button, mousePos) -> {
         Minecraft.getInstance().setScreen(new GuiPostEffectsSettings(this));
         return true;
-    })};
+    }),
+        new VROptionEntry(
+            "vivecraft.options.screen.shadercompat.button", (button, mousePos) -> {
+            Minecraft.getInstance().setScreen(new GuiShaderCompatSettings(this));
+            return true;
+        })};
 
     private float prevRenderScaleFactor = this.vrSettings.renderScaleFactor;
     private float prevHandCameraResScale = this.vrSettings.handCameraResScale;
@@ -84,7 +90,7 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
             case SINGLE -> super.init(SINGLE_OPTIONS, false);
         }
 
-        super.init(this.postEffects, false);
+        super.init(this.postAndShader, false);
 
         super.addDefaultButtons();
 

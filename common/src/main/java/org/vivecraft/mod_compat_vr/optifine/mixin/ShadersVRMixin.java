@@ -1,5 +1,6 @@
 package org.vivecraft.mod_compat_vr.optifine.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -27,9 +28,14 @@ public class ShadersVRMixin {
         RenderSystem.defaultBlendFunc();
     }
 
+    @ModifyExpressionValue(method = "setProgramUniforms", at = @At(value = "CONSTANT", args = "floatValue=0.05F"), remap = false)
+    private static float vivecraft$nearPlane(float original) {
+        return RenderPassType.isVanilla() ? original : 0.02F;
+    }
+
     @WrapOperation(method = "setCameraShadow", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getPosition()Lnet/minecraft/world/phys/Vec3;", remap = true), remap = false)
     private static Vec3 vivecraft$positionCameraForShadows(Camera camera, Operation<Vec3> original) {
-        if (RenderPassType.isVanilla()) {
+        if (RenderPassType.isVanilla() || ClientDataHolderVR.getInstance().vrSettings.disableShaderOptimization) {
             return original.call(camera);
         } else {
             return ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().getEye(RenderPass.CENTER).getPosition();
@@ -38,7 +44,7 @@ public class ShadersVRMixin {
 
     @ModifyVariable(method = "setCameraShadow", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack$Pose;pose()Lorg/joml/Matrix4f;", shift = At.Shift.AFTER, remap = true), remap = false)
     private static PoseStack vivecraft$offsetShadow(PoseStack shadowModelViewMat) {
-        if (!RenderPassType.isVanilla()) {
+        if (!RenderPassType.isVanilla() || ClientDataHolderVR.getInstance().vrSettings.disableShaderOptimization) {
             Vec3 offset = RenderHelper.getSmoothCameraPosition(ClientDataHolderVR.getInstance().currentPass,
                 ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld()).subtract(
                 ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().getEye(RenderPass.CENTER).getPosition());
@@ -49,7 +55,7 @@ public class ShadersVRMixin {
 
     @WrapOperation(method = "setCameraOffset", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getX()D", remap = true), remap = false)
     private static double vivecraft$sameX(Entity entity, Operation<Double> original) {
-        if (RenderPassType.isVanilla()) {
+        if (RenderPassType.isVanilla() || ClientDataHolderVR.getInstance().vrSettings.disableShaderOptimization) {
             return original.call(entity);
         } else {
             return ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().getEye(RenderPass.CENTER).getPosition().x;
@@ -58,7 +64,7 @@ public class ShadersVRMixin {
 
     @WrapOperation(method = "setCameraOffset", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getZ()D", remap = true), remap = false)
     private static double vivecraft$sameZ(Entity entity, Operation<Double> original) {
-        if (RenderPassType.isVanilla()) {
+        if (RenderPassType.isVanilla() || ClientDataHolderVR.getInstance().vrSettings.disableShaderOptimization) {
             return original.call(entity);
         } else {
             return ClientDataHolderVR.getInstance().vrPlayer.getVRDataWorld().getEye(RenderPass.CENTER).getPosition().z;

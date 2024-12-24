@@ -41,7 +41,9 @@ public class ShadersRenderVRMixin {
         GameRenderer gameRenderer, Camera activeRenderInfo, int pass, float partialTick, long finishTimeNano,
         CallbackInfo ci)
     {
-        if (!RenderPassType.isVanilla() && ClientDataHolderVR.getInstance().currentPass != RenderPass.LEFT) {
+        if (!RenderPassType.isVanilla() && ClientDataHolderVR.getInstance().currentPass != RenderPass.LEFT &&
+            !ClientDataHolderVR.getInstance().vrSettings.disableShaderOptimization)
+        {
             updateActiveRenderInfo(activeRenderInfo, Minecraft.getInstance(), partialTick);
             OptifineHelper.setCameraShadow(new PoseStack(), activeRenderInfo, partialTick);
             ci.cancel();

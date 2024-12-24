@@ -46,7 +46,7 @@ import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
-import org.vivecraft.mod_compat_vr.ShadersHelper;
+import org.vivecraft.mod_compat_vr.shaders.ShadersHelper;
 import org.vivecraft.mod_compat_vr.immersiveportals.ImmersivePortalsHelper;
 import org.vivecraft.mod_compat_vr.optifine.OptifineHelper;
 
@@ -699,7 +699,7 @@ public class VREffectsHelper {
             return;
         }
         if (!MC.player.isAlive()) return;
-        if (MC.player.getVehicle() != null) return;
+        if (MC.player.isPassenger() || MC.player != MC.getCameraEntity()) return;
         // no indicator when swimming/crawling
         if (((PlayerExtension) MC.player).vivecraft$getRoomYOffsetFromPose() < 0.0D) return;
 
@@ -1254,22 +1254,22 @@ public class VREffectsHelper {
 
         bufferbuilder.vertex(poseStack.last().pose(), -1.0F, 1.0F, 0.0F)
             .color(brightness, brightness, brightness, 1.0F)
-            .uv(crosshairSprite.getU0(), crosshairSprite.getV1())
+            .uv(crosshairSprite.getU1(), crosshairSprite.getV0())
             .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
             .normal(0.0F, 0.0F, 1.0F).endVertex();
         bufferbuilder.vertex(poseStack.last().pose(), 1.0F, 1.0F, 0.0F)
             .color(brightness, brightness, brightness, 1.0F)
-            .uv(crosshairSprite.getU1(), crosshairSprite.getV1())
+            .uv(crosshairSprite.getU0(), crosshairSprite.getV0())
             .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
             .normal(0.0F, 0.0F, 1.0F).endVertex();
         bufferbuilder.vertex(poseStack.last().pose(), 1.0F, -1.0F, 0.0F)
             .color(brightness, brightness, brightness, 1.0F)
-            .uv(crosshairSprite.getU1(), crosshairSprite.getV0())
+            .uv(crosshairSprite.getU0(), crosshairSprite.getV1())
             .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
             .normal(0.0F, 0.0F, 1.0F).endVertex();
         bufferbuilder.vertex(poseStack.last().pose(), -1.0F, -1.0F, 0.0F)
             .color(brightness, brightness, brightness, 1.0F)
-            .uv(crosshairSprite.getU0(), crosshairSprite.getV0())
+            .uv(crosshairSprite.getU1(), crosshairSprite.getV1())
             .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
             .normal(0.0F, 0.0F, 1.0F).endVertex();
 
