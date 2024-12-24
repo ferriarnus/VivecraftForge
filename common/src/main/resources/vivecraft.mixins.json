@@ -27,6 +27,7 @@
     "client.renderer.entity.layers.CapeLayerMixin",
     "client.renderer.entity.layers.ElytraLayerMixin",
     "client.renderer.entity.layers.ItemInHandLayerMixin",
+    "client.renderer.entity.layers.PlayerItemInHandLayerMixin",
     "client.renderer.entity.layers.RenderLayerMixin",
     "client_vr.ClientBrandRetrieverVRMixin",
     "client_vr.KeyboardHandlerVRMixin",
