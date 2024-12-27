@@ -913,7 +913,11 @@ public class MCOpenXR extends MCVR {
             ByteBuffer byteBuffer = stack.calloc(size);
             error = XR10.xrGetInputSourceLocalizedName(session, info, buf, byteBuffer);
             logError(error, "xrGetInputSourceLocalizedName",  "get String");
-            return new String(byteBuffer.array());
+            try {
+                return new String(byteBuffer.array());
+            } catch (UnsupportedOperationException e) {
+                return "ERROR";
+            }
         }
     }
 
