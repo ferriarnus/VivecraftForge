@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.vivecraft.client.VivecraftVRMod;
+import org.vivecraft.client_vr.provider.control.VRInputAction;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
@@ -50,7 +51,7 @@ public class KeyboardInputVRMixin extends ClientInput {
 
     @Unique
     private float vivecraft$getAxisValue(KeyMapping keyBinding) {
-        return Math.abs(MCVR.get().getInputAction(keyBinding).getAxis1DUseTracked());
+        return Math.abs(ClientDataHolderVR.getInstance().vr.getInputAction(keyBinding).getAxis1DUseTracked());
     }
 
     @WrapOperation(method = "tick", at = @At(value = "NEW", target = "net/minecraft/world/entity/player/Input"))

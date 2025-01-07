@@ -61,11 +61,20 @@ dependencies {
     forgeRuntimeLibrary("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-macos")
     forgeRuntimeLibrary("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-windows")
 
+    // Use custom OpenXR lib for Android and GLES bindings
+    forgeRuntimeLibrary("QuestCraftPlusPlus:lwjgl3:${rootProject.lwjgl_version}:lwjgl-openxr-${rootProject.lwjgl_version}")
+    forgeRuntimeLibrary("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}:natives-linux")
+    forgeRuntimeLibrary("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}:natives-windows")
+
     // shadow the natives
     bundle("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}") { transitive = false }
     bundle("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-linux") { transitive = false }
     bundle("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-macos") { transitive = false }
     bundle("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-windows") { transitive = false }
+
+    bundle("QuestCraftPlusPlus:lwjgl3:${rootProject.lwjgl_version}:lwjgl-openxr-${rootProject.lwjgl_version}") { transitive = false }
+    bundle("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}:natives-linux") { transitive = false }
+    bundle("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}:natives-windows") { transitive = false }
 
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${rootProject.mixin_extras_version}"))
     implementation(include("io.github.llamalad7:mixinextras-forge:${rootProject.mixin_extras_version}"))

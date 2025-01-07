@@ -31,8 +31,9 @@ import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.gameplay.screenhandlers.RadialHandler;
 import org.vivecraft.client_vr.provider.*;
-import org.vivecraft.client_vr.provider.openvr_lwjgl.control.TrackpadSwipeSampler;
-import org.vivecraft.client_vr.provider.openvr_lwjgl.control.VRInputActionSet;
+import org.vivecraft.client_vr.provider.control.TrackpadSwipeSampler;
+import org.vivecraft.client_vr.provider.control.VRInputAction;
+import org.vivecraft.client_vr.provider.control.VRInputActionSet;
 import org.vivecraft.client_vr.render.RenderConfigException;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_vr.utils.external.jinfinadeck;
@@ -90,9 +91,12 @@ public class MCOpenVR extends MCVR {
 
     private final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    private final TrackedDevicePose.Buffer trackedDevicePoses;
+    private final int[] controllerDeviceIndex = new int[3];
+
+    private final TrackedDevicePose.Buffer hmdTrackedDevicePoses;
 
     // haptic handles
+    private long leftControllerHandle;
     private long leftHapticHandle;
     private long rightHapticHandle;
 
@@ -449,36 +453,6 @@ public class MCOpenVR extends MCVR {
         Profiler.get().popPush("hmdSampling");
         this.hmdSampling();
         Profiler.get().pop();
-    }
-
-    @Override
-    public void processInputs() {
-        if (this.dh.vrSettings.seated || ClientDataHolderVR.VIEW_ONLY || !this.inputInitialized) return;
-
-        for (VRInputAction action : this.inputActions.values()) {
-            if (action.isHanded()) {
-                for (ControllerType controllertype : ControllerType.values()) {
-                    action.setCurrentHand(controllertype);
-                    this.processInputAction(action);
-                }
-            } else {
-                this.processInputAction(action);
-            }
-        }
-
-        this.processScrollInput(GuiHandler.KEY_SCROLL_AXIS,
-            () -> InputSimulator.scrollMouse(0.0D, 1.0D),
-            () -> InputSimulator.scrollMouse(0.0D, -1.0D));
-        this.processScrollInput(VivecraftVRMod.INSTANCE.keyHotbarScroll,
-            () -> this.changeHotbar(-1),
-            () -> this.changeHotbar(1));
-        this.processSwipeInput(VivecraftVRMod.INSTANCE.keyHotbarSwipeX,
-            () -> this.changeHotbar(1),
-            () -> this.changeHotbar(-1), null, null);
-        this.processSwipeInput(VivecraftVRMod.INSTANCE.keyHotbarSwipeY, null, null,
-            () -> this.changeHotbar(-1),
-            () -> this.changeHotbar(1));
-        this.ignorePressesNextFrame = false;
     }
 
     /**
@@ -1524,6 +1498,10 @@ public class MCOpenVR extends MCVR {
             this.hmdPose.m31(1.62F);
         }
 
+        // ret the complete room eye transforms
+        this.hmdPose.mul(this.hmdPoseLeftEye, this.hmdPoseLeftEye);
+        this.hmdPose.mul(this.hmdPoseRightEye, this.hmdPoseRightEye);
+
         // Gotta do this here so we can get the poses
         if (this.inputInitialized) {
             Profiler.get().push("updateActionState");
@@ -1607,11 +1585,8 @@ public class MCOpenVR extends MCVR {
         }
     }
 
-    /**
-     * @param inputValueHandle inputHandle to check
-     * @return what controller the inputHandle is on, {@code null} if the handle or device is invalid
-     */
-    protected ControllerType getOriginControllerType(long inputValueHandle) {
+    @Override
+    public ControllerType getOriginControllerType(long inputValueHandle) {
         if (inputValueHandle != k_ulInvalidInputValueHandle) {
             this.readOriginInfo(inputValueHandle);
 

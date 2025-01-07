@@ -1,7 +1,10 @@
 package org.vivecraft.client_vr;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.Minecraft;
+import org.lwjgl.opengl.GL30;
 import org.vivecraft.client.Xplat;
 import org.vivecraft.client.extensions.RenderTargetExtension;
 
@@ -33,6 +36,17 @@ public class VRTextureTarget extends RenderTarget {
         }
         this.resize(width, height);
 
+        this.setClearColor(0, 0, 0, 0);
+    }
+
+    public VRTextureTarget(String name, int width, int height, int colorid, int index) {
+        super(true);
+        this.name = name;
+        RenderSystem.assertOnGameThreadOrInit();
+        this.resize(width, height, Minecraft.ON_OSX);
+        ((RenderTargetExtension) this).vivecraft$setColorid(colorid);
+        GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, frameBufferId);
+        GL30.glFramebufferTextureLayer(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, colorid, 0, index);
         this.setClearColor(0, 0, 0, 0);
     }
 

@@ -34,6 +34,11 @@ subprojects {
         implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-macos")
         implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-windows")
 
+        // Use custom OpenXR lib for Android and GLES bindings
+        implementation("QuestCraftPlusPlus:lwjgl3:${rootProject.lwjgl_version}:lwjgl-openxr-${rootProject.lwjgl_version}")
+        implementation("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}:natives-linux")
+        implementation("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}:natives-windows")
+
         // for OSC tracker support
         implementation("com.illposed.osc:javaosc-core:0.9")
     }
@@ -155,17 +160,16 @@ allprojects {
         exclusiveContent {
             forRepository {
                 ivy {
-                    name = "Discord"
-                    url = "https://cdn.discordapp.com/attachments/"
+                    name = "GitHub"
+                    url = "https://github.com/"
                     patternLayout {
-                        artifact '/[organisation]/[module]/[revision].[ext]'
+                        artifact '/[organisation]/[module]/releases/download/[revision]/[classifier].jar'
                     }
                     metadataSources { artifact() }
                 }
             }
             filter {
-                // discords are always just numbers
-                includeGroupByRegex "^\\d*\$"
+
             }
         }
     }
