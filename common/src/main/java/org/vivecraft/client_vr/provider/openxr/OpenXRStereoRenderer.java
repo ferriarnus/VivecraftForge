@@ -21,6 +21,7 @@ public class OpenXRStereoRenderer extends VRRenderer {
     private VRTextureTarget[] rightFramebuffers;
     private boolean render;
     private XrCompositionLayerProjectionView.Buffer projectionLayerViews;
+    private boolean recalculateProjectionMatrix = true;
 
 
     public OpenXRStereoRenderer(MCOpenXR vr) {
@@ -90,7 +91,7 @@ public class OpenXRStereoRenderer extends VRRenderer {
 
             // Render view to the appropriate part of the swapchain image.
             for (int viewIndex = 0; viewIndex < 2; viewIndex++) {
-                var subImage = this.projectionLayerViews.get(viewIndex)
+                XrSwapchainSubImage subImage = this.projectionLayerViews.get(viewIndex)
                     .type(XR10.XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW)
                     .pose(this.openxr.viewBuffer.get(viewIndex).pose())
                     .fov(this.openxr.viewBuffer.get(viewIndex).fov())
@@ -100,15 +101,21 @@ public class OpenXRStereoRenderer extends VRRenderer {
                 subImage.imageRect().extent().set(this.openxr.width, this.openxr.height);
                 subImage.imageArrayIndex(viewIndex);
             }
+            this.recalculateProjectionMatrix = true;
         }
     }
 
     /**
      * no caching for openxr
+     * the projection matrix may change every frame, so recalculate it once per frame for up to date info
      */
     @Override
     public Matrix4f getCachedProjectionMatrix(int eyeType, float nearClip, float farClip) {
-        this.eyeProj[eyeType] = this.getProjectionMatrix(eyeType, nearClip, farClip);
+        if (this.recalculateProjectionMatrix) {
+            this.eyeProj[0] = this.getProjectionMatrix(0, nearClip, farClip);
+            this.eyeProj[1] = this.getProjectionMatrix(1, nearClip, farClip);
+            this.recalculateProjectionMatrix = false;
+        }
         return this.eyeProj[eyeType];
     }
 
