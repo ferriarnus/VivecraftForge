@@ -924,6 +924,11 @@ public abstract class VRRenderer {
             this.fsaaLastPassResultFBO.destroyBuffers();
             this.fsaaLastPassResultFBO = null;
         }
+
+        if (this.mirrorFramebuffer != null) {
+            this.mirrorFramebuffer.destroyBuffers();
+            this.mirrorFramebuffer = null;
+        }
     }
 
     /**
