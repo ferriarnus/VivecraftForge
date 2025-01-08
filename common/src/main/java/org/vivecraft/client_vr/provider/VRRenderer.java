@@ -659,12 +659,6 @@ public abstract class VRRenderer {
 
             this.createRenderTexture(eyew, eyeh);
 
-                VRSettings.LOGGER.info("Vivecraft: VR Provider supplied render texture IDs: {}, {}",
-                    this.LeftEyeTextureId, this.RightEyeTextureId);
-                VRSettings.LOGGER.info("Vivecraft: VR Provider supplied texture resolution: {} x {}", eyew, eyeh);
-
-            RenderHelper.checkGLError("Render Texture setup");
-
             float resolutionScale =
                 ResolutionControlHelper.isLoaded() ? ResolutionControlHelper.getCurrentScaleFactor() : 1.0F;
 

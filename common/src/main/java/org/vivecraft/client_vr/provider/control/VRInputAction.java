@@ -222,7 +222,8 @@ public class VRInputAction {
         // iterate over all actions, and check if another action has a higher priority
         for (VRInputAction action : ClientDataHolderVR.getInstance().vr.getInputActions()) {
             if (action != this && action.isEnabledRaw(hand) && action.isActive() &&
-                action.getPriority() > this.getPriority() && ClientDataHolderVR.getInstance().vr.getOrigins(action).contains(lastOrigin))
+                action.getPriority() > this.getPriority() &&
+                ClientDataHolderVR.getInstance().vr.getOrigins(action).contains(lastOrigin))
             {
                 if (action.isHanded()) {
                     return !((HandedKeyBinding) action.keyBinding).isPriorityOnController(hand);

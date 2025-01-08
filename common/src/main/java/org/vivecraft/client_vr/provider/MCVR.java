@@ -1411,6 +1411,7 @@ public abstract class MCVR {
 
     /**
      * updates the KeyMapping state that is linked to the given VRInputAction
+     *
      * @param action VRInputAction to process
      */
     private void processInputAction(VRInputAction action) {
@@ -1441,14 +1442,15 @@ public abstract class MCVR {
 
     /**
      * checks the axis input of the VRInputAction linked to {@code keyMapping} and runs the callbacks when it's non 0
-     * @param keyMapping KeyMapping to check
-     * @param upCallback action to do when the axis input is positive
+     *
+     * @param keyMapping   KeyMapping to check
+     * @param upCallback   action to do when the axis input is positive
      * @param downCallback action to do when the axis input is negative
      */
     private void processScrollInput(KeyMapping keyMapping, Runnable upCallback, Runnable downCallback) {
         VRInputAction action = this.getInputAction(keyMapping);
-
-        if (action.isEnabled() && action.getLastOrigin() != 0L) { /**  {@link org.lwjgl.openvr.VR.k_ulInvalidInputValueHandle} and {@link org.lwjgl.system.MemoryUtil.NULL} are both 0 */
+        /** {@link org.lwjgl.openvr.VR.k_ulInvalidInputValueHandle} and {@link org.lwjgl.system.MemoryUtil.NULL} are both 0 */
+        if (action.isEnabled() && action.getLastOrigin() != 0L) {
             float value = action.getAxis2D(false).y();
             if (value != 0.0F) {
                 if (value > 0.0F) {
@@ -1462,16 +1464,21 @@ public abstract class MCVR {
 
     /**
      * checks the trackpad input of the controller the {@code keyMapping} is on
-     * @param keyMapping KeyMapping to check
-     * @param leftCallback action to do when swiped to the left
+     *
+     * @param keyMapping    KeyMapping to check
+     * @param leftCallback  action to do when swiped to the left
      * @param rightCallback action to do when swiped to the right
-     * @param upCallback action to do when swiped to the up
-     * @param downCallback action to do when swiped to the down
+     * @param upCallback    action to do when swiped to the up
+     * @param downCallback  action to do when swiped to the down
      */
-    private void processSwipeInput(KeyMapping keyMapping, Runnable leftCallback, Runnable rightCallback, Runnable upCallback, Runnable downCallback) {
+    private void processSwipeInput(
+        KeyMapping keyMapping, Runnable leftCallback, Runnable rightCallback, Runnable upCallback,
+        Runnable downCallback)
+    {
         VRInputAction action = this.getInputAction(keyMapping);
 
-        if (action.isEnabled() && action.getLastOrigin() != 0L) { /**  {@link org.lwjgl.openvr.VR.k_ulInvalidInputValueHandle} and {@link org.lwjgl.system.MemoryUtil.NULL} are both 0 */
+        /**  {@link org.lwjgl.openvr.VR.k_ulInvalidInputValueHandle} and {@link org.lwjgl.system.MemoryUtil.NULL} are both 0 */
+        if (action.isEnabled() && action.getLastOrigin() != 0L) {
             ControllerType controller = this.findActiveBindingControllerType(keyMapping);
 
             if (controller != null) {

@@ -36,8 +36,9 @@ public class OpenVRStereoRenderer extends VRRenderer {
         super(vr);
         this.openvr = vr;
 
-        hiddenMeshes[0] = HiddenAreaMesh.calloc();
-        hiddenMeshes[1] = HiddenAreaMesh.calloc();
+        // allocate meshes, they are freed in destroy()
+        this.hiddenMeshes[0] = HiddenAreaMesh.calloc();
+        this.hiddenMeshes[1] = HiddenAreaMesh.calloc();
     }
 
     @Override
@@ -126,19 +127,22 @@ public class OpenVRStereoRenderer extends VRRenderer {
                 Component.literal(this.getLastError()));
         }
 
-        VRSettings.LOGGER.info("Vivecraft: VR Provider supplied render texture IDs: {}, {}", this.LeftEyeTextureId, this.RightEyeTextureId);
+        VRSettings.LOGGER.info("Vivecraft: VR Provider supplied render texture IDs: {}, {}", this.LeftEyeTextureId,
+            this.RightEyeTextureId);
         VRSettings.LOGGER.info("Vivecraft: VR Provider supplied texture resolution: {} x {}", width, height);
 
         RenderHelper.checkGLError("Render Texture setup");
 
         if (this.framebufferEye0 == null) {
-            this.framebufferEye0 = new VRTextureTarget("L Eye", width, height, false, this.LeftEyeTextureId, false, true, false);
+            this.framebufferEye0 = new VRTextureTarget("L Eye", width, height, false, this.LeftEyeTextureId, false,
+                true, false);
             VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye0);
             RenderHelper.checkGLError("Left Eye framebuffer setup");
         }
 
         if (this.framebufferEye1 == null) {
-            this.framebufferEye1 = new VRTextureTarget("R Eye", width, height, false, this.RightEyeTextureId, false, true, false);
+            this.framebufferEye1 = new VRTextureTarget("R Eye", width, height, false, this.RightEyeTextureId, false,
+                true, false);
             VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye1);
             RenderHelper.checkGLError("Right Eye framebuffer setup");
         }
@@ -214,15 +218,15 @@ public class OpenVRStereoRenderer extends VRRenderer {
     @Override
     protected void destroyBuffers() {
         super.destroyBuffers();
-            if (this.framebufferEye0 != null) {
-                this.framebufferEye0.destroyBuffers();
-                this.framebufferEye0 = null;
-            }
+        if (this.framebufferEye0 != null) {
+            this.framebufferEye0.destroyBuffers();
+            this.framebufferEye0 = null;
+        }
 
-            if (this.framebufferEye1 != null) {
-                this.framebufferEye1.destroyBuffers();
-                this.framebufferEye1 = null;
-            }
+        if (this.framebufferEye1 != null) {
+            this.framebufferEye1.destroyBuffers();
+            this.framebufferEye1 = null;
+        }
         if (this.LeftEyeTextureId > -1) {
             TextureUtil.releaseTextureId(this.LeftEyeTextureId);
             this.LeftEyeTextureId = -1;

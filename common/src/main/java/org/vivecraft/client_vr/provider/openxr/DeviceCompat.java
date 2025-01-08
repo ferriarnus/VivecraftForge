@@ -25,10 +25,15 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 //TODO: VulkanMod Support
 public interface DeviceCompat {
     long getPlatformInfo(MemoryStack stack);
+
     void initOpenXRLoader(MemoryStack stack);
+
     String getGraphicsExtension();
+
     XrSwapchainImageOpenGLKHR.Buffer createImageBuffers(int imageCount, MemoryStack stack);
+
     Struct checkGraphics(MemoryStack stack, XrInstance instance, long systemID);
+
     static DeviceCompat detectDevice() {
         return System.getProperty("os.version").contains("Android") ? new Mobile() : new Desktop();
     }
@@ -61,7 +66,8 @@ public interface DeviceCompat {
 
         @Override
         public Struct checkGraphics(MemoryStack stack, XrInstance instance, long systemID) {
-            XrGraphicsRequirementsOpenGLKHR graphicsRequirements = XrGraphicsRequirementsOpenGLKHR.calloc(stack).type(KHROpenGLEnable.XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR);
+            XrGraphicsRequirementsOpenGLKHR graphicsRequirements = XrGraphicsRequirementsOpenGLKHR.calloc(stack)
+                .type(KHROpenGLEnable.XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR);
             KHROpenGLEnable.xrGetOpenGLGraphicsRequirementsKHR(instance, systemID, graphicsRequirements);
             //Bind the OpenGL context to the OpenXR instance and create the session
             Window window = Minecraft.getInstance().getWindow();
@@ -80,7 +86,8 @@ public interface DeviceCompat {
                 long glXWindowHandle = GLFWNativeGLX.glfwGetGLXWindow(windowHandle);
 
                 int fbXID = glXQueryDrawable(xDisplay, glXWindowHandle, GLX_FBCONFIG_ID);
-                PointerBuffer fbConfigBuf = glXChooseFBConfig(xDisplay, X11.XDefaultScreen(xDisplay), stackInts(GLX_FBCONFIG_ID, fbXID, 0));
+                PointerBuffer fbConfigBuf = glXChooseFBConfig(xDisplay, X11.XDefaultScreen(xDisplay),
+                    stackInts(GLX_FBCONFIG_ID, fbXID, 0));
                 if (fbConfigBuf == null) {
                     throw new IllegalStateException("Your framebuffer config was null, make a github issue");
                 }

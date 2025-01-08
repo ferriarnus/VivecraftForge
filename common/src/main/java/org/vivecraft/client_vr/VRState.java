@@ -53,11 +53,11 @@ public class VRState {
 
             ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
             Minecraft instance = Minecraft.getInstance();
-            switch (dh.vrSettings.stereoProviderPluginID) {
-                case OPENVR -> dh.vr = new MCOpenVR(instance, dh);
-                case OPENXR -> dh.vr = new MCOpenXR(instance, dh);
-                default -> dh.vr = new NullVR(instance, dh);
-            }
+            dh.vr = switch (dh.vrSettings.stereoProviderPluginID) {
+                case OPENVR -> new MCOpenVR(instance, dh);
+                case OPENXR -> new MCOpenXR(instance, dh);
+                default -> new NullVR(instance, dh);
+            };
 
             if (!dh.vr.init()) {
                 throw new RenderConfigException(Component.translatable("vivecraft.messages.vriniterror"),
