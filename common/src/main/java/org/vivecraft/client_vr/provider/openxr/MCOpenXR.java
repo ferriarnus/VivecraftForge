@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL31;
 import org.lwjgl.openxr.*;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
@@ -934,7 +935,7 @@ public class MCOpenXR extends MCVR {
             ByteBuffer byteBuffer = stack.calloc(size);
             error = XR10.xrGetInputSourceLocalizedName(this.session, info, buf, byteBuffer);
             logError(error, "xrGetInputSourceLocalizedName", "get String");
-            return new String(byteBuffer.array());
+            return MemoryUtil.memUTF8(MemoryUtil.memAddress(buf));
         }
     }
 
