@@ -102,7 +102,6 @@ public class MCOpenVR extends MCVR {
     // holds the handle to the devices other than the headset
     private final long[] deviceHandle = new long[MCVR.TRACKABLE_DEVICE_COUNT];
 
-    private boolean inputInitialized;
     private final InputOriginInfo originInfo;
     private final InputPoseActionData poseData;
     private final InputDigitalActionData digital;
