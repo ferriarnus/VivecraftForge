@@ -124,6 +124,9 @@ public class NullVR extends MCVR {
     }
 
     @Override
+    public void handleEvents() {}
+
+    @Override
     public void poll(long frameIndex) {
         if (this.initialized) {
 

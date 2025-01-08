@@ -1520,7 +1520,12 @@ public abstract class MCVR {
     protected abstract ControllerType findActiveBindingControllerType(KeyMapping keyMapping);
 
     /**
-     * polls VR events, and fetches new device poses and inputs
+     * polls and processes VR events
+     */
+    public abstract void handleEvents();
+
+    /**
+     * fetches new device poses and inputs
      *
      * @param frameIndex index of the current VR frame. Some VR runtimes need that
      */

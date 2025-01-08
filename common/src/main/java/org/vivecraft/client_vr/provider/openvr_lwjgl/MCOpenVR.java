@@ -421,15 +421,21 @@ public class MCOpenVR extends MCVR {
     }
 
     @Override
-    public void poll(long frameIndex) {
-        if (!this.initialized) return;
-
-        this.paused = VRSystem_ShouldApplicationPause();
+    public void handleEvents() {
         Profiler.get().push("pollEvents");
         this.pollVREvents();
         Profiler.get().popPush("processEvents");
         this.processVREvents();
-        Profiler.get().popPush("updatePose/Vsync");
+        Profiler.get().pop();
+    }
+
+    @Override
+    public void poll(long frameIndex) {
+        if (!this.initialized) return;
+
+        this.paused = VRSystem_ShouldApplicationPause();
+
+        Profiler.get().push("updatePose/Vsync");
         this.updatePose();
 
         if (!this.dh.vrSettings.seated) {

@@ -11,9 +11,11 @@ import java.util.concurrent.TimeUnit;
 
 import static java.sql.Types.NULL;
 
-public class OpenXRHapticSchedular extends HapticScheduler {
+public class OpenXRHapticScheduler extends HapticScheduler {
 
-    private void triggerHapticPulse(ControllerType controller, float durationSeconds, float frequency, float amplitude) {
+    private void triggerHapticPulse(
+        ControllerType controller, float durationSeconds, float frequency, float amplitude)
+    {
         try (MemoryStack stack = MemoryStack.stackPush()){
             int i = controller == ControllerType.RIGHT ? 0 : 1;
             if (ClientDataHolderVR.getInstance().vrSettings.reverseHands) {

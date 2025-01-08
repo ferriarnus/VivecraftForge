@@ -74,7 +74,6 @@ import org.vivecraft.client_vr.render.MirrorNotification;
 import org.vivecraft.client_vr.render.RenderConfigException;
 import org.vivecraft.client_vr.render.VRFirstPersonArmSwing;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
-import org.vivecraft.client_vr.render.helpers.ShaderHelper;
 import org.vivecraft.client_vr.settings.VRHotkeys;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_xr.render_pass.RenderPassManager;
@@ -246,6 +245,10 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
         if (!VRState.VR_INITIALIZED) {
             return;
         }
+
+        // handle vr events, regardless of VR active state
+        ClientDataHolderVR.getInstance().vr.handleEvents();
+
         boolean vrActive = !ClientDataHolderVR.getInstance().vrSettings.vrHotswitchingEnabled ||
             ClientDataHolderVR.getInstance().vr.isActive();
         if (VRState.VR_RUNNING != vrActive && (ClientNetworking.SERVER_ALLOWS_VR_SWITCHING || this.player == null)) {
