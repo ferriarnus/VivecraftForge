@@ -659,32 +659,11 @@ public abstract class VRRenderer {
 
             this.createRenderTexture(eyew, eyeh);
 
-                if (this.LeftEyeTextureId == -1) {
-                    throw new RenderConfigException(
-                        Component.translatable("vivecraft.messages.renderiniterror", this.getName()),
-                        Component.literal(this.getLastError()));
-                }
-
                 VRSettings.LOGGER.info("Vivecraft: VR Provider supplied render texture IDs: {}, {}",
                     this.LeftEyeTextureId, this.RightEyeTextureId);
                 VRSettings.LOGGER.info("Vivecraft: VR Provider supplied texture resolution: {} x {}", eyew, eyeh);
-            }
 
             RenderHelper.checkGLError("Render Texture setup");
-
-            if (this.framebufferEye0 == null) {
-                this.framebufferEye0 = new VRTextureTarget("L Eye", eyew, eyeh, false, this.LeftEyeTextureId, true,
-                    false, false);
-                VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye0);
-                RenderHelper.checkGLError("Left Eye framebuffer setup");
-            }
-
-            if (this.framebufferEye1 == null) {
-                this.framebufferEye1 = new VRTextureTarget("R Eye", eyew, eyeh, false, this.RightEyeTextureId, true,
-                    false, false);
-                VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye1);
-                RenderHelper.checkGLError("Right Eye framebuffer setup");
-            }
 
             float resolutionScale =
                 ResolutionControlHelper.isLoaded() ? ResolutionControlHelper.getCurrentScaleFactor() : 1.0F;

@@ -104,57 +104,61 @@ public interface DeviceCompat {
     class Mobile implements DeviceCompat {
         @Override
         public long getPlatformInfo(MemoryStack stack) {
-            return XrInstanceCreateInfoAndroidKHR.calloc(stack).set(
-                KHRAndroidCreateInstance.XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR,
-                NULL,
-                VLoader.getDalvikVM(),
-                VLoader.getDalvikActivity()
-            ).address();
+//            return XrInstanceCreateInfoAndroidKHR.calloc(stack).set(
+//                KHRAndroidCreateInstance.XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR,
+//                NULL,
+//                VLoader.getDalvikVM(),
+//                VLoader.getDalvikActivity()
+//            ).address();
+        return NULL;
         }
 
         @Override
         public void initOpenXRLoader(MemoryStack stack) {
-            VRSettings.LOGGER.info("Platform: {}", System.getProperty("os.version"));
-            VLoader.setupAndroid();
-            XrLoaderInitInfoAndroidKHR initInfo = XrLoaderInitInfoAndroidKHR.calloc(stack).set(
-                KHRLoaderInitAndroid.XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR,
-                NULL,
-                VLoader.getDalvikVM(),
-                VLoader.getDalvikActivity()
-            );
-
-            KHRLoaderInit.xrInitializeLoaderKHR(XrLoaderInitInfoBaseHeaderKHR.create(initInfo.address()));
+//            VRSettings.LOGGER.info("Platform: {}", System.getProperty("os.version"));
+//            VLoader.setupAndroid();
+//            XrLoaderInitInfoAndroidKHR initInfo = XrLoaderInitInfoAndroidKHR.calloc(stack).set(
+//                KHRLoaderInitAndroid.XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR,
+//                NULL,
+//                VLoader.getDalvikVM(),
+//                VLoader.getDalvikActivity()
+//            );
+//
+//            KHRLoaderInit.xrInitializeLoaderKHR(XrLoaderInitInfoBaseHeaderKHR.create(initInfo.address()));
         }
 
         @Override
         public String getGraphicsExtension() {
-            return KHROpenGLESEnable.XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME;
+            //return KHROpenGLESEnable.XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME;
+            return null;
         }
 
         @Override
         public XrSwapchainImageOpenGLKHR.Buffer createImageBuffers(int imageCount, MemoryStack stack) {
-            XrSwapchainImageOpenGLKHR.Buffer swapchainImageBuffer = XrSwapchainImageOpenGLKHR.calloc(imageCount, stack);
-            for (XrSwapchainImageOpenGLKHR image : swapchainImageBuffer) {
-                image.type(KHROpenGLESEnable.XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR);
-            }
-
-            return swapchainImageBuffer;
+//            XrSwapchainImageOpenGLKHR.Buffer swapchainImageBuffer = XrSwapchainImageOpenGLKHR.calloc(imageCount, stack);
+//            for (XrSwapchainImageOpenGLKHR image : swapchainImageBuffer) {
+//                image.type(KHROpenGLESEnable.XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR);
+//            }
+//
+//            return swapchainImageBuffer;
+            return null;
         }
 
         @Override
         public Struct checkGraphics(MemoryStack stack, XrInstance instance, long systemID) {
-            XrGraphicsRequirementsOpenGLESKHR graphicsRequirements = XrGraphicsRequirementsOpenGLESKHR.calloc(stack).type(KHROpenGLESEnable.XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_ES_KHR);
-            KHROpenGLESEnable.xrGetOpenGLESGraphicsRequirementsKHR(instance, systemID, graphicsRequirements);
-            XrGraphicsBindingOpenGLESAndroidKHR graphicsBinding = XrGraphicsBindingOpenGLESAndroidKHR.calloc(stack);
-            graphicsBinding.set(
-                KHROpenGLESEnable.XR_TYPE_GRAPHICS_BINDING_OPENGL_ES_ANDROID_KHR,
-                NULL,
-                VLoader.getEGLDisplay(),
-                VLoader.getEGLConfig(),
-                VLoader.getEGLContext()
-            );
-
-            return graphicsBinding;
+//            XrGraphicsRequirementsOpenGLESKHR graphicsRequirements = XrGraphicsRequirementsOpenGLESKHR.calloc(stack).type(KHROpenGLESEnable.XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_ES_KHR);
+//            KHROpenGLESEnable.xrGetOpenGLESGraphicsRequirementsKHR(instance, systemID, graphicsRequirements);
+//            XrGraphicsBindingOpenGLESAndroidKHR graphicsBinding = XrGraphicsBindingOpenGLESAndroidKHR.calloc(stack);
+//            graphicsBinding.set(
+//                KHROpenGLESEnable.XR_TYPE_GRAPHICS_BINDING_OPENGL_ES_ANDROID_KHR,
+//                NULL,
+//                VLoader.getEGLDisplay(),
+//                VLoader.getEGLConfig(),
+//                VLoader.getEGLContext()
+//            );
+//
+//            return graphicsBinding;
+            return null;
         }
     }
 }

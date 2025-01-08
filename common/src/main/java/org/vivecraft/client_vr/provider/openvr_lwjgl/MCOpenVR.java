@@ -231,7 +231,7 @@ public class MCOpenVR extends MCVR {
         this.digital = InputDigitalActionData.calloc();
         this.analog = InputAnalogActionData.calloc();
 
-        this.trackedDevicePoses = TrackedDevicePose.calloc(k_unMaxTrackedDeviceCount);
+        this.hmdTrackedDevicePoses = TrackedDevicePose.calloc(k_unMaxTrackedDeviceCount);
     }
 
     @Override
@@ -255,7 +255,7 @@ public class MCOpenVR extends MCVR {
         }
 
         // free memory
-        this.trackedDevicePoses.free();
+        this.hmdTrackedDevicePoses.free();
 
         this.poseData.free();
         this.originInfo.free();
@@ -1440,7 +1440,7 @@ public class MCOpenVR extends MCVR {
      */
     private void updatePose() {
         // gets poses for all tracked devices from OpenVR
-        int error = VRCompositor_WaitGetPoses(this.trackedDevicePoses, null);
+        int error = VRCompositor_WaitGetPoses(this.hmdTrackedDevicePoses, null);
 
         if (error > EVRCompositorError_VRCompositorError_None) {
             VRSettings.LOGGER.error("Vivecraft: Compositor Error: GetPoseError {}",
@@ -1477,7 +1477,7 @@ public class MCOpenVR extends MCVR {
 
         // copy device poses
         for (int device = 0; device < k_unMaxTrackedDeviceCount; device++) {
-            TrackedDevicePose pose = this.trackedDevicePoses.get(device);
+            TrackedDevicePose pose = this.hmdTrackedDevicePoses.get(device);
             if (pose.bPoseIsValid()) {
                 OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(pose.mDeviceToAbsoluteTracking(), this.poseMatrices[device]);
                 HmdVector3 velocity = pose.vVelocity();
@@ -1489,7 +1489,7 @@ public class MCOpenVR extends MCVR {
         }
 
         // check headset tracking state
-        if (this.trackedDevicePoses.get(k_unTrackedDeviceIndex_Hmd).bPoseIsValid()) {
+        if (this.hmdTrackedDevicePoses.get(k_unTrackedDeviceIndex_Hmd).bPoseIsValid()) {
             this.hmdPose.set(this.poseMatrices[k_unTrackedDeviceIndex_Hmd]);
             this.headIsTracking = true;
         } else {

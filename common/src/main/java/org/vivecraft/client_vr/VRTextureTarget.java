@@ -42,8 +42,8 @@ public class VRTextureTarget extends RenderTarget {
     public VRTextureTarget(String name, int width, int height, int colorid, int index) {
         super(true);
         this.name = name;
-        RenderSystem.assertOnGameThreadOrInit();
-        this.resize(width, height, Minecraft.ON_OSX);
+        RenderSystem.assertOnRenderThreadOrInit();
+        this.resize(width, height);
         ((RenderTargetExtension) this).vivecraft$setColorid(colorid);
         GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, frameBufferId);
         GL30.glFramebufferTextureLayer(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, colorid, 0, index);
