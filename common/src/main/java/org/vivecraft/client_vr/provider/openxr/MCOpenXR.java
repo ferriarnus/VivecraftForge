@@ -383,7 +383,7 @@ public class MCOpenXR extends MCVR {
             int error = XR10.xrGetActionStateFloat(this.session, info, state);
             logError(error, "xrGetActionStateFloat", action.name);
 
-            action.analogData[i].deltaX = action.analogData[i].x - state.currentState();
+            action.analogData[i].deltaX = state.currentState() - action.analogData[i].x;
             action.analogData[i].x = state.currentState();
             action.analogData[i].activeOrigin = getOrigins(action).get(0);
             action.analogData[i].isActive = state.isActive();
@@ -406,8 +406,8 @@ public class MCOpenXR extends MCVR {
             int error = XR10.xrGetActionStateVector2f(this.session, info, state);
             logError(error, "xrGetActionStateVector2f", action.name);
 
-            action.analogData[i].deltaX = action.analogData[i].x - state.currentState().x();
-            action.analogData[i].deltaY = action.analogData[i].y - state.currentState().y();
+            action.analogData[i].deltaX = state.currentState().x() - action.analogData[i].x;
+            action.analogData[i].deltaY = state.currentState().y() - action.analogData[i].y;
             action.analogData[i].x = state.currentState().x();
             action.analogData[i].y = state.currentState().y();
             action.analogData[i].activeOrigin = getOrigins(action).get(0);
