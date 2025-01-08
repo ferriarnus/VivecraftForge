@@ -63,9 +63,9 @@ public class VRPassHelper {
             }
 
             if (eye == RenderPass.LEFT) {
-                DATA_HOLDER.vrRenderer.framebufferEye0.bindWrite(true);
+                DATA_HOLDER.vrRenderer.getLeftEyeTarget().bindWrite(true);
             } else {
-                DATA_HOLDER.vrRenderer.framebufferEye1.bindWrite(true);
+                DATA_HOLDER.vrRenderer.getRightEyeTarget().bindWrite(true);
             }
 
             // do post-processing

@@ -74,7 +74,7 @@ public class VRData {
         Vector3f scaleOffset = new Vector3f(scaledPos.x - hmd_raw.x, 0.0F, scaledPos.z - hmd_raw.z);
 
         // headset
-        this.hmd = new VRDevicePose(this, mcVR.hmdRotation, scaledPos, mcVR.getHmdVector());
+        this.hmd = new VRDevicePose(this, mcVR.getEyeRotation(RenderPass.CENTER), scaledPos, mcVR.getHmdVector());
 
         this.eye0 = new VRDevicePose(this,
             mcVR.getEyeRotation(RenderPass.LEFT),
