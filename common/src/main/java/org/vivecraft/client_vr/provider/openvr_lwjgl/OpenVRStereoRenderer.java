@@ -29,8 +29,8 @@ public class OpenVRStereoRenderer extends VRRenderer {
     private final MCOpenVR openvr;
     protected int LeftEyeTextureId = -1;
     protected int RightEyeTextureId = -1;
-    public RenderTarget framebufferEye0;
-    public RenderTarget framebufferEye1;
+    public RenderTarget framebufferEyeLeft;
+    public RenderTarget framebufferEyeRight;
 
     public OpenVRStereoRenderer(MCOpenVR vr) {
         super(vr);
@@ -97,8 +97,9 @@ public class OpenVRStereoRenderer extends VRRenderer {
     }
 
     @Override
-    public void createRenderTexture(int width, int height) throws RenderConfigException {
+    public void createRenderTexture(int width, int height) {
         int boundTextureId = GlStateManager._getInteger(GL11C.GL_TEXTURE_BINDING_2D);
+
         // generate left eye texture
         this.LeftEyeTextureId = GlStateManager._genTexture();
         RenderSystem.bindTexture(this.LeftEyeTextureId);
@@ -121,33 +122,31 @@ public class OpenVRStereoRenderer extends VRRenderer {
         this.openvr.texType1.eColorSpace(VR.EColorSpace_ColorSpace_Gamma);
         this.openvr.texType1.eType(VR.ETextureType_TextureType_OpenGL);
 
-        if (this.LeftEyeTextureId == -1) {
-            throw new RenderConfigException(
-                Component.translatable("vivecraft.messages.renderiniterror", this.getName()),
-                Component.literal(this.getLastError()));
-        }
-
         VRSettings.LOGGER.info("Vivecraft: VR Provider supplied render texture IDs: {}, {}", this.LeftEyeTextureId,
             this.RightEyeTextureId);
-        VRSettings.LOGGER.info("Vivecraft: VR Provider supplied texture resolution: {} x {}", width, height);
 
-        RenderHelper.checkGLError("Render Texture setup");
-
-        if (this.framebufferEye0 == null) {
-            this.framebufferEye0 = new VRTextureTarget("L Eye", width, height, false, this.LeftEyeTextureId, false,
-                true, false);
-            VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye0);
-            RenderHelper.checkGLError("Left Eye framebuffer setup");
-        }
-
-        if (this.framebufferEye1 == null) {
-            this.framebufferEye1 = new VRTextureTarget("R Eye", width, height, false, this.RightEyeTextureId, false,
-                true, false);
-            VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye1);
-            RenderHelper.checkGLError("Right Eye framebuffer setup");
-        }
-        RenderSystem.bindTexture(boundTextureId);
         this.lastError = RenderHelper.checkGLError("create VR textures");
+
+        this.framebufferEyeLeft = new VRTextureTarget("L Eye", width, height, false, this.LeftEyeTextureId, true, false,
+            false);
+
+        VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEyeLeft);
+
+        String leftError = RenderHelper.checkGLError("Left Eye framebuffer setup");
+
+        this.framebufferEyeRight = new VRTextureTarget("R Eye", width, height, false, this.RightEyeTextureId, true,
+            false,
+            false);
+
+        VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEyeRight);
+
+        String rightError = RenderHelper.checkGLError("Right Eye framebuffer setup");
+
+        if (this.lastError.isEmpty()) {
+            this.lastError = !leftError.isEmpty() ? leftError : rightError;
+        }
+
+        RenderSystem.bindTexture(boundTextureId);
     }
 
     @Override
@@ -195,12 +194,12 @@ public class OpenVRStereoRenderer extends VRRenderer {
 
     @Override
     public RenderTarget getLeftEyeTarget() {
-        return framebufferEye0;
+        return this.framebufferEyeLeft;
     }
 
     @Override
     public RenderTarget getRightEyeTarget() {
-        return framebufferEye1;
+        return this.framebufferEyeRight;
     }
 
     public float[] getStencilMask(RenderPass eye) {
@@ -216,16 +215,20 @@ public class OpenVRStereoRenderer extends VRRenderer {
     }
 
     @Override
-    protected void destroyBuffers() {
-        super.destroyBuffers();
-        if (this.framebufferEye0 != null) {
-            this.framebufferEye0.destroyBuffers();
-            this.framebufferEye0 = null;
+    public void destroy() {
+        super.destroy();
+
+        this.hiddenMeshes[0].free();
+        this.hiddenMeshes[1].free();
+
+        if (this.framebufferEyeLeft != null) {
+            this.framebufferEyeLeft.destroyBuffers();
+            this.framebufferEyeLeft = null;
         }
 
-        if (this.framebufferEye1 != null) {
-            this.framebufferEye1.destroyBuffers();
-            this.framebufferEye1 = null;
+        if (this.framebufferEyeRight != null) {
+            this.framebufferEyeRight.destroyBuffers();
+            this.framebufferEyeRight = null;
         }
         if (this.LeftEyeTextureId > -1) {
             TextureUtil.releaseTextureId(this.LeftEyeTextureId);
@@ -236,12 +239,5 @@ public class OpenVRStereoRenderer extends VRRenderer {
             TextureUtil.releaseTextureId(this.RightEyeTextureId);
             this.RightEyeTextureId = -1;
         }
-    }
-
-    @Override
-    public void destroy() {
-        super.destroy();
-        this.hiddenMeshes[0].free();
-        this.hiddenMeshes[1].free();
     }
 }

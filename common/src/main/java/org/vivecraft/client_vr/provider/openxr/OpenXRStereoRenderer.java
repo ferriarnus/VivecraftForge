@@ -7,7 +7,6 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL31;
 import org.lwjgl.openxr.*;
 import org.lwjgl.system.MemoryStack;
-import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRTextureTarget;
 import org.vivecraft.client_vr.provider.VRRenderer;
 import org.vivecraft.client_vr.render.RenderConfigException;
@@ -23,8 +22,6 @@ public class OpenXRStereoRenderer extends VRRenderer {
     private VRTextureTarget[] rightFramebuffers;
     private boolean render;
     private XrCompositionLayerProjectionView.Buffer projectionLayerViews;
-    private VRTextureTarget rightFramebuffer;
-    private VRTextureTarget leftFramebuffer;
 
 
     public OpenXRStereoRenderer(MCOpenXR vr) {
@@ -33,15 +30,15 @@ public class OpenXRStereoRenderer extends VRRenderer {
     }
 
     @Override
-    public void createRenderTexture(int width, int height) throws RenderConfigException {
+    public void createRenderTexture(int width, int height) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
 
-            //Get amount of views in the swapchain
+            // Get amount of views in the swapchain
             IntBuffer intBuffer = stack.ints(0); //Set value to 0
             int error = XR10.xrEnumerateSwapchainImages(this.openxr.swapchain, intBuffer, null);
             this.openxr.logError(error, "xrEnumerateSwapchainImages", "get count");
 
-            //Now we know the amount, create the image buffer
+            // Now we know the amount, create the image buffer
             int imageCount = intBuffer.get(0);
             XrSwapchainImageOpenGLKHR.Buffer swapchainImageBuffer = this.openxr.device.createImageBuffers(imageCount,
                 stack);
@@ -56,15 +53,14 @@ public class OpenXRStereoRenderer extends VRRenderer {
             for (int i = 0; i < imageCount; i++) {
                 XrSwapchainImageOpenGLKHR openxrImage = swapchainImageBuffer.get(i);
                 this.leftFramebuffers[i] = new VRTextureTarget("L Eye " + i, width, height, openxrImage.image(), 0);
-                RenderHelper.checkGLError("Left Eye framebuffer setup");
+                String leftError = RenderHelper.checkGLError("Left Eye " + i + " framebuffer setup");
                 this.rightFramebuffers[i] = new VRTextureTarget("R Eye " + i, width, height, openxrImage.image(), 1);
-                RenderHelper.checkGLError("Right Eye framebuffer setup");
-            }
+                String rightError = RenderHelper.checkGLError("Right Eye " + i + " framebuffer setup");
 
-            this.rightFramebuffer = new VRTextureTarget("R Eye mirror", width, height, true, -1, true, true,
-                ClientDataHolderVR.getInstance().vrSettings.vrUseStencil);
-            this.leftFramebuffer = new VRTextureTarget("L Eye mirror", width, height, true, -1, true, true,
-                ClientDataHolderVR.getInstance().vrSettings.vrUseStencil);
+                if (this.lastError.isEmpty()) {
+                    this.lastError = !leftError.isEmpty() ? leftError : rightError;
+                }
+            }
         }
     }
 
@@ -72,9 +68,8 @@ public class OpenXRStereoRenderer extends VRRenderer {
     public void setupRenderConfiguration(boolean render) throws IOException, RenderConfigException {
         super.setupRenderConfiguration(render);
 
-        if (!render) {
-            return;
-        }
+        if (!render) return;
+
         this.projectionLayerViews = XrCompositionLayerProjectionView.calloc(2);
         try (MemoryStack stack = MemoryStack.stackPush()) {
 
@@ -96,7 +91,6 @@ public class OpenXRStereoRenderer extends VRRenderer {
 
             // Render view to the appropriate part of the swapchain image.
             for (int viewIndex = 0; viewIndex < 2; viewIndex++) {
-
                 var subImage = this.projectionLayerViews.get(viewIndex)
                     .type(XR10.XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW)
                     .pose(this.openxr.viewBuffer.get(viewIndex).pose())
@@ -110,6 +104,15 @@ public class OpenXRStereoRenderer extends VRRenderer {
         }
     }
 
+    /**
+     * no caching for openxr
+     */
+    @Override
+    public Matrix4f getCachedProjectionMatrix(int eyeType, float nearClip, float farClip) {
+        this.eyeProj[eyeType] = this.getProjectionMatrix(eyeType, nearClip, farClip);
+        return this.eyeProj[eyeType];
+    }
+
     @Override
     public Matrix4f getProjectionMatrix(int eyeType, float nearClip, float farClip) {
         XrFovf fov = this.openxr.viewBuffer.get(eyeType).fov();
@@ -119,20 +122,6 @@ public class OpenXRStereoRenderer extends VRRenderer {
 
     @Override
     public void endFrame() throws RenderConfigException {
-
-        GL31.glBindFramebuffer(GL31.GL_READ_FRAMEBUFFER, getLeftEyeTarget().frameBufferId);
-        GL31.glBindFramebuffer(GL31.GL_DRAW_FRAMEBUFFER, this.leftFramebuffers[this.swapIndex].frameBufferId);
-        GL31.glBlitFramebuffer(0, 0, getLeftEyeTarget().viewWidth, getLeftEyeTarget().viewHeight, 0, 0,
-            this.leftFramebuffers[this.swapIndex].viewWidth, this.leftFramebuffers[this.swapIndex].viewHeight,
-            GL31.GL_STENCIL_BUFFER_BIT | GL31.GL_COLOR_BUFFER_BIT, GL31.GL_NEAREST);
-
-        GL31.glBindFramebuffer(GL31.GL_READ_FRAMEBUFFER, getRightEyeTarget().frameBufferId);
-        GL31.glBindFramebuffer(GL31.GL_DRAW_FRAMEBUFFER, this.rightFramebuffers[this.swapIndex].frameBufferId);
-        GL31.glBlitFramebuffer(0, 0, getRightEyeTarget().viewWidth, getRightEyeTarget().viewHeight, 0, 0,
-            this.rightFramebuffers[this.swapIndex].viewWidth, this.rightFramebuffers[this.swapIndex].viewHeight,
-            GL31.GL_STENCIL_BUFFER_BIT | GL31.GL_COLOR_BUFFER_BIT, GL31.GL_NEAREST);
-
-
         try (MemoryStack stack = MemoryStack.stackPush()) {
             PointerBuffer layers = stack.callocPointer(1);
             int error;
@@ -172,12 +161,12 @@ public class OpenXRStereoRenderer extends VRRenderer {
 
     @Override
     public RenderTarget getLeftEyeTarget() {
-        return this.leftFramebuffer;
+        return this.leftFramebuffers[this.swapIndex];
     }
 
     @Override
     public RenderTarget getRightEyeTarget() {
-        return this.rightFramebuffer;
+        return this.rightFramebuffers[this.swapIndex];
     }
 
     @Override
@@ -188,5 +177,24 @@ public class OpenXRStereoRenderer extends VRRenderer {
     @Override
     public Tuple<Integer, Integer> getRenderTextureSizes() {
         return new Tuple<>(this.openxr.width, this.openxr.height);
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+
+        if (this.leftFramebuffers != null) {
+            for (VRTextureTarget leftFramebuffer : this.leftFramebuffers) {
+                leftFramebuffer.destroyBuffers();
+            }
+            this.leftFramebuffers = null;
+        }
+
+        if (this.rightFramebuffers != null) {
+            for (VRTextureTarget rightFramebuffer : this.rightFramebuffers) {
+                rightFramebuffer.destroyBuffers();
+            }
+            this.rightFramebuffers = null;
+        }
     }
 }

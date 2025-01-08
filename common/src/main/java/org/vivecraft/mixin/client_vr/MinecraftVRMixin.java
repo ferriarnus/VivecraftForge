@@ -352,17 +352,6 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
         }
     }
 
-    @Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/pipeline/RenderTarget;unbindWrite()V"))
-    private void vivecraft$blitMirror(CallbackInfo ci) {
-        if (VRState.VR_RUNNING) {
-            Profiler.get().popPush("vrMirror");
-            RenderPassManager.setMirrorRenderPass();
-            this.mainRenderTarget.bindWrite(true);
-            ShaderHelper.drawMirror();
-            RenderHelper.checkGLError("post-mirror");
-        }
-    }
-
     @Inject(method = "setCameraEntity", at = @At("HEAD"))
     private void vivecraft$rideEntity(Entity entity, CallbackInfo ci) {
         if (VRState.VR_INITIALIZED) {

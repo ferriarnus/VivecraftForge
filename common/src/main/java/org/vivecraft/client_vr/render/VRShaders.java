@@ -44,11 +44,6 @@ public class VRShaders {
     public static AbstractUniform POST_PROCESSING_OVERLAY_BLACK_ALPHA_UNIFORM;
     public static AbstractUniform POST_PROCESSING_OVERLAY_EYE_UNIFORM;
 
-    // blit shader
-    public static ShaderProgram BLIT_VR_SHADER = new ShaderProgram(
-        ResourceLocation.fromNamespaceAndPath("vivecraft", "core/blit_vr"),
-        DefaultVertexFormat.POSITION_TEX, ShaderDefines.EMPTY);
-
     // end portal shaders
     public static ShaderProgram RENDERTYPE_END_PORTAL_VR_SHADER = new ShaderProgram(
         ResourceLocation.fromNamespaceAndPath("vivecraft", "core/rendertype_end_portal_vr"),

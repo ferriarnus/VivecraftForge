@@ -25,7 +25,6 @@ import org.vivecraft.client.utils.StencilHelper;
 import org.vivecraft.client.utils.TextUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRTextureTarget;
-import org.vivecraft.client_vr.extensions.GameRendererExtension;
 import org.vivecraft.client_vr.extensions.WindowExtension;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
@@ -54,8 +53,8 @@ public abstract class VRRenderer {
     private float lastFarClip = 0F;
 
     // render buffers
-    protected int LeftEyeTextureId = -1;
-    protected int RightEyeTextureId = -1;
+    protected boolean eyeFramebuffersCreated = false;
+
     public RenderTarget framebufferMR;
     public RenderTarget framebufferUndistorted;
     public RenderTarget framebufferVrRender;
@@ -100,7 +99,7 @@ public abstract class VRRenderer {
      * @param width  width of the texture
      * @param height height of the texture
      */
-    public abstract void createRenderTexture(int width, int height) throws RenderConfigException;
+    public abstract void createRenderTexture(int width, int height);
 
     /**
      * gets the cached projection matrix if the farClip distance matches with the last, else gets a new one from the VR runtime
@@ -607,10 +606,6 @@ public abstract class VRRenderer {
             this.resizeFrameBuffers = false;
         }
 
-        //for OPENXR, it needs to reinit
-        this.eyeProj[0] = this.getProjectionMatrix(0, ((GameRendererExtension) minecraft.gameRenderer).vivecraft$getMinClipDistance(), lastFarClip);
-        this.eyeProj[1] = this.getProjectionMatrix(1, ((GameRendererExtension) minecraft.gameRenderer).vivecraft$getMinClipDistance(), lastFarClip);
-
         if (this.reinitFrameBuffers) {
             RenderHelper.checkGLError("Start Init");
 
@@ -657,7 +652,17 @@ public abstract class VRRenderer {
 
             destroyBuffers();
 
-            this.createRenderTexture(eyew, eyeh);
+            if (!this.eyeFramebuffersCreated) {
+                VRSettings.LOGGER.info("Vivecraft: VR Provider supplied texture resolution: {} x {}", eyew, eyeh);
+                this.createRenderTexture(eyew, eyeh);
+
+                if (!this.getLastError().isEmpty()) {
+                    throw new RenderConfigException(
+                        Component.translatable("vivecraft.messages.renderiniterror", this.getName()),
+                        Component.literal(this.getLastError()));
+                }
+                this.eyeFramebuffersCreated = true;
+            }
 
             float resolutionScale =
                 ResolutionControlHelper.isLoaded() ? ResolutionControlHelper.getCurrentScaleFactor() : 1.0F;

@@ -8,9 +8,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
+import org.vivecraft.client_vr.VRTextureTarget;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.provider.VRRenderer;
-import org.vivecraft.client_vr.render.RenderConfigException;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.VRSettings;
@@ -19,8 +19,8 @@ public class NullVRStereoRenderer extends VRRenderer {
 
     protected int LeftEyeTextureId = -1;
     protected int RightEyeTextureId = -1;
-    public RenderTarget framebufferEye0;
-    public RenderTarget framebufferEye1;
+    public RenderTarget framebufferEyeLeft;
+    public RenderTarget framebufferEyeRight;
 
     public NullVRStereoRenderer(MCVR vr) {
         super(vr);
@@ -44,25 +44,44 @@ public class NullVRStereoRenderer extends VRRenderer {
     }
 
     @Override
-    public void createRenderTexture(int lwidth, int lheight) throws RenderConfigException {
+    public void createRenderTexture(int width, int height) {
+        int boundTextureId = GlStateManager._getInteger(GL11.GL_TEXTURE_BINDING_2D);
+
         this.LeftEyeTextureId = GlStateManager._genTexture();
-        int i = GlStateManager._getInteger(GL11.GL_TEXTURE_BINDING_2D);
         RenderSystem.bindTexture(this.LeftEyeTextureId);
         RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
         RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-        GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, lwidth, lheight, 0, GL11.GL_RGBA, GL11.GL_INT,
+        GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, width, height, 0, GL11.GL_RGBA, GL11.GL_INT,
             null);
 
-        RenderSystem.bindTexture(i);
         this.RightEyeTextureId = GlStateManager._genTexture();
-        i = GlStateManager._getInteger(GL11.GL_TEXTURE_BINDING_2D);
         RenderSystem.bindTexture(this.RightEyeTextureId);
         RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
         RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-        GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, lwidth, lheight, 0, GL11.GL_RGBA, GL11.GL_INT,
+        GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, width, height, 0, GL11.GL_RGBA, GL11.GL_INT,
             null);
-        RenderSystem.bindTexture(i);
+
         this.lastError = RenderHelper.checkGLError("create VR textures");
+
+        this.framebufferEyeLeft = new VRTextureTarget("L Eye", width, height, false, this.LeftEyeTextureId, true, false,
+            false);
+
+        VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEyeLeft);
+
+        String leftError = RenderHelper.checkGLError("Left Eye framebuffer setup");
+
+        this.framebufferEyeRight = new VRTextureTarget("R Eye", width, height, false, this.RightEyeTextureId, true, false,
+            false);
+
+        VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEyeRight);
+
+        String rightError = RenderHelper.checkGLError("Right Eye framebuffer setup");
+
+        if (this.lastError.isEmpty()) {
+            this.lastError = !leftError.isEmpty() ? leftError : rightError;
+        }
+
+        RenderSystem.bindTexture(boundTextureId);
     }
 
     @Override
@@ -75,12 +94,12 @@ public class NullVRStereoRenderer extends VRRenderer {
 
     @Override
     public RenderTarget getLeftEyeTarget() {
-        return framebufferEye0;
+        return this.framebufferEyeLeft;
     }
 
     @Override
     public RenderTarget getRightEyeTarget() {
-        return framebufferEye1;
+        return this.framebufferEyeRight;
     }
 
 
@@ -95,17 +114,18 @@ public class NullVRStereoRenderer extends VRRenderer {
     }
 
     @Override
-    protected void destroyBuffers() {
+    public void destroy() {
         super.destroyBuffers();
+        super.destroy();
 
-        if (this.framebufferEye0 != null) {
-            this.framebufferEye0.destroyBuffers();
-            this.framebufferEye0 = null;
+        if (this.framebufferEyeLeft != null) {
+            this.framebufferEyeLeft.destroyBuffers();
+            this.framebufferEyeLeft = null;
         }
 
-        if (this.framebufferEye1 != null) {
-            this.framebufferEye1.destroyBuffers();
-            this.framebufferEye1 = null;
+        if (this.framebufferEyeRight != null) {
+            this.framebufferEyeRight.destroyBuffers();
+            this.framebufferEyeRight = null;
         }
 
         if (this.LeftEyeTextureId > -1) {

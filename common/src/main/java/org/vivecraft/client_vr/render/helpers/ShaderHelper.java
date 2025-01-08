@@ -1,6 +1,7 @@
 package org.vivecraft.client_vr.render.helpers;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.Util;
@@ -16,6 +17,8 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.opengl.GL11C;
+import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GL43;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.extensions.GameRendererExtension;
@@ -88,7 +91,9 @@ public class ShaderHelper {
             throw new IllegalStateException("Unexpected vertex format " + format);
         }
 
+        RenderSystem.disableDepthTest();
         BufferUploader.draw(builder.buildOrThrow());
+        RenderSystem.enableDepthTest();
     }
 
     /**
@@ -262,11 +267,11 @@ public class ShaderHelper {
             int screenHeight = MC.mainRenderTarget.height;
 
             if (leftEye != null) {
-                ShaderHelper.blitToScreen(leftEye, 0, screenWidth, screenHeight, 0, 0.0F, 0.0F, false);
+                blitFramebuffer(leftEye, 0, 0, screenWidth, screenHeight);
             }
 
             if (rightEye != null) {
-                ShaderHelper.blitToScreen(rightEye, screenWidth, screenWidth, screenHeight, 0, 0.0F, 0.0F, false);
+                blitFramebuffer(rightEye, screenWidth, 0, MC.mainRenderTarget.width, screenHeight);
             }
         } else {
             // general single buffer case
@@ -305,9 +310,7 @@ public class ShaderHelper {
             // source = DataHolder.getInstance().vrRenderer.telescopeFramebufferR;
             //
             if (source != null) {
-                ShaderHelper.blitToScreen(source,
-                    0, MC.mainRenderTarget.width,
-                    MC.mainRenderTarget.height, 0,
+                blitFramebufferCrop(source, 0, 0, MC.mainRenderTarget.width, MC.mainRenderTarget.height,
                     xCrop, yCrop, keepAspect);
             }
         }
@@ -362,6 +365,12 @@ public class ShaderHelper {
         mixedRealityShader.bindSampler("thirdPersonDepth",
             DATA_HOLDER.vrRenderer.framebufferMR.getDepthTextureId());
 
+        mixedRealityShader.apply();
+
+        drawFullscreenQuad(VRShaders.MIXED_REALITY_SHADER.vertexFormat());
+
+        mixedRealityShader.clear();
+
         if (DATA_HOLDER.vrSettings.mixedRealityUnityLike) {
             RenderTarget source;
             if (DATA_HOLDER.vrSettings.displayMirrorUseScreenshotCamera && DATA_HOLDER.cameraTracker.isVisible()) {
@@ -375,14 +384,9 @@ public class ShaderHelper {
                     source = DATA_HOLDER.vrRenderer.getRightEyeTarget();
                 }
             }
-            mixedRealityShader.bindSampler("firstPersonColor", source.getColorTextureId());
+            blitFramebuffer(source, MC.mainRenderTarget.width / 2, 0,
+                MC.mainRenderTarget.width, MC.mainRenderTarget.height / 2);
         }
-
-        mixedRealityShader.apply();
-
-        drawFullscreenQuad(VRShaders.MIXED_REALITY_SHADER.vertexFormat());
-
-        mixedRealityShader.clear();
     }
 
     /**
@@ -436,71 +440,66 @@ public class ShaderHelper {
     }
 
     /**
-     * blits the given {@code source} RenderTarget to the screen/bound buffer<br>
+     * blits the given {@code source} RenderTarget to the bound framebuffer<br>
      * the {@code source} is drawn to the rectangle at {@code left},{@code top} with a size of {@code width},{@code height}<br>
      * if {@code xCropFactor} or {@code yCropFactor} are non 0 the {@code source} gets zoomed in
-     *
-     * @param source      RenderTarget to draw to the screen
-     * @param left        left edge of the target area
-     * @param width       width of the target area
-     * @param height      height of the target area
-     * @param top         top edge of the target area
+     * @param source RenderTarget to draw to the screen
+     * @param left left edge of the target area
+     * @param top top edge of the target area
+     * @param right right edge width of the target area
+     * @param bottom bottom edge of the target area
      * @param xCropFactor vertical crop factor for the {@code source}
      * @param yCropFactor horizontal crop factor for the {@code source}
-     * @param keepAspect  keeps the aspect ratio in takt when cropping the buffer
+     * @param keepAspect keeps the aspect ratio in takt when cropping the buffer
      */
-    public static void blitToScreen(
-        RenderTarget source, int left, int width, int height, int top, float xCropFactor, float yCropFactor,
-        boolean keepAspect)
+    private static void blitFramebufferCrop(
+        RenderTarget source, int left, int top, int right, int bottom,
+        float xCropFactor, float yCropFactor, boolean keepAspect)
     {
-        RenderSystem.assertOnRenderThread();
-        RenderSystem.colorMask(true, true, true, false);
-        RenderSystem.disableDepthTest();
-        RenderSystem.depthMask(false);
-        RenderSystem.viewport(left, top, width, height);
-        RenderSystem.disableBlend();
-
-        float drawAspect = (float) width / (float) height;
-        float bufferAspect = (float) source.viewWidth / (float) source.viewHeight;
-
-        float xMin = xCropFactor;
-        float yMin = yCropFactor;
-        float xMax = 1.0F - xCropFactor;
-        float yMax = 1.0F - yCropFactor;
-
         if (keepAspect) {
+            float drawAspect = (float) MC.mainRenderTarget.width / (float) MC.mainRenderTarget.height;
+            float bufferAspect = (float) source.viewWidth / (float) source.viewHeight;
             if (drawAspect > bufferAspect) {
                 // destination is wider than the buffer
                 float heightAspect = (bufferAspect / drawAspect) * (0.5F - yCropFactor);
 
-                yMin = 0.5F - heightAspect;
-                yMax = 0.5F + heightAspect;
+                yCropFactor = 0.5F - heightAspect;
             } else {
                 // destination is taller than the buffer
                 float widthAspect = (drawAspect / bufferAspect) * (0.5F - xCropFactor);
 
-                xMin = 0.5F - widthAspect;
-                xMax = 0.5F + widthAspect;
+                xCropFactor = 0.5F - widthAspect;
             }
         }
 
-        CompiledShaderProgram blitShader = Objects.requireNonNull(
-            RenderSystem.setShader(VRShaders.BLIT_VR_SHADER), "Vivecraft blit shader not loaded");
-        blitShader.bindSampler("DiffuseSampler", source.getColorTextureId());
+        int xMin = (int) (xCropFactor * source.width);
+        int yMin = (int) (yCropFactor * source.height);
+        int xMax = source.width - xMin;
+        int yMax = source.height - yMin;
 
-        blitShader.apply();
-
-        BufferBuilder bufferbuilder = RenderSystem.renderThreadTesselator()
-            .begin(VertexFormat.Mode.QUADS, VRShaders.BLIT_VR_SHADER.vertexFormat());
-
-        bufferbuilder.addVertex(-1.0F, -1.0F, 0.0F).setUv(xMin, yMin);
-        bufferbuilder.addVertex(1.0F, -1.0F, 0.0F).setUv(xMax, yMin);
-        bufferbuilder.addVertex(1.0F, 1.0F, 0.0F).setUv(xMax, yMax);
-        bufferbuilder.addVertex(-1.0F, 1.0F, 0.0F).setUv(xMin, yMax);
-        BufferUploader.draw(bufferbuilder.buildOrThrow());
-        blitShader.clear();
-
-        RenderSystem.depthMask(true);
-        RenderSystem.colorMask(true, true, true, true);
+        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, source.frameBufferId);
+        GlStateManager._glBlitFrameBuffer(
+            xMin, yMin, xMax, yMax,
+            left, top, right, bottom,
+            GL11C.GL_COLOR_BUFFER_BIT, GL11C.GL_LINEAR);
+        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, 0);
+    }
+    /**
+     * blits the given {@code source} RenderTarget to the bound framebuffer
+     * @param source RenderTarget to draw to the screen
+     * @param left left edge of the target area
+     * @param top top edge of the target area
+     * @param right right edge width of the target area
+     * @param bottom bottom edge of the target area
+     */
+    private static void blitFramebuffer(
+        RenderTarget source, int left, int top, int right, int bottom)
+    {
+        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, source.frameBufferId);
+        GlStateManager._glBlitFrameBuffer(
+            0, 0, source.width, source.height,
+            left, top, right, bottom,
+            GL11C.GL_COLOR_BUFFER_BIT, GL11C.GL_LINEAR);
+        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, 0);
     }
 }

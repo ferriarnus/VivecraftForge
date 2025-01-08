@@ -2,8 +2,8 @@ package org.vivecraft.client_vr;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL30;
 import org.vivecraft.client.Xplat;
 import org.vivecraft.client.extensions.RenderTargetExtension;
@@ -39,14 +39,28 @@ public class VRTextureTarget extends RenderTarget {
         this.setClearColor(0, 0, 0, 0);
     }
 
-    public VRTextureTarget(String name, int width, int height, int colorid, int index) {
-        super(true);
+    public VRTextureTarget(String name, int width, int height, int colorId, int index) {
+        super(false);
         this.name = name;
         RenderSystem.assertOnRenderThreadOrInit();
         this.resize(width, height);
-        ((RenderTargetExtension) this).vivecraft$setColorid(colorid);
-        GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, frameBufferId);
-        GL30.glFramebufferTextureLayer(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, colorid, 0, index);
+
+        // free the old one when setting a new one
+        if (this.colorTextureId != -1) {
+            TextureUtil.releaseTextureId(this.colorTextureId);
+        }
+        this.colorTextureId = colorId;
+
+        GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, this.frameBufferId);
+        // unset the old GL_COLOR_ATTACHMENT0
+        GlStateManager._glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL30.GL_TEXTURE_2D, 0,
+            0);
+        GL30.glFramebufferTextureLayer(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, colorId, 0, index);
+
+        // unbind the framebuffer
+        this.unbindRead();
+        this.unbindWrite();
+
         this.setClearColor(0, 0, 0, 0);
     }
 
