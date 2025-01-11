@@ -63,9 +63,9 @@ public class VRPassHelper {
             }
 
             if (eye == RenderPass.LEFT) {
-                DATA_HOLDER.vrRenderer.framebufferEye0.bindWrite(true);
+                DATA_HOLDER.vrRenderer.getLeftEyeTarget().bindWrite(true);
             } else {
-                DATA_HOLDER.vrRenderer.framebufferEye1.bindWrite(true);
+                DATA_HOLDER.vrRenderer.getRightEyeTarget().bindWrite(true);
             }
 
             // do post-processing
@@ -248,7 +248,15 @@ public class VRPassHelper {
         Profiler.get().pop();
 
         DATA_HOLDER.vrPlayer.postRender(deltaTracker.getGameTimeDeltaPartialTick(true));
-        Profiler.get().push("Display/Reproject");
+
+        Profiler.get().push("vrMirror");
+        // use the vanilla target for the mirror
+        RenderPassManager.setMirrorRenderPass();
+        MC.mainRenderTarget.bindWrite(true);
+        ShaderHelper.drawMirror();
+        RenderHelper.checkGLError("post-mirror");
+
+        Profiler.get().popPush("Display/Reproject");
 
         try {
             DATA_HOLDER.vrRenderer.endFrame();

@@ -47,15 +47,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class VRRenderer {
+
     // projection matrices
     public Matrix4f[] eyeProj = new Matrix4f[2];
     private float lastFarClip = 0F;
 
     // render buffers
-    public RenderTarget framebufferEye0;
-    public RenderTarget framebufferEye1;
-    protected int LeftEyeTextureId = -1;
-    protected int RightEyeTextureId = -1;
+    protected boolean eyeFramebuffersCreated = false;
+
     public RenderTarget framebufferMR;
     public RenderTarget framebufferUndistorted;
     public RenderTarget framebufferVrRender;
@@ -144,6 +143,15 @@ public abstract class VRRenderer {
      */
     public abstract boolean providesStencilMask();
 
+    /**
+     * @return the left eye rendertarget
+     */
+    public abstract RenderTarget getLeftEyeTarget();
+
+    /**
+     * @return the right eye rendertarget
+     */
+    public abstract RenderTarget getRightEyeTarget();
     /**
      * gets an array with the vertex info of the stencil mesh, if there is one provided by this renderer
      *
@@ -497,7 +505,7 @@ public abstract class VRRenderer {
      * @throws RenderConfigException in case something failed to initialize or the gpu vendor is unsupported
      * @throws IOException           can be thrown by the WorldRenderPass init when trying to load the shaders
      */
-    public void setupRenderConfiguration() throws RenderConfigException, IOException {
+    public void setupRenderConfiguration(boolean render) throws RenderConfigException, IOException {
         Minecraft minecraft = Minecraft.getInstance();
         ClientDataHolderVR dataholder = ClientDataHolderVR.getInstance();
 
@@ -644,34 +652,16 @@ public abstract class VRRenderer {
 
             destroyBuffers();
 
-            if (this.LeftEyeTextureId == -1) {
+            if (!this.eyeFramebuffersCreated) {
+                VRSettings.LOGGER.info("Vivecraft: VR Provider supplied texture resolution: {} x {}", eyew, eyeh);
                 this.createRenderTexture(eyew, eyeh);
 
-                if (this.LeftEyeTextureId == -1) {
+                if (!this.getLastError().isEmpty()) {
                     throw new RenderConfigException(
                         Component.translatable("vivecraft.messages.renderiniterror", this.getName()),
                         Component.literal(this.getLastError()));
                 }
-
-                VRSettings.LOGGER.info("Vivecraft: VR Provider supplied render texture IDs: {}, {}",
-                    this.LeftEyeTextureId, this.RightEyeTextureId);
-                VRSettings.LOGGER.info("Vivecraft: VR Provider supplied texture resolution: {} x {}", eyew, eyeh);
-            }
-
-            RenderHelper.checkGLError("Render Texture setup");
-
-            if (this.framebufferEye0 == null) {
-                this.framebufferEye0 = new VRTextureTarget("L Eye", eyew, eyeh, false, this.LeftEyeTextureId, true,
-                    false, false);
-                VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye0);
-                RenderHelper.checkGLError("Left Eye framebuffer setup");
-            }
-
-            if (this.framebufferEye1 == null) {
-                this.framebufferEye1 = new VRTextureTarget("R Eye", eyew, eyeh, false, this.RightEyeTextureId, true,
-                    false, false);
-                VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye1);
-                RenderHelper.checkGLError("Right Eye framebuffer setup");
+                this.eyeFramebuffersCreated = true;
             }
 
             float resolutionScale =
@@ -933,18 +923,6 @@ public abstract class VRRenderer {
         if (this.fsaaLastPassResultFBO != null) {
             this.fsaaLastPassResultFBO.destroyBuffers();
             this.fsaaLastPassResultFBO = null;
-        }
-
-        if (this.framebufferEye0 != null) {
-            this.framebufferEye0.destroyBuffers();
-            this.framebufferEye0 = null;
-            this.LeftEyeTextureId = -1;
-        }
-
-        if (this.framebufferEye1 != null) {
-            this.framebufferEye1.destroyBuffers();
-            this.framebufferEye1 = null;
-            this.RightEyeTextureId = -1;
         }
 
         if (this.mirrorFramebuffer != null) {

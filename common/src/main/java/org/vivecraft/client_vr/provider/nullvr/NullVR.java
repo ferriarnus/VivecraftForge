@@ -16,7 +16,7 @@ import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.client_vr.provider.DeviceSource;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.provider.VRRenderer;
-import org.vivecraft.client_vr.provider.openvr_lwjgl.VRInputAction;
+import org.vivecraft.client_vr.provider.control.VRInputAction;
 import org.vivecraft.client_vr.render.MirrorNotification;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.network.FBTMode;
@@ -108,7 +108,10 @@ public class NullVR extends MCVR {
             this.hmdPose.m31(1.62F);
 
             // eye offset, 10cm total distance
+            this.hmdPoseLeftEye.set(this.hmdPose);
             this.hmdPoseLeftEye.m30(-IPD * 0.5F);
+
+            this.hmdPoseRightEye.set(this.hmdPose);
             this.hmdPoseRightEye.m30(IPD * 0.5F);
 
             this.populateInputActions();
@@ -119,6 +122,9 @@ public class NullVR extends MCVR {
 
         return this.initialized;
     }
+
+    @Override
+    public void handleEvents() {}
 
     @Override
     public void poll(long frameIndex) {
@@ -247,6 +253,11 @@ public class NullVR extends MCVR {
     @Override
     public boolean isActive() {
         return this.vrActive;
+    }
+
+    @Override
+    public ControllerType getOriginControllerType(long i) {
+        return ControllerType.LEFT;
     }
 
     @Override

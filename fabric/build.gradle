@@ -68,6 +68,13 @@ dependencies {
     include(implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-macos"))
     include(implementation("org.lwjgl:lwjgl-openvr:${rootProject.lwjgl_version}:natives-windows"))
 
+    // Use custom OpenXR lib for Android and GLES bindings
+    //include(implementation("QuestCraftPlusPlus:lwjgl3:${rootProject.lwjgl_version}:lwjgl-openxr-${rootProject.lwjgl_version}"))
+
+    include(implementation("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}"))
+    include(implementation("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}:natives-windows"))
+    include(implementation("org.lwjgl:lwjgl-openxr:${rootProject.lwjgl_version}:natives-linux"))
+
     include(implementation("com.illposed.osc:javaosc-core:0.9"))
 
 }
