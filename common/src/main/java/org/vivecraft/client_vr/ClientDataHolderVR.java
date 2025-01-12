@@ -89,22 +89,6 @@ public class ClientDataHolderVR {
     public boolean showedFbtCalibrationNotification;
 
     private ClientDataHolderVR() {
-        registerTracker(backpackTracker);
-        registerTracker(bowTracker);
-        registerTracker(swingTracker);
-        registerTracker(eatingTracker);
-        registerTracker(jumpTracker);
-        registerTracker(sneakTracker);
-        registerTracker(climbTracker);
-        registerTracker(runTracker);
-        registerTracker(rowTracker);
-        registerTracker(teleportTracker);
-        registerTracker(horseTracker);
-        registerTracker(vehicleTracker);
-        registerTracker(interactTracker);
-        registerTracker(crawlTracker);
-        registerTracker(cameraTracker);
-        registerTracker(telescopeTracker);
     }
 
     public static ClientDataHolderVR getInstance() {
