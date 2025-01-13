@@ -2,7 +2,7 @@ package org.vivecraft.api;
 
 import net.minecraft.world.entity.player.Player;
 import org.vivecraft.api.data.VRData;
-import org.vivecraft.common.api_impl.APIImpl;
+import org.vivecraft.common.api_impl.VivecraftAPIImpl;
 
 import javax.annotation.Nullable;
 
@@ -12,7 +12,7 @@ public interface VivecraftAPI {
      * @return The Vivecraft API instance for interacting with Vivecraft's API.
      */
     static VivecraftAPI getInstance() {
-        return APIImpl.INSTANCE;
+        return VivecraftAPIImpl.INSTANCE;
     }
 
     /**

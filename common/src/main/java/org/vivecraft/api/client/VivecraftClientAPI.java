@@ -4,7 +4,7 @@ import com.google.common.annotations.Beta;
 import net.minecraft.world.InteractionHand;
 import org.vivecraft.api.client.data.VRPoseHistory;
 import org.vivecraft.api.data.VRData;
-import org.vivecraft.client.api_impl.ClientAPIImpl;
+import org.vivecraft.client.api_impl.VivecraftClientAPIImpl;
 import org.vivecraft.client_vr.render.RenderPass;
 
 import javax.annotation.Nullable;
@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 public interface VivecraftClientAPI {
 
     static VivecraftClientAPI getInstance() {
-        return ClientAPIImpl.INSTANCE;
+        return VivecraftClientAPIImpl.INSTANCE;
     }
 
     /**

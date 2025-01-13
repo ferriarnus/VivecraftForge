@@ -11,18 +11,17 @@ import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.client_vr.render.RenderPass;
-import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.client_xr.render_pass.RenderPassType;
 
-public final class ClientAPIImpl implements VivecraftClientAPI {
+public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
 
-    public static final ClientAPIImpl INSTANCE = new ClientAPIImpl();
+    public static final VivecraftClientAPIImpl INSTANCE = new VivecraftClientAPIImpl();
 
     private final VRPoseHistoryImpl hmdHistory = new VRPoseHistoryImpl();
     private VRPoseHistoryImpl c0History = new VRPoseHistoryImpl();
     private VRPoseHistoryImpl c1History = new VRPoseHistoryImpl();
 
-    private ClientAPIImpl() {
+    private VivecraftClientAPIImpl() {
     }
 
     public void clearHistories() {

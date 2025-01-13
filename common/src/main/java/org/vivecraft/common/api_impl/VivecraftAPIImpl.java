@@ -6,14 +6,13 @@ import org.vivecraft.api.VivecraftAPI;
 import org.vivecraft.client.ClientVRPlayers;
 import org.jetbrains.annotations.Nullable;
 import org.vivecraft.api.data.VRData;
-import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.server.ServerVRPlayers;
 
-public final class APIImpl implements VivecraftAPI {
+public final class VivecraftAPIImpl implements VivecraftAPI {
 
-    public static final APIImpl INSTANCE = new APIImpl();
+    public static final VivecraftAPIImpl INSTANCE = new VivecraftAPIImpl();
 
-    private APIImpl() {
+    private VivecraftAPIImpl() {
     }
 
     @Override

@@ -25,7 +25,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.vivecraft.api.client.Tracker;
 import org.vivecraft.client.VivecraftVRMod;
-import org.vivecraft.client.api_impl.ClientAPIImpl;
+import org.vivecraft.client.api_impl.VivecraftClientAPIImpl;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.common.VRServerPerms;
 import org.vivecraft.client.network.ClientNetworking;
@@ -43,8 +43,6 @@ import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.data.ItemTags;
-
-import java.util.ArrayList;
 
 public class VRPlayer {
     private final Minecraft mc = Minecraft.getInstance();
@@ -239,7 +237,7 @@ public class VRPlayer {
             this.dh.vrSettings.worldRotation = this.dh.vr.seatedRot;
         }
 
-        ClientAPIImpl.INSTANCE.addPosesToHistory(this.vrdata_world_pre.asVRData());
+        VivecraftClientAPIImpl.INSTANCE.addPosesToHistory(this.vrdata_world_pre.asVRData());
     }
 
     public void postTick() {
