@@ -23,7 +23,7 @@ import org.vivecraft.client_vr.gameplay.trackers.TelescopeTracker;
 import org.vivecraft.client_vr.provider.DeviceSource;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.RenderPass;
-import org.vivecraft.common.network.FBTMode;
+import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 
 import java.util.ArrayList;

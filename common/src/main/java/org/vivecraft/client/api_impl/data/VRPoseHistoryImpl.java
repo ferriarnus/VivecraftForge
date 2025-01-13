@@ -3,6 +3,7 @@ package org.vivecraft.client.api_impl.data;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.api.client.data.VRPoseHistory;
 import org.vivecraft.api.data.VRBodyPart;
+import org.vivecraft.api.data.VRBodyPartData;
 import org.vivecraft.api.data.VRPose;
 
 import java.util.LinkedList;
@@ -48,30 +49,57 @@ public class VRPoseHistoryImpl implements VRPoseHistory {
     }
 
     @Override
-    public Vec3 netMovement(int deviceNum, int maxTicksBack) throws IllegalArgumentException {
+    public Vec3 netMovement(VRBodyPart bodyPart, int maxTicksBack) throws IllegalArgumentException {
+        checkPartNonNull(bodyPart);
         checkTicksBack(maxTicksBack);
-        Vec3 current = getPart(this.dataQueue.getLast(), deviceNum).getPos();
-        Vec3 old = getPart(getOldPose(maxTicksBack), deviceNum).getPos();
+        VRBodyPartData currentData = this.dataQueue.getLast().getBodyPartData(bodyPart);
+        if (currentData == null) {
+            return null;
+        }
+        Vec3 current = currentData.getPos();
+        VRBodyPartData oldData = getOldPose(maxTicksBack).getBodyPartData(bodyPart);
+        if (oldData == null) {
+            return null;
+        }
+        Vec3 old = oldData.getPos();
         return current.subtract(old);
     }
 
     @Override
-    public Vec3 averageVelocity(int deviceNum, int maxTicksBack) throws IllegalArgumentException {
+    public Vec3 averageVelocity(VRBodyPart bodyPart, int maxTicksBack) throws IllegalArgumentException {
+        checkPartNonNull(bodyPart);
         checkTicksBack(maxTicksBack);
-        Vec3 current = getPart(this.dataQueue.getLast(), deviceNum).getPos();
-        Vec3 old = getPart(getOldPose(maxTicksBack), deviceNum).getPos();
+        VRBodyPartData currentData = this.dataQueue.getLast().getBodyPartData(bodyPart);
+        if (currentData == null) {
+            return null;
+        }
+        Vec3 current = currentData.getPos();
+        VRBodyPartData oldData = getOldPose(maxTicksBack).getBodyPartData(bodyPart);
+        if (oldData == null) {
+            return null;
+        }
+        Vec3 old = oldData.getPos();
         return current.subtract(old).scale(1d / getNumTicksBack(maxTicksBack));
     }
 
     @Override
-    public Vec3 averagePosition(int deviceNum, int maxTicksBack) throws IllegalArgumentException {
+    public Vec3 averagePosition(VRBodyPart bodyPart, int maxTicksBack) throws IllegalArgumentException {
+        checkPartNonNull(bodyPart);
         checkTicksBack(maxTicksBack);
         int iters = getNumTicksBack(maxTicksBack);
+        VRBodyPartData currentData = this.dataQueue.getLast().getBodyPartData(bodyPart);
+        if (currentData == null) {
+            return null;
+        }
         ListIterator<VRPose> iterator = this.dataQueue.listIterator(this.dataQueue.size() - 1);
-        Vec3 avg = getPart(this.dataQueue.getLast(), deviceNum).getPos();
+        Vec3 avg = currentData.getPos();
         int i = iters;
         while (i > 0) {
-            avg = avg.add(getPart(iterator.previous(), deviceNum).getPos());
+            VRBodyPartData oldData = iterator.previous().getBodyPartData(bodyPart);
+            if (oldData == null) {
+                break;
+            }
+            avg = avg.add(oldData.getPos());
             i--;
         }
         return avg.scale(1d / (iters + 1));
@@ -83,20 +111,18 @@ public class VRPoseHistoryImpl implements VRPoseHistory {
         }
     }
 
+    private void checkPartNonNull(VRBodyPart bodyPart) {
+        if (bodyPart == null) {
+            throw new IllegalArgumentException("Cannot get data for a null body part!");
+        }
+    }
+
     private VRPose getOldPose(int maxTicksBack) {
         if (this.dataQueue.size() <= maxTicksBack) {
             return this.dataQueue.getFirst();
         } else {
             return this.dataQueue.get(this.dataQueue.size() - maxTicksBack - 1);
         }
-    }
-
-    private VRBodyPart getPart(VRPose pose, int deviceNum) {
-        return switch (deviceNum) {
-            case -1 -> pose.getHMD();
-            case 0, 1 -> pose.getController(deviceNum);
-            default -> throw new IllegalStateException("Invalid deviceNum: " + deviceNum);
-        };
     }
 
     private int getNumTicksBack(int maxTicksBack) {

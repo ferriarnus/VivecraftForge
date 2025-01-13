@@ -9,8 +9,6 @@ import org.joml.Vector3fc;
 import org.vivecraft.common.network.*;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.api.data.VRPose;
-import org.vivecraft.common.api_impl.data.VRPoseImpl;
-import org.vivecraft.common.api_impl.data.VRBodyPartImpl;
 import org.vivecraft.common.network.CommonNetworkHelper;
 import org.vivecraft.common.network.Pose;
 import org.vivecraft.common.network.VrPlayerState;
@@ -183,7 +181,10 @@ public class ServerVivePlayer {
         return this.vrPlayerState != null && this.vrPlayerState.seated();
     }
 
-    public boolean usingReversedHands() {
+    /**
+     * @return if the player is using left-handed mode
+     */
+    public boolean isLeftHanded() {
         if (this.vrPlayerState == null) {
             return false;
         }
@@ -194,21 +195,6 @@ public class ServerVivePlayer {
         if (this.vrPlayerState == null) {
             return null;
         }
-        return new VRPoseImpl(
-                new VRBodyPartImpl(this.getHMDPos(), this.getHMDDir(), this.vrPlayerState.hmd().orientation()),
-                new VRBodyPartImpl(getPos(this.vrPlayerState.mainHand()), getDir(this.vrPlayerState.mainHand()), this.vrPlayerState.mainHand().orientation()),
-                new VRBodyPartImpl(getPos(this.vrPlayerState.offHand()), getDir(this.vrPlayerState.offHand()), this.vrPlayerState.mainHand().orientation()),
-                this.isSeated(),
-                this.usingReversedHands()
-        );
-    }
-
-    private Vec3 getPos(Pose pose) {
-        Vector3fc pos = pose.position();
-        return new Vec3(pos.x(), pos.y(), pos.z());
-    }
-
-    private Vec3 getDir(Pose pose) {
-        return new Vec3(pose.orientation().transform(MathUtils.BACK, new Vector3f()));
+        return this.vrPlayerState.asPose();
     }
 }

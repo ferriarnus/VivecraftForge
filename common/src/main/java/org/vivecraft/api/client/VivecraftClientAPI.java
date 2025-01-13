@@ -1,6 +1,7 @@
 package org.vivecraft.api.client;
 
 import org.vivecraft.api.client.data.VRPoseHistory;
+import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.api.data.VRPose;
 import org.vivecraft.client.api_impl.VivecraftClientAPIImpl;
 
@@ -115,6 +116,11 @@ public interface VivecraftClientAPI {
      * @return Whether the local player is playing with left-handed controls.
      */
     boolean isLeftHanded();
+
+    /**
+     * @return The full-body tracking mode currently in-use or some default value if the local player is not in VR.
+     */
+    FBTMode getFBTMode();
 
     /**
      * @return Whether VR support is initialized.

@@ -1,41 +1,47 @@
 package org.vivecraft.api.data;
 
-import net.minecraft.world.phys.Vec3;
-import org.joml.Quaternionfc;
-
 /**
- * Represents the data for a body part, or a device usually tied to a body part in VR, such as the HMD or a
- * controller.
+ * The device tracking a specific body part.
  */
-public interface VRBodyPart {
+public enum VRBodyPart {
+    HEAD,
+    MAIN_HAND,
+    OFF_HAND,
+    RIGHT_FOOT,
+    LEFT_FOOT,
+    WAIST,
+    RIGHT_KNEE,
+    LEFT_KNEE,
+    RIGHT_ELBOW,
+    LEFT_ELBOW;
 
     /**
-     * @return The position of the body part in Minecraft world coordinates.
+     * @return The opposite body part to this one, or the same body part if it has no opposite.
      */
-    Vec3 getPos();
+    public VRBodyPart opposite() {
+        return switch (this) {
+            case MAIN_HAND -> OFF_HAND;
+            case OFF_HAND -> MAIN_HAND;
+            case RIGHT_FOOT -> LEFT_FOOT;
+            case LEFT_FOOT -> RIGHT_FOOT;
+            case RIGHT_KNEE -> LEFT_KNEE;
+            case LEFT_KNEE -> RIGHT_KNEE;
+            case RIGHT_ELBOW -> LEFT_ELBOW;
+            case LEFT_ELBOW -> RIGHT_ELBOW;
+            default -> this;
+        };
+    }
 
     /**
-     * @return The rotation of the body part.
+     * Whether this body part type is available in the provided full-body tracking mode.
+     * @param mode The full-body tracking mode to check.
+     * @return Whether this body part has available data in the provided mode.
      */
-    Vec3 getRot();
-
-    /**
-     * @return The pitch of the body part in radians.
-     */
-    double getPitch();
-
-    /**
-     * @return The yaw of the body part in radians.
-     */
-    double getYaw();
-
-    /**
-     * @return The roll of the body part in radians.
-     */
-    double getRoll();
-
-    /**
-     * @return The quaternion representing the rotation of the body part.
-     */
-    Quaternionfc getQuaternion();
+    public boolean availableInMode(FBTMode mode) {
+        return switch (this) {
+            case HEAD, MAIN_HAND, OFF_HAND -> true;
+            case RIGHT_FOOT, LEFT_FOOT, WAIST -> mode != FBTMode.ARMS_ONLY;
+            case RIGHT_KNEE, LEFT_KNEE, RIGHT_ELBOW, LEFT_ELBOW -> mode == FBTMode.WITH_JOINTS;
+        };
+    }
 }

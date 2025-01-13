@@ -18,7 +18,7 @@ import org.vivecraft.client_vr.provider.VRRenderer;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.VRInputAction;
 import org.vivecraft.client_vr.render.MirrorNotification;
 import org.vivecraft.client_vr.settings.VRSettings;
-import org.vivecraft.common.network.FBTMode;
+import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 
 import java.lang.Math;

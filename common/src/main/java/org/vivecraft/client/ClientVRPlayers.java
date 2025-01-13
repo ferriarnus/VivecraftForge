@@ -13,6 +13,7 @@ import org.joml.Quaternionf;
 import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+import org.vivecraft.api.data.VRBodyPart;
 import org.vivecraft.api.data.VRPose;
 import org.vivecraft.client.extensions.SparkParticleExtension;
 import org.vivecraft.client.utils.ClientUtils;
@@ -26,8 +27,8 @@ import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.AutoCalibration;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.api_impl.data.VRPoseImpl;
-import org.vivecraft.common.api_impl.data.VRBodyPartImpl;
-import org.vivecraft.common.network.FBTMode;
+import org.vivecraft.common.api_impl.data.VRBodyPartDataImpl;
+import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.common.network.VrPlayerState;
 import org.vivecraft.common.utils.MathUtils;
 
@@ -568,13 +569,31 @@ public class ClientVRPlayers {
 
         public VRPose asVRPose() {
             return new VRPoseImpl(
-                new VRBodyPartImpl(fromVector3fc(this.headPos), fromVector3fc(this.headRot), this.headQuat),
-                new VRBodyPartImpl(fromVector3fc(this.mainHandPos), fromVector3fc(this.mainHandRot), this.mainHandQuat),
-                new VRBodyPartImpl(fromVector3fc(this.offHandPos), fromVector3fc(this.offHandPos), this.offHandQuat),
+                makeBodyPartData(this.headPos, this.headRot, this.headQuat),
+                makeBodyPartData(this.mainHandPos, this.mainHandRot, this.mainHandQuat),
+                makeBodyPartData(this.offHandPos, this.offHandRot, this.offHandQuat),
+                makeBodyPartData(this.rightFootPos, this.rightFootQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_FOOT)),
+                makeBodyPartData(this.leftFootPos, this.leftFootQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_FOOT)),
+                makeBodyPartData(this.waistPos, this.waistQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.WAIST)),
+                makeBodyPartData(this.rightKneePos, this.rightKneeQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_KNEE)),
+                makeBodyPartData(this.leftKneePos, this.leftKneeQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_KNEE)),
+                makeBodyPartData(this.rightElbowPos, this.rightElbowQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_ELBOW)),
+                makeBodyPartData(this.leftElbowPos, this.leftElbowQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_ELBOW)),
                 this.seated,
-                this.leftHanded
+                this.leftHanded,
+                this.fbtMode
             );
         }
+    }
+
+    private static VRBodyPartDataImpl makeBodyPartData(Vector3fc pos, Vector3fc rot, Quaternionfc quat) {
+        return new VRBodyPartDataImpl(fromVector3fc(pos), fromVector3fc(rot), quat);
+    }
+
+    private static VRBodyPartDataImpl makeBodyPartData(Vector3fc pos, Quaternionfc quat, boolean partAvailable) {
+        return partAvailable
+            ? new VRBodyPartDataImpl(fromVector3fc(pos), fromVector3fc(quat.transform(MathUtils.BACK, new Vector3f())), quat)
+            : null;
     }
 
     private static Vec3 fromVector3fc(Vector3fc vec) {

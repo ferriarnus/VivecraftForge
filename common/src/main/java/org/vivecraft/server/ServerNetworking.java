@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.vivecraft.client.Xplat;
 import org.vivecraft.common.CommonDataHolder;
 import org.vivecraft.common.network.CommonNetworkHelper;
-import org.vivecraft.common.network.FBTMode;
+import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.common.network.BodyPart;
 import org.vivecraft.common.network.VrPlayerState;
 import org.vivecraft.common.network.packet.PayloadIdentifier;

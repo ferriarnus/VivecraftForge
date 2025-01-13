@@ -1,5 +1,7 @@
 package org.vivecraft.common.network;
 
+import org.vivecraft.api.data.FBTMode;
+
 public enum BodyPart {
     MAIN_HAND,
     OFF_HAND,

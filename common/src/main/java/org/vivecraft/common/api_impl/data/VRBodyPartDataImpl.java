@@ -2,15 +2,15 @@ package org.vivecraft.common.api_impl.data;
 
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionfc;
-import org.vivecraft.api.data.VRBodyPart;
+import org.vivecraft.api.data.VRBodyPartData;
 
-public class VRBodyPartImpl implements VRBodyPart {
+public class VRBodyPartDataImpl implements VRBodyPartData {
 
     private final Vec3 pos;
     private final Vec3 rot;
     private final Quaternionfc quaternion;
 
-    public VRBodyPartImpl(Vec3 pos, Vec3 rot, Quaternionfc quaternion) {
+    public VRBodyPartDataImpl(Vec3 pos, Vec3 rot, Quaternionfc quaternion) {
         this.pos = pos;
         this.rot = rot;
         this.quaternion = quaternion;

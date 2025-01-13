@@ -1,45 +1,42 @@
 package org.vivecraft.common.api_impl.data;
 
-import org.vivecraft.api.data.VRPose;
+import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.api.data.VRBodyPart;
+import org.vivecraft.api.data.VRPose;
+import org.vivecraft.api.data.VRBodyPartData;
 
-public class VRPoseImpl implements VRPose {
+import javax.annotation.Nullable;
 
-    private final VRBodyPart hmd;
-    private final VRBodyPart c0;
-    private final VRBodyPart c1;
-    private final boolean isSeated;
-    private final boolean isLeftHanded;
-
-    public VRPoseImpl(VRBodyPart hmd, VRBodyPart c0, VRBodyPart c1, boolean isSeated, boolean isLeftHanded) {
-        this.hmd = hmd;
-        this.c0 = c0;
-        this.c1 = c1;
-        this.isSeated = isSeated;
-        this.isLeftHanded = isLeftHanded;
-    }
+public record VRPoseImpl(VRBodyPartData hmd, VRBodyPartData c0, VRBodyPartData c1,
+                         VRBodyPartData rightFoot, VRBodyPartData leftFoot,
+                         VRBodyPartData waist,
+                         VRBodyPartData rightKnee, VRBodyPartData leftKnee,
+                         VRBodyPartData rightElbow, VRBodyPartData leftElbow,
+                         boolean isSeated, boolean isLeftHanded, FBTMode fbtMode) implements VRPose {
 
     @Override
-    public VRBodyPart getHMD() {
-        return this.hmd;
-    }
-
-    @Override
-    public VRBodyPart getController(int controller) {
-        if (controller != 0 && controller != 1) {
-            throw new IllegalArgumentException("Controller number must be controller 0 or controller 1.");
+    @Nullable
+    public VRBodyPartData getBodyPartData(VRBodyPart vrBodyPart) {
+        if (vrBodyPart == null) {
+            throw new IllegalArgumentException("Cannot get a null body part's data!");
         }
-        return controller == 0 ? this.c0 : this.c1;
+        return switch (vrBodyPart) {
+            case HEAD -> this.hmd;
+            case MAIN_HAND -> this.c0;
+            case OFF_HAND -> this.c1;
+            case RIGHT_FOOT -> this.rightFoot;
+            case LEFT_FOOT -> this.leftFoot;
+            case WAIST -> this.waist;
+            case RIGHT_KNEE -> this.rightKnee;
+            case LEFT_KNEE -> this.leftKnee;
+            case RIGHT_ELBOW -> this.rightElbow;
+            case LEFT_ELBOW -> this.leftElbow;
+        };
     }
 
     @Override
-    public boolean isSeated() {
-        return this.isSeated;
-    }
-
-    @Override
-    public boolean isLeftHanded() {
-        return this.isLeftHanded;
+    public FBTMode getFBTMode() {
+        return this.fbtMode;
     }
 
     @Override

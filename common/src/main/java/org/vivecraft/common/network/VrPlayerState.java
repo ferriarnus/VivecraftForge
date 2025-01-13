@@ -4,11 +4,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.vivecraft.api.data.FBTMode;
+import org.vivecraft.api.data.VRBodyPartData;
 import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.RenderPass;
+import org.vivecraft.common.api_impl.data.VRPoseImpl;
 import org.vivecraft.common.utils.MathUtils;
 
 import javax.annotation.Nullable;
@@ -232,4 +235,31 @@ public record VrPlayerState(boolean seated, Pose hmd, boolean leftHanded, Pose m
             }
         }
     }
+
+    /**
+     * @return This object as a pose for use with the API.
+     */
+    public VRPoseImpl asPose() {
+        return new VRPoseImpl(
+            this.hmd.asBodyPartData(),
+            this.mainHand.asBodyPartData(),
+            this.offHand.asBodyPartData(),
+            getDataOrNull(this.rightFoot),
+            getDataOrNull(this.leftFoot),
+            getDataOrNull(this.waist),
+            getDataOrNull(this.rightKnee),
+            getDataOrNull(this.leftKnee),
+            getDataOrNull(this.rightElbow),
+            getDataOrNull(this.leftElbow),
+            this.seated,
+            this.leftHanded,
+            this.fbtMode
+        );
+    }
+
+    @Nullable
+    private static VRBodyPartData getDataOrNull(Pose pose) {
+        return pose == null ? null : pose.asBodyPartData();
+    }
+
 }

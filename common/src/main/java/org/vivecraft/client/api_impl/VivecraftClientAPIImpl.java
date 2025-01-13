@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 import org.vivecraft.api.client.Tracker;
 import org.vivecraft.api.client.VivecraftClientAPI;
 import org.vivecraft.api.client.data.VRPoseHistory;
+import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.api.data.VRPose;
 import org.vivecraft.client.api_impl.data.VRPoseHistoryImpl;
 import org.vivecraft.client_vr.ClientDataHolderVR;
@@ -100,6 +101,15 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     @Override
     public boolean isLeftHanded() {
         return ClientDataHolderVR.getInstance().vrSettings.reverseHands;
+    }
+
+    @Override
+    public FBTMode getFBTMode() {
+        // Need to check if VR is running, not just initialized, since the VR player is set after initialization
+        if (isVRActive()) {
+            return FBTMode.ARMS_ONLY;
+        }
+        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_pre.fbtMode;
     }
 
     @Override
