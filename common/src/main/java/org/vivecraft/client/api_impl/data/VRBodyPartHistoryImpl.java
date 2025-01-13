@@ -1,21 +1,21 @@
 package org.vivecraft.client.api_impl.data;
 
 import net.minecraft.world.phys.Vec3;
-import org.vivecraft.api.client.data.VRPoseHistory;
-import org.vivecraft.api.data.VRPose;
+import org.vivecraft.api.client.data.VRBodyPartHistory;
+import org.vivecraft.api.data.VRBodyPart;
 
 import java.util.*;
 
-public class VRPoseHistoryImpl implements VRPoseHistory {
+public class VRBodyPartHistoryImpl implements VRBodyPartHistory {
 
-    private final LinkedList<VRPose> dataQueue = new LinkedList<>();
+    private final LinkedList<VRBodyPart> dataQueue = new LinkedList<>();
 
-    public VRPoseHistoryImpl() {
+    public VRBodyPartHistoryImpl() {
     }
 
-    public void addPose(VRPose pose) {
+    public void addPose(VRBodyPart pose) {
         this.dataQueue.addFirst(pose);
-        if (this.dataQueue.size() > VRPoseHistory.MAX_TICKS_BACK) {
+        if (this.dataQueue.size() > VRBodyPartHistory.MAX_TICKS_BACK) {
             this.dataQueue.removeLast();
         }
     }
@@ -30,12 +30,12 @@ public class VRPoseHistoryImpl implements VRPoseHistory {
     }
 
     @Override
-    public List<VRPose> getAllHistoricalData() {
+    public List<VRBodyPart> getAllHistoricalData() {
         return new ArrayList<>(this.dataQueue);
     }
 
     @Override
-    public VRPose getHistoricalData(int ticksBack) throws IllegalArgumentException, IllegalStateException {
+    public VRBodyPart getHistoricalData(int ticksBack) throws IllegalArgumentException, IllegalStateException {
         checkTicksBack(ticksBack);
         if (this.dataQueue.size() <= ticksBack) {
             throw new IllegalStateException("Cannot retrieve data from " + ticksBack + " ticks ago, when there is " +
@@ -64,7 +64,7 @@ public class VRPoseHistoryImpl implements VRPoseHistory {
     public Vec3 averagePosition(int maxTicksBack) throws IllegalArgumentException {
         checkTicksBack(maxTicksBack);
         int iters = getNumTicksBack(maxTicksBack);
-        ListIterator<VRPose> iterator = this.dataQueue.listIterator(this.dataQueue.size() - 1);
+        ListIterator<VRBodyPart> iterator = this.dataQueue.listIterator(this.dataQueue.size() - 1);
         Vec3 avg = this.dataQueue.getLast().getPos();
         int i = iters;
         while (i > 0) {
@@ -75,12 +75,12 @@ public class VRPoseHistoryImpl implements VRPoseHistory {
     }
 
     private void checkTicksBack(int ticksBack) {
-        if (ticksBack < 0 || ticksBack > VRPoseHistory.MAX_TICKS_BACK) {
-            throw new IllegalArgumentException("Value must be between 0 and " + VRPoseHistory.MAX_TICKS_BACK + ".");
+        if (ticksBack < 0 || ticksBack > VRBodyPartHistory.MAX_TICKS_BACK) {
+            throw new IllegalArgumentException("Value must be between 0 and " + VRBodyPartHistory.MAX_TICKS_BACK + ".");
         }
     }
 
-    private VRPose getOldPose(int maxTicksBack) {
+    private VRBodyPart getOldPose(int maxTicksBack) {
         if (this.dataQueue.size() <= maxTicksBack) {
             return this.dataQueue.getFirst();
         } else {

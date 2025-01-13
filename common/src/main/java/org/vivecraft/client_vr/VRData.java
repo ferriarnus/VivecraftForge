@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
+import org.vivecraft.api.data.VRPose;
 import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
 import org.vivecraft.client_vr.provider.MCVR;
@@ -15,9 +16,9 @@ import org.vivecraft.common.utils.MathUtils;
 import javax.annotation.Nullable;
 import java.lang.Math;
 import org.joml.Quaternionf;
-import org.vivecraft.api.data.VRPose;
-import org.vivecraft.common.api_impl.data.VRDataImpl;
+import org.vivecraft.api.data.VRBodyPart;
 import org.vivecraft.common.api_impl.data.VRPoseImpl;
+import org.vivecraft.common.api_impl.data.VRBodyPartImpl;
 
 public class VRData {
     // headset center
@@ -365,11 +366,11 @@ public class VRData {
     /**
      * @return this data in a manner better-suited for the API
      */
-    public org.vivecraft.api.data.VRData asVRData() {
-        return new VRDataImpl(
-            this.hmd.asVRPose(),
-            this.c0.asVRPose(),
-            this.c1.asVRPose(),
+    public VRPose asVRPose() {
+        return new VRPoseImpl(
+            this.hmd.asVRBodyPart(),
+            this.c0.asVRBodyPart(),
+            this.c1.asVRBodyPart(),
             ClientDataHolderVR.getInstance().vrSettings.seated,
             ClientDataHolderVR.getInstance().vrSettings.reverseHands
         );
@@ -519,10 +520,10 @@ public class VRData {
             return new Matrix4f().rotationY(VRData.this.rotation_radians).mul(this.matrix);
         }
 
-        public VRPose asVRPose() {
+        public VRBodyPart asVRBodyPart() {
             Quaternionf quat = new Quaternionf();
             quat.setFromUnnormalized(getMatrix());
-            return new VRPoseImpl(
+            return new VRBodyPartImpl(
                 getPosition(),
                 new Vec3(getDirection()),
                 quat

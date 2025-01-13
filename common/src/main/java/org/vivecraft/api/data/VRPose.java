@@ -1,42 +1,61 @@
 package org.vivecraft.api.data;
 
-import net.minecraft.world.phys.Vec3;
-import org.joml.Quaternionf;
-import org.joml.Quaternionfc;
+import net.minecraft.world.InteractionHand;
 
 /**
- * Represents the pose data, such as position and rotation, for a given trackable object, such as the HMD or
- * a controller.
+ * Represents the pose of the VR player. In other words, the position and rotation data of all tracked body parts of
+ * the VR player.
  */
 public interface VRPose {
 
     /**
-     * @return The position of the device in Minecraft world coordinates.
+     * @return Pose data for the HMD.
      */
-    Vec3 getPos();
+    VRBodyPart getHMD();
 
     /**
-     * @return The rotation of the device.
+     * Gets the pose data for a given controller.
+     *
+     * @param controller The controller number to get, with 0 being the primary controller.
+     * @return The specified controller's pose data.
      */
-    Vec3 getRot();
+    VRBodyPart getController(int controller);
 
     /**
-     * @return The pitch of the device in radians.
+     * @return Whether the player is currently in seated mode.
      */
-    double getPitch();
+    boolean isSeated();
 
     /**
-     * @return The yaw of the device in radians.
+     * @return Whether the player is playing with left-handed controls.
      */
-    double getYaw();
+    boolean isLeftHanded();
 
     /**
-     * @return The roll of the device in radians.
+     * Gets the pose for a given controller.
+     *
+     * @param hand The interaction hand to get controller data for.
+     * @return The specified controller's pose data.
      */
-    double getRoll();
+    default VRBodyPart getController(InteractionHand hand) {
+        return getController(hand.ordinal());
+    }
 
     /**
-     * @return The quaternion representing the rotation of the device.
+     * Gets the pose for the primary controller.
+     *
+     * @return The main controller's pose data.
      */
-    Quaternionfc getQuaternion();
+    default VRBodyPart getController0() {
+        return getController(0);
+    }
+
+    /**
+     * Gets the pose for the secondary controller.
+     *
+     * @return The main controller's pose data.
+     */
+    default VRBodyPart getController1() {
+        return getController(1);
+    }
 }

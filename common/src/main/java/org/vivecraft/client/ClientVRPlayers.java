@@ -13,6 +13,7 @@ import org.joml.Quaternionf;
 import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+import org.vivecraft.api.data.VRPose;
 import org.vivecraft.client.extensions.SparkParticleExtension;
 import org.vivecraft.client.utils.ClientUtils;
 import org.vivecraft.client.utils.ModelUtils;
@@ -24,8 +25,8 @@ import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.AutoCalibration;
 import org.vivecraft.client_vr.settings.VRSettings;
-import org.vivecraft.common.api_impl.data.VRDataImpl;
 import org.vivecraft.common.api_impl.data.VRPoseImpl;
+import org.vivecraft.common.api_impl.data.VRBodyPartImpl;
 import org.vivecraft.common.network.FBTMode;
 import org.vivecraft.common.network.VrPlayerState;
 import org.vivecraft.common.utils.MathUtils;
@@ -565,11 +566,11 @@ public class ClientVRPlayers {
             return (float) Math.atan2(-dir.x, dir.z);
         }
 
-        public org.vivecraft.api.data.VRData asVRData() {
-            return new VRDataImpl(
-                new VRPoseImpl(fromVector3fc(this.headPos), fromVector3fc(this.headRot), this.headQuat),
-                new VRPoseImpl(fromVector3fc(this.mainHandPos), fromVector3fc(this.mainHandRot), this.mainHandQuat),
-                new VRPoseImpl(fromVector3fc(this.offHandPos), fromVector3fc(this.offHandPos), this.offHandQuat),
+        public VRPose asVRPose() {
+            return new VRPoseImpl(
+                new VRBodyPartImpl(fromVector3fc(this.headPos), fromVector3fc(this.headRot), this.headQuat),
+                new VRBodyPartImpl(fromVector3fc(this.mainHandPos), fromVector3fc(this.mainHandRot), this.mainHandQuat),
+                new VRBodyPartImpl(fromVector3fc(this.offHandPos), fromVector3fc(this.offHandPos), this.offHandQuat),
                 this.seated,
                 this.leftHanded
             );

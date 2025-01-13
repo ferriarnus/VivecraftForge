@@ -2,10 +2,10 @@ package org.vivecraft.client.api_impl;
 
 import org.jetbrains.annotations.Nullable;
 import org.vivecraft.api.client.Tracker;
-import org.vivecraft.api.client.data.VRPoseHistory;
+import org.vivecraft.api.client.data.VRBodyPartHistory;
 import org.vivecraft.api.client.VivecraftClientAPI;
-import org.vivecraft.api.data.VRData;
-import org.vivecraft.client.api_impl.data.VRPoseHistoryImpl;
+import org.vivecraft.api.data.VRPose;
+import org.vivecraft.client.api_impl.data.VRBodyPartHistoryImpl;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
@@ -17,9 +17,9 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
 
     public static final VivecraftClientAPIImpl INSTANCE = new VivecraftClientAPIImpl();
 
-    private final VRPoseHistoryImpl hmdHistory = new VRPoseHistoryImpl();
-    private VRPoseHistoryImpl c0History = new VRPoseHistoryImpl();
-    private VRPoseHistoryImpl c1History = new VRPoseHistoryImpl();
+    private final VRBodyPartHistoryImpl hmdHistory = new VRBodyPartHistoryImpl();
+    private VRBodyPartHistoryImpl c0History = new VRBodyPartHistoryImpl();
+    private VRBodyPartHistoryImpl c1History = new VRBodyPartHistoryImpl();
 
     private VivecraftClientAPIImpl() {
     }
@@ -30,7 +30,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
         this.c1History.clear();
     }
 
-    public void addPosesToHistory(VRData data) {
+    public void addPosesToHistory(VRPose data) {
         this.hmdHistory.addPose(data.getHMD());
         this.c0History.addPose(data.getController0());
         this.c1History.addPose(data.getController1());
@@ -38,47 +38,47 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
 
     @Nullable
     @Override
-    public VRData getPreTickRoomData() {
+    public VRPose getPreTickRoomPose() {
         if (!isVrActive()) {
             return null;
         }
-        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_pre.asVRData();
+        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_pre.asVRPose();
     }
 
     @Nullable
     @Override
-    public VRData getPostTickRoomData() {
+    public VRPose getPostTickRoomPose() {
         if (!isVrActive()) {
             return null;
         }
-        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_post.asVRData();
+        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_post.asVRPose();
     }
 
     @Nullable
     @Override
-    public VRData getPreTickWorldData() {
+    public VRPose getPreTickWorldPose() {
         if (!isVrActive()) {
             return null;
         }
-        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_pre.asVRData();
+        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_pre.asVRPose();
     }
 
     @Nullable
     @Override
-    public VRData getPostTickWorldData() {
+    public VRPose getPostTickWorldPose() {
         if (!isVrActive()) {
             return null;
         }
-        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_post.asVRData();
+        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_post.asVRPose();
     }
 
     @Nullable
     @Override
-    public VRData getWorldRenderData() {
+    public VRPose getWorldRenderPose() {
         if (!isVrActive()) {
             return null;
         }
-        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_render.asVRData();
+        return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_render.asVRPose();
     }
 
     @Override
@@ -106,7 +106,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     }
 
     @Override
-    public boolean usingReversedHands() {
+    public boolean isLeftHanded() {
         return ClientDataHolderVR.getInstance().vrSettings.reverseHands;
     }
 
@@ -136,7 +136,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
 
     @Nullable
     @Override
-    public VRPoseHistory getHistoricalVRHMDPoses() {
+    public VRBodyPartHistory getHistoricalVRHMDPoses() {
         if (!isVrActive()) {
             return null;
         }
@@ -145,7 +145,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
 
     @Nullable
     @Override
-    public VRPoseHistory getHistoricalVRControllerPoses(int controller) {
+    public VRBodyPartHistory getHistoricalVRControllerPoses(int controller) {
         if (controller != 0 && controller != 1) {
             throw new IllegalArgumentException("Historical VR controller data only available for controllers 0 and 1.");
         } else if (!isVrActive()) {

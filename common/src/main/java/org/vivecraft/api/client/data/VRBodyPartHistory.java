@@ -1,14 +1,14 @@
 package org.vivecraft.api.client.data;
 
 import net.minecraft.world.phys.Vec3;
-import org.vivecraft.api.data.VRPose;
+import org.vivecraft.api.data.VRBodyPart;
 
 import java.util.List;
 
 /**
- * Represents historical VRData associated with a player.
+ * Represents historical {@link VRBodyPart}s associated with a player.
  */
-public interface VRPoseHistory {
+public interface VRBodyPartHistory {
 
     /**
      * The maximum amount of ticks back data is held for.
@@ -22,27 +22,27 @@ public interface VRPoseHistory {
 
     /**
      * @return The amount of ticks worth of history being held. The number returned by this methodwill never be higher
-     * than {@link VRPoseHistory#MAX_TICKS_BACK}, however can be lower than it.
+     * than {@link VRBodyPartHistory#MAX_TICKS_BACK}, however can be lower than it.
      */
     int ticksOfHistory();
 
     /**
-     * Gets a raw list of {@link VRPose} instances, with index 0 representing the least recent pose known.
+     * Gets a raw list of {@link VRBodyPart} instances, with index 0 representing the least recent pose known.
      *
-     * @return The aforementioned list of {@link VRPose} instances.
+     * @return The aforementioned list of {@link VRBodyPart} instances.
      */
-    List<VRPose> getAllHistoricalData() throws IllegalArgumentException;
+    List<VRBodyPart> getAllHistoricalData() throws IllegalArgumentException;
 
     /**
      * Gets the historical data ticksBack ticks back. This will throw an IllegalStateException if the data cannot
      * be retrieved due to not having enough history.
      *
      * @param ticksBack Ticks back to retrieve data.
-     * @return A {@link VRPose} instance from index ticks ago.
+     * @return A {@link VRBodyPart} instance from index ticks ago.
      * @throws IllegalStateException    If ticksBack references a tick that there is not yet data for.
      * @throws IllegalArgumentException Thrown when maxTicksBack is larger than {@value #MAX_TICKS_BACK} or less than 0.
      */
-    VRPose getHistoricalData(int ticksBack) throws IllegalArgumentException, IllegalStateException;
+    VRBodyPart getHistoricalData(int ticksBack) throws IllegalArgumentException, IllegalStateException;
 
     /**
      * Gets the net movement between the most recent data in this instance and the oldest position that can be

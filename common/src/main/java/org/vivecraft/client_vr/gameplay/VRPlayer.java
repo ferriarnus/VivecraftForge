@@ -237,7 +237,7 @@ public class VRPlayer {
             this.dh.vrSettings.worldRotation = this.dh.vr.seatedRot;
         }
 
-        VivecraftClientAPIImpl.INSTANCE.addPosesToHistory(this.vrdata_world_pre.asVRData());
+        VivecraftClientAPIImpl.INSTANCE.addPosesToHistory(this.vrdata_world_pre.asVRPose());
     }
 
     public void postTick() {

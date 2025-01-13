@@ -5,7 +5,7 @@ import net.minecraft.world.entity.player.Player;
 import org.vivecraft.api.VivecraftAPI;
 import org.vivecraft.client.ClientVRPlayers;
 import org.jetbrains.annotations.Nullable;
-import org.vivecraft.api.data.VRData;
+import org.vivecraft.api.data.VRPose;
 import org.vivecraft.server.ServerVRPlayers;
 
 public final class VivecraftAPIImpl implements VivecraftAPI {
@@ -26,14 +26,14 @@ public final class VivecraftAPIImpl implements VivecraftAPI {
 
     @Nullable
     @Override
-    public VRData getVRData(Player player) {
+    public VRPose getVRPose(Player player) {
         if (!isVRPlayer(player)) {
             return null;
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            return ServerVRPlayers.getVivePlayer(serverPlayer).asVRData();
+            return ServerVRPlayers.getVivePlayer(serverPlayer).asVRPose();
         }
 
-        return ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID()).asVRData();
+        return ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID()).asVRPose();
     }
 }

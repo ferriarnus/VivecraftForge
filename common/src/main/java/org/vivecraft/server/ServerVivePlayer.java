@@ -8,9 +8,9 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.vivecraft.common.network.*;
 import org.vivecraft.common.utils.MathUtils;
-import org.vivecraft.api.data.VRData;
-import org.vivecraft.common.api_impl.data.VRDataImpl;
+import org.vivecraft.api.data.VRPose;
 import org.vivecraft.common.api_impl.data.VRPoseImpl;
+import org.vivecraft.common.api_impl.data.VRBodyPartImpl;
 import org.vivecraft.common.network.CommonNetworkHelper;
 import org.vivecraft.common.network.Pose;
 import org.vivecraft.common.network.VrPlayerState;
@@ -190,14 +190,14 @@ public class ServerVivePlayer {
         return this.vrPlayerState.leftHanded();
     }
 
-    public VRData asVRData() {
+    public VRPose asVRPose() {
         if (this.vrPlayerState == null) {
             return null;
         }
-        return new VRDataImpl(
-                new VRPoseImpl(this.getHMDPos(), this.getHMDDir(), this.vrPlayerState.hmd().orientation()),
-                new VRPoseImpl(getPos(this.vrPlayerState.mainHand()), getDir(this.vrPlayerState.mainHand()), this.vrPlayerState.mainHand().orientation()),
-                new VRPoseImpl(getPos(this.vrPlayerState.offHand()), getDir(this.vrPlayerState.offHand()), this.vrPlayerState.mainHand().orientation()),
+        return new VRPoseImpl(
+                new VRBodyPartImpl(this.getHMDPos(), this.getHMDDir(), this.vrPlayerState.hmd().orientation()),
+                new VRBodyPartImpl(getPos(this.vrPlayerState.mainHand()), getDir(this.vrPlayerState.mainHand()), this.vrPlayerState.mainHand().orientation()),
+                new VRBodyPartImpl(getPos(this.vrPlayerState.offHand()), getDir(this.vrPlayerState.offHand()), this.vrPlayerState.mainHand().orientation()),
                 this.isSeated(),
                 this.usingReversedHands()
         );

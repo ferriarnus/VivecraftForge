@@ -1,55 +1,49 @@
 package org.vivecraft.common.api_impl.data;
 
-import net.minecraft.world.phys.Vec3;
-import org.joml.Quaternionf;
-import org.joml.Quaternionfc;
 import org.vivecraft.api.data.VRPose;
+import org.vivecraft.api.data.VRBodyPart;
 
 public class VRPoseImpl implements VRPose {
 
-    private final Vec3 pos;
-    private final Vec3 rot;
-    private final Quaternionfc quaternion;
+    private final VRBodyPart hmd;
+    private final VRBodyPart c0;
+    private final VRBodyPart c1;
+    private final boolean isSeated;
+    private final boolean isLeftHanded;
 
-    public VRPoseImpl(Vec3 pos, Vec3 rot, Quaternionfc quaternion) {
-        this.pos = pos;
-        this.rot = rot;
-        this.quaternion = quaternion;
+    public VRPoseImpl(VRBodyPart hmd, VRBodyPart c0, VRBodyPart c1, boolean isSeated, boolean isLeftHanded) {
+        this.hmd = hmd;
+        this.c0 = c0;
+        this.c1 = c1;
+        this.isSeated = isSeated;
+        this.isLeftHanded = isLeftHanded;
     }
 
     @Override
-    public Vec3 getPos() {
-        return this.pos;
+    public VRBodyPart getHMD() {
+        return this.hmd;
     }
 
     @Override
-    public Vec3 getRot() {
-        return this.rot;
+    public VRBodyPart getController(int controller) {
+        if (controller != 0 && controller != 1) {
+            throw new IllegalArgumentException("Controller number must be controller 0 or controller 1.");
+        }
+        return controller == 0 ? this.c0 : this.c1;
     }
 
     @Override
-    public double getPitch() {
-        return Math.asin(this.rot.y / this.rot.length());
+    public boolean isSeated() {
+        return this.isSeated;
     }
 
     @Override
-    public double getYaw() {
-        return Math.atan2(-this.rot.x, this.rot.z);
-    }
-
-    @Override
-    public double getRoll() {
-        return -Math.atan2(2.0F * (quaternion.x() * quaternion.y() + quaternion.w() * quaternion.z()),
-            quaternion.w() * quaternion.w() - quaternion.x() * quaternion.x() + quaternion.y() * quaternion.y() - quaternion.z() * quaternion.z());
-    }
-
-    @Override
-    public Quaternionfc getQuaternion() {
-        return this.quaternion;
+    public boolean isLeftHanded() {
+        return this.isLeftHanded;
     }
 
     @Override
     public String toString() {
-        return "Position: " + getPos() + "\tRotation: " + getRot();
+        return "HMD: " + getHMD() + "\nController 0: " + getController0() + "\nController 1: " + getController1();
     }
 }
