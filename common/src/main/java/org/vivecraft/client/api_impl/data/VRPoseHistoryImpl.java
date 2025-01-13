@@ -83,6 +83,17 @@ public class VRPoseHistoryImpl implements VRPoseHistory {
     }
 
     @Override
+    public double averageSpeed(VRBodyPart bodyPart, int maxTicksBack) throws IllegalArgumentException {
+        Vec3 averageVelocity = averageVelocity(bodyPart, maxTicksBack);
+        if (averageVelocity == null) {
+            return 0;
+        }
+        return Math.sqrt(averageVelocity.x() * averageVelocity.x() +
+                averageVelocity.y() * averageVelocity.y() +
+                averageVelocity.z() * averageVelocity.z());
+    }
+
+    @Override
     public Vec3 averagePosition(VRBodyPart bodyPart, int maxTicksBack) throws IllegalArgumentException {
         checkPartNonNull(bodyPart);
         checkTicksBack(maxTicksBack);

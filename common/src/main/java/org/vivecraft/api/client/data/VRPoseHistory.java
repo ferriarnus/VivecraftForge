@@ -79,15 +79,7 @@ public interface VRPoseHistory {
      * can be looked back. Will be 0 if the body part requested isn't available.
      * @throws IllegalArgumentException Thrown when maxTicksBack is larger than {@value #MAX_TICKS_BACK} or less than 0.
      */
-    default double averageSpeed(VRBodyPart bodyPart, int maxTicksBack) throws IllegalArgumentException {
-        Vec3 averageVelocity = averageVelocity(bodyPart, maxTicksBack);
-        if (averageVelocity == null) {
-            return 0;
-        }
-        return Math.sqrt(averageVelocity.x() * averageVelocity.x() +
-            averageVelocity.y() * averageVelocity.y() +
-            averageVelocity.z() * averageVelocity.z());
-    }
+    double averageSpeed(VRBodyPart bodyPart, int maxTicksBack) throws IllegalArgumentException;
 
     /**
      * Gets the average position between the most recent pose in this instance and the oldest position that can be
