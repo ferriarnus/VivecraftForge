@@ -161,19 +161,4 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
         }
         return false;
     }
-
-    @Override
-    public boolean isVanillaRenderPass() {
-        return RenderPassType.isVanilla();
-    }
-
-    @Override
-    public RenderPass getCurrentRenderPass() {
-        return ClientDataHolderVR.getInstance().currentPass;
-    }
-
-    @Override
-    public boolean isFirstRenderPass() {
-        return ClientDataHolderVR.getInstance().isFirstPass;
-    }
 }

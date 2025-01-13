@@ -6,6 +6,9 @@ import org.vivecraft.common.api_impl.VivecraftAPIImpl;
 
 import javax.annotation.Nullable;
 
+/**
+ * The main interface for interacting with Vivecraft from common code.
+ */
 public interface VivecraftAPI {
 
     /**

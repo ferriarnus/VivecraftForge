@@ -9,6 +9,10 @@ import org.vivecraft.client_vr.render.RenderPass;
 
 import javax.annotation.Nullable;
 
+/**
+ * The main interface for interacting with Vivecraft from client code. For rendering, one should use
+ * {@link VivecraftRenderingAPI}.
+ */
 public interface VivecraftClientAPI {
 
     static VivecraftClientAPI getInstance() {
@@ -191,22 +195,4 @@ public interface VivecraftClientAPI {
      * @return Whether the keyboard is currently showing after attempting to open/close it.
      */
     boolean setKeyboardState(boolean isNowOpen);
-
-    /**
-     * @return Whether the current render pass is a vanilla render pass.
-     */
-    @Beta
-    boolean isVanillaRenderPass();
-
-    /**
-     * @return The current render pass Vivecraft is performing.
-     */
-    @Beta
-    RenderPass getCurrentRenderPass();
-
-    /**
-     * @return Whether the current render pass is the first one it performed for this render cycle.
-     */
-    @Beta
-    boolean isFirstRenderPass();
 }
