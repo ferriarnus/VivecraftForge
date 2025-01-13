@@ -1,7 +1,6 @@
 package org.vivecraft.api.client;
 
-import net.minecraft.world.InteractionHand;
-import org.vivecraft.api.client.data.VRBodyPartHistory;
+import org.vivecraft.api.client.data.VRPoseHistory;
 import org.vivecraft.api.data.VRPose;
 import org.vivecraft.client.api_impl.VivecraftClientAPIImpl;
 
@@ -133,57 +132,12 @@ public interface VivecraftClientAPI {
     float getWorldScale();
 
     /**
-     * Returns the history of VR poses for the player for the HMD. Will return null if the player isn't
-     * in VR.
+     * Returns the history of VR poses for the player. Will return null if the player isn't in VR.
      *
-     * @return The historical VR data for the player's HMD, or null if the player isn't in VR.
+     * @return The history of VR poses for the player, or null if the player isn't in VR.
      */
     @Nullable
-    VRBodyPartHistory getHistoricalVRHMDPoses();
-
-    /**
-     * Returns the history of VR poses for the player for a controller. Will return null if the player isn't
-     * in VR.
-     *
-     * @param controller The controller number to get, with 0 being the primary controller.
-     * @return The historical VR data for the player's controller, or null if the player isn't in VR.
-     */
-    @Nullable
-    VRBodyPartHistory getHistoricalVRControllerPoses(int controller);
-
-    /**
-     * Returns the history of VR poses for the player for a controller. Will return null if the player isn't
-     * in VR.
-     *
-     * @param hand The hand to get controller history for.
-     * @return The historical VR data for the player's controller, or null if the player isn't in VR.
-     */
-    @Nullable
-    default VRBodyPartHistory getHistoricalVRControllerPoses(InteractionHand hand) {
-        return getHistoricalVRControllerPoses(hand.ordinal());
-    }
-
-    /**
-     * Returns the history of VR poses for the player for the primary controller. Will return null if the
-     * player isn't in VR.
-     *
-     * @return The historical VR data for the player's primary controller, or null if the player isn't in VR.
-     */
-    @Nullable
-    default VRBodyPartHistory getHistoricalVRController0Poses() {
-        return getHistoricalVRControllerPoses(0);
-    }
-
-    /**
-     * Returns the history of VR poses for the player for the secondary controller. Will return null if the
-     * player isn't in VR.
-     *
-     * @return The historical VR data for the player's secondary controller, or null if the player isn't in VR.
-     */
-    @Nullable
-    default VRBodyPartHistory getHistoricalVRController1Poses() {
-        return getHistoricalVRControllerPoses(1);
-    }
+    VRPoseHistory getHistoricalVRPoses();
 
     /**
      * Opens or closes Vivecraft's keyboard. Will fail silently if the user isn't in VR or if the keyboard's new state

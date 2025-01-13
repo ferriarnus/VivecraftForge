@@ -2,10 +2,10 @@ package org.vivecraft.client.api_impl;
 
 import org.jetbrains.annotations.Nullable;
 import org.vivecraft.api.client.Tracker;
-import org.vivecraft.api.client.data.VRBodyPartHistory;
 import org.vivecraft.api.client.VivecraftClientAPI;
+import org.vivecraft.api.client.data.VRPoseHistory;
 import org.vivecraft.api.data.VRPose;
-import org.vivecraft.client.api_impl.data.VRBodyPartHistoryImpl;
+import org.vivecraft.client.api_impl.data.VRPoseHistoryImpl;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
@@ -15,23 +15,17 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
 
     public static final VivecraftClientAPIImpl INSTANCE = new VivecraftClientAPIImpl();
 
-    private final VRBodyPartHistoryImpl hmdHistory = new VRBodyPartHistoryImpl();
-    private VRBodyPartHistoryImpl c0History = new VRBodyPartHistoryImpl();
-    private VRBodyPartHistoryImpl c1History = new VRBodyPartHistoryImpl();
+    private final VRPoseHistoryImpl poseHistory = new VRPoseHistoryImpl();
 
     private VivecraftClientAPIImpl() {
     }
 
     public void clearHistories() {
-        this.hmdHistory.clear();
-        this.c0History.clear();
-        this.c1History.clear();
+        this.poseHistory.clear();
     }
 
-    public void addPosesToHistory(VRPose data) {
-        this.hmdHistory.addPose(data.getHMD());
-        this.c0History.addPose(data.getController0());
-        this.c1History.addPose(data.getController1());
+    public void addPosesToHistory(VRPose pose) {
+        this.poseHistory.addPose(pose);
     }
 
     @Nullable
@@ -128,28 +122,17 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     }
 
     @Override
-    public void registerTracker(Tracker tracker) {
-        ClientDataHolderVR.getInstance().registerTracker(tracker);
-    }
-
     @Nullable
-    @Override
-    public VRBodyPartHistory getHistoricalVRHMDPoses() {
+    public VRPoseHistory getHistoricalVRPoses() {
         if (!isVRActive()) {
             return null;
         }
-        return this.hmdHistory;
+        return this.poseHistory;
     }
 
-    @Nullable
     @Override
-    public VRBodyPartHistory getHistoricalVRControllerPoses(int controller) {
-        if (controller != 0 && controller != 1) {
-            throw new IllegalArgumentException("Historical VR controller data only available for controllers 0 and 1.");
-        } else if (!isVRActive()) {
-            return null;
-        }
-        return controller == 0 ? this.c0History : this.c1History;
+    public void registerTracker(Tracker tracker) {
+        ClientDataHolderVR.getInstance().registerTracker(tracker);
     }
 
     @Override
