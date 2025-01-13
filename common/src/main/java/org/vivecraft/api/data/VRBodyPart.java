@@ -4,7 +4,7 @@ package org.vivecraft.api.data;
  * The device tracking a specific body part.
  */
 public enum VRBodyPart {
-    HEAD,
+    HMD,
     MAIN_HAND,
     OFF_HAND,
     RIGHT_FOOT,
@@ -39,7 +39,7 @@ public enum VRBodyPart {
      */
     public boolean availableInMode(FBTMode mode) {
         return switch (this) {
-            case HEAD, MAIN_HAND, OFF_HAND -> true;
+            case HMD, MAIN_HAND, OFF_HAND -> true;
             case RIGHT_FOOT, LEFT_FOOT, WAIST -> mode != FBTMode.ARMS_ONLY;
             case RIGHT_KNEE, LEFT_KNEE, RIGHT_ELBOW, LEFT_ELBOW -> mode == FBTMode.WITH_JOINTS;
         };

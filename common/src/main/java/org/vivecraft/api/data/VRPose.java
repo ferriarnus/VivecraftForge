@@ -23,20 +23,20 @@ public interface VRPose {
      * @return Body part pose data for the HMD.
      */
     default VRBodyPartData getHMD() {
-        return getBodyPartData(VRBodyPart.HEAD);
+        return getBodyPartData(VRBodyPart.HMD);
     }
 
     /**
-     * Gets the body part data for a given controller.
+     * Gets the body part data for a given hand.
      *
-     * @param controller The controller number to get, with 0 being the primary controller.
-     * @return The specified controller's pose data.
+     * @param hand The hand number to get, with 0 being the main-hand and 1 being the off-hand.
+     * @return The specified hand's pose data.
      */
-    default VRBodyPartData getController(int controller) {
-        if (controller != 0 && controller != 1) {
-            throw new IllegalArgumentException("Controller number must be controller 0 or controller 1.");
+    default VRBodyPartData getHand(int hand) {
+        if (hand != 0 && hand != 1) {
+            throw new IllegalArgumentException("Hand number must be 0 or 1.");
         }
-        return controller == 0 ? getBodyPartData(VRBodyPart.MAIN_HAND) : getBodyPartData(VRBodyPart.OFF_HAND);
+        return hand == 0 ? getBodyPartData(VRBodyPart.MAIN_HAND) : getBodyPartData(VRBodyPart.OFF_HAND);
     }
 
     /**
@@ -55,30 +55,30 @@ public interface VRPose {
     FBTMode getFBTMode();
 
     /**
-     * Gets the pose for a given controller.
+     * Gets the pose for a given hand.
      *
-     * @param hand The interaction hand to get controller data for.
-     * @return The specified controller's pose data.
+     * @param hand The interaction hand to get hand data for.
+     * @return The specified hand's pose data.
      */
-    default VRBodyPartData getController(InteractionHand hand) {
-        return getController(hand.ordinal());
+    default VRBodyPartData getHand(InteractionHand hand) {
+        return getHand(hand.ordinal());
     }
 
     /**
-     * Gets the pose for the primary controller.
+     * Gets the pose for the main-hand.
      *
-     * @return The main controller's pose data.
+     * @return The main-hand's pose data.
      */
-    default VRBodyPartData getController0() {
-        return getController(0);
+    default VRBodyPartData getMainHand() {
+        return getHand(0);
     }
 
     /**
-     * Gets the pose for the secondary controller.
+     * Gets the pose for the off-hand.
      *
-     * @return The main controller's pose data.
+     * @return The off-hand's pose data.
      */
-    default VRBodyPartData getController1() {
-        return getController(1);
+    default VRBodyPartData getOffHand() {
+        return getHand(1);
     }
 }

@@ -21,7 +21,7 @@ public record VRPoseImpl(VRBodyPartData hmd, VRBodyPartData c0, VRBodyPartData c
             throw new IllegalArgumentException("Cannot get a null body part's data!");
         }
         return switch (vrBodyPart) {
-            case HEAD -> this.hmd;
+            case HMD -> this.hmd;
             case MAIN_HAND -> this.c0;
             case OFF_HAND -> this.c1;
             case RIGHT_FOOT -> this.rightFoot;
@@ -41,6 +41,6 @@ public record VRPoseImpl(VRBodyPartData hmd, VRBodyPartData c0, VRBodyPartData c
 
     @Override
     public String toString() {
-        return "HMD: " + getHMD() + "\nController 0: " + getController0() + "\nController 1: " + getController1();
+        return "HMD: " + getHMD() + "\nController 0: " + getMainHand() + "\nController 1: " + getOffHand();
     }
 }

@@ -5,15 +5,15 @@ package org.vivecraft.api.data;
  */
 public enum FBTMode {
     /**
-     * Only controllers are available.
+     * Only HMD and hands are available.
      */
     ARMS_ONLY,
     /**
-     * Controller, waist and feet trackers are available.
+     * HMD, hands, waist, and feet trackers are available.
      */
     ARMS_LEGS,
     /**
-     * Controller, waist, feet, elbow and knee trackers are available.
+     * HMD, hands, waist, feet, elbow, and knee trackers are available.
      */
     WITH_JOINTS;
 

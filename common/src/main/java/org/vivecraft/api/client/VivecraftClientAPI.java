@@ -80,8 +80,8 @@ public interface VivecraftClientAPI {
      * Causes a haptic pulse (vibration/rumble) for the specified controller.
      * This function silently fails if called for players not in VR or players who are in seated mode.
      *
-     * @param controllerNum The controller number to trigger a haptic pulse. 0 is the primary controller, while 1 is
-     *                      the secondary controller.
+     * @param controllerNum The controller number to trigger a haptic pulse. 0 is the main-hand's controller, while 1 is
+     *                      the off-hand's controller.
      * @param duration      The duration of the haptic pulse in seconds. Note that this number is passed to the
      *                      underlying VR API used by Vivecraft, and may act with a shorter length than expected beyond
      *                      very short pulses.
@@ -97,8 +97,8 @@ public interface VivecraftClientAPI {
      * Causes a haptic pulse (vibration/rumble) for the specified controller.
      * This function silently fails if called for players not in VR or players who are in seated mode.
      *
-     * @param controllerNum The controller number to trigger a haptic pulse. 0 is the primary controller, while 1 is
-     *                      the secondary controller.
+     * @param controllerNum The controller number to trigger a haptic pulse. 0 is the main-hand's controller, while 1 is
+     *                      the off-hand's controller.
      * @param duration      The duration of the haptic pulse in seconds. Note that this number is passed to the
      *                      underlying VR API used by Vivecraft, and may act with a shorter length than expected beyond
      *                      very short pulses.
