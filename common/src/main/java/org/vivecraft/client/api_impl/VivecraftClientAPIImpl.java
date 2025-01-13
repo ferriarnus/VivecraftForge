@@ -10,8 +10,6 @@ import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.provider.ControllerType;
-import org.vivecraft.client_vr.render.RenderPass;
-import org.vivecraft.client_xr.render_pass.RenderPassType;
 
 public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
 
@@ -39,7 +37,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     @Nullable
     @Override
     public VRPose getPreTickRoomPose() {
-        if (!isVrActive()) {
+        if (!isVRActive()) {
             return null;
         }
         return ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_pre.asVRPose();
@@ -48,7 +46,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     @Nullable
     @Override
     public VRPose getPostTickRoomPose() {
-        if (!isVrActive()) {
+        if (!isVRActive()) {
             return null;
         }
         return ClientDataHolderVR.getInstance().vrPlayer.vrdata_room_post.asVRPose();
@@ -57,7 +55,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     @Nullable
     @Override
     public VRPose getPreTickWorldPose() {
-        if (!isVrActive()) {
+        if (!isVRActive()) {
             return null;
         }
         return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_pre.asVRPose();
@@ -66,7 +64,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     @Nullable
     @Override
     public VRPose getPostTickWorldPose() {
-        if (!isVrActive()) {
+        if (!isVRActive()) {
             return null;
         }
         return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_post.asVRPose();
@@ -75,7 +73,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     @Nullable
     @Override
     public VRPose getWorldRenderPose() {
-        if (!isVrActive()) {
+        if (!isVRActive()) {
             return null;
         }
         return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_render.asVRPose();
@@ -89,7 +87,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
         if (amplitude < 0F || amplitude > 1F) {
             throw new IllegalArgumentException("The amplitude of a haptic pulse must be between 0 and 1.");
         }
-        if (isVrActive() && !isSeated()) {
+        if (isVRActive() && !isSeated()) {
             ClientDataHolderVR.getInstance().vr.triggerHapticPulse(
                 ControllerType.values()[controllerNum],
                 duration,
@@ -111,18 +109,18 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     }
 
     @Override
-    public boolean isVrInitialized() {
+    public boolean isVRInitialized() {
         return VRState.VR_INITIALIZED;
     }
 
     @Override
-    public boolean isVrActive() {
+    public boolean isVRActive() {
         return VRState.VR_RUNNING;
     }
 
     @Override
     public float getWorldScale() {
-        if (isVrActive()) {
+        if (isVRActive()) {
             return ClientDataHolderVR.getInstance().vrPlayer.worldScale;
         } else {
             return 1f;
@@ -137,7 +135,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     @Nullable
     @Override
     public VRBodyPartHistory getHistoricalVRHMDPoses() {
-        if (!isVrActive()) {
+        if (!isVRActive()) {
             return null;
         }
         return this.hmdHistory;
@@ -148,7 +146,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
     public VRBodyPartHistory getHistoricalVRControllerPoses(int controller) {
         if (controller != 0 && controller != 1) {
             throw new IllegalArgumentException("Historical VR controller data only available for controllers 0 and 1.");
-        } else if (!isVrActive()) {
+        } else if (!isVRActive()) {
             return null;
         }
         return controller == 0 ? this.c0History : this.c1History;
@@ -156,7 +154,7 @@ public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
 
     @Override
     public boolean setKeyboardState(boolean isNowOpen) {
-        if (isVrActive()) {
+        if (isVRActive()) {
             return KeyboardHandler.setOverlayShowing(isNowOpen);
         }
         return false;

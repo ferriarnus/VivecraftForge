@@ -1,11 +1,9 @@
 package org.vivecraft.api.client;
 
-import com.google.common.annotations.Beta;
 import net.minecraft.world.InteractionHand;
 import org.vivecraft.api.client.data.VRBodyPartHistory;
 import org.vivecraft.api.data.VRPose;
 import org.vivecraft.client.api_impl.VivecraftClientAPIImpl;
-import org.vivecraft.client_vr.render.RenderPass;
 
 import javax.annotation.Nullable;
 
@@ -122,12 +120,12 @@ public interface VivecraftClientAPI {
     /**
      * @return Whether VR support is initialized.
      */
-    boolean isVrInitialized();
+    boolean isVRInitialized();
 
     /**
      * @return Whether the client is actively in VR.
      */
-    boolean isVrActive();
+    boolean isVRActive();
 
     /**
      * @return The currently active world scale.
