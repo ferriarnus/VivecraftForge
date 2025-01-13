@@ -9,14 +9,14 @@ public class VRDataImpl implements VRData {
     private final VRPose c0;
     private final VRPose c1;
     private final boolean isSeated;
-    private final boolean usingReversedHands;
+    private final boolean isLeftHanded;
 
-    public VRDataImpl(VRPose hmd, VRPose c0, VRPose c1, boolean isSeated, boolean usingReversedHands) {
+    public VRDataImpl(VRPose hmd, VRPose c0, VRPose c1, boolean isSeated, boolean isLeftHanded) {
         this.hmd = hmd;
         this.c0 = c0;
         this.c1 = c1;
         this.isSeated = isSeated;
-        this.usingReversedHands = usingReversedHands;
+        this.isLeftHanded = isLeftHanded;
     }
 
     @Override
@@ -38,8 +38,8 @@ public class VRDataImpl implements VRData {
     }
 
     @Override
-    public boolean usingReversedHands() {
-        return this.usingReversedHands;
+    public boolean isLeftHanded() {
+        return this.isLeftHanded;
     }
 
     @Override

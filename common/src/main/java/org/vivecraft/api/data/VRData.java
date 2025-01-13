@@ -1,6 +1,5 @@
 package org.vivecraft.api.data;
 
-import com.google.common.annotations.Beta;
 import net.minecraft.world.InteractionHand;
 
 /**
@@ -29,9 +28,9 @@ public interface VRData {
     boolean isSeated();
 
     /**
-     * @return Whether the player is using reversed hands.
+     * @return Whether the player is playing with left-handed controls.
      */
-    boolean usingReversedHands();
+    boolean isLeftHanded();
 
     /**
      * Gets the pose for a given controller.
