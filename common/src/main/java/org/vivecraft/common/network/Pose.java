@@ -39,10 +39,12 @@ public record Pose(Vector3fc position, Quaternionfc orientation) {
     }
 
     /**
+     * @param playerPos The current position of the player.
+     *
      * @return This Pose as VRBodyPartData for use with the API.
      */
-    public VRBodyPartData asBodyPartData() {
-        return new VRBodyPartDataImpl(fromVector3fc(this.position), fromVector3fc(this.orientation.transform(MathUtils.BACK, new Vector3f())), this.orientation);
+    public VRBodyPartData asBodyPartData(Vec3 playerPos) {
+        return new VRBodyPartDataImpl(fromVector3fc(this.position).add(playerPos), fromVector3fc(this.orientation.transform(MathUtils.BACK, new Vector3f())), this.orientation);
     }
 
     private static Vec3 fromVector3fc(Vector3fc vec) {

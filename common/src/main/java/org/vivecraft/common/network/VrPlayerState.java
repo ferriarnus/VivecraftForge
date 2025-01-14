@@ -2,6 +2,7 @@ package org.vivecraft.common.network;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.vivecraft.api.data.FBTMode;
@@ -237,20 +238,22 @@ public record VrPlayerState(boolean seated, Pose hmd, boolean leftHanded, Pose m
     }
 
     /**
+     * @param playerPos The current position of the player.
+     *
      * @return This object as a pose for use with the API.
      */
-    public VRPoseImpl asPose() {
+    public VRPoseImpl asPose(Vec3 playerPos) {
         return new VRPoseImpl(
-            this.hmd.asBodyPartData(),
-            this.mainHand.asBodyPartData(),
-            this.offHand.asBodyPartData(),
-            getDataOrNull(this.rightFoot),
-            getDataOrNull(this.leftFoot),
-            getDataOrNull(this.waist),
-            getDataOrNull(this.rightKnee),
-            getDataOrNull(this.leftKnee),
-            getDataOrNull(this.rightElbow),
-            getDataOrNull(this.leftElbow),
+            this.hmd.asBodyPartData(playerPos),
+            this.mainHand.asBodyPartData(playerPos),
+            this.offHand.asBodyPartData(playerPos),
+            getDataOrNull(this.rightFoot, playerPos),
+            getDataOrNull(this.leftFoot, playerPos),
+            getDataOrNull(this.waist, playerPos),
+            getDataOrNull(this.rightKnee, playerPos),
+            getDataOrNull(this.leftKnee, playerPos),
+            getDataOrNull(this.rightElbow, playerPos),
+            getDataOrNull(this.leftElbow, playerPos),
             this.seated,
             this.leftHanded,
             this.fbtMode
@@ -258,8 +261,8 @@ public record VrPlayerState(boolean seated, Pose hmd, boolean leftHanded, Pose m
     }
 
     @Nullable
-    private static VRBodyPartData getDataOrNull(Pose pose) {
-        return pose == null ? null : pose.asBodyPartData();
+    private static VRBodyPartData getDataOrNull(Pose pose, Vec3 playerPos) {
+        return pose == null ? null : pose.asBodyPartData(playerPos);
     }
 
 }

@@ -567,18 +567,18 @@ public class ClientVRPlayers {
             return (float) Math.atan2(-dir.x, dir.z);
         }
 
-        public VRPose asVRPose() {
+        public VRPose asVRPose(Vec3 playerPos) {
             return new VRPoseImpl(
-                makeBodyPartData(this.headPos, this.headRot, this.headQuat),
-                makeBodyPartData(this.mainHandPos, this.mainHandRot, this.mainHandQuat),
-                makeBodyPartData(this.offHandPos, this.offHandRot, this.offHandQuat),
-                makeBodyPartData(this.rightFootPos, this.rightFootQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_FOOT)),
-                makeBodyPartData(this.leftFootPos, this.leftFootQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_FOOT)),
-                makeBodyPartData(this.waistPos, this.waistQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.WAIST)),
-                makeBodyPartData(this.rightKneePos, this.rightKneeQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_KNEE)),
-                makeBodyPartData(this.leftKneePos, this.leftKneeQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_KNEE)),
-                makeBodyPartData(this.rightElbowPos, this.rightElbowQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_ELBOW)),
-                makeBodyPartData(this.leftElbowPos, this.leftElbowQuat, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_ELBOW)),
+                makeBodyPartData(this.headPos, this.headRot, this.headQuat, playerPos),
+                makeBodyPartData(this.mainHandPos, this.mainHandRot, this.mainHandQuat, playerPos),
+                makeBodyPartData(this.offHandPos, this.offHandRot, this.offHandQuat, playerPos),
+                makeBodyPartData(this.rightFootPos, this.rightFootQuat, playerPos, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_FOOT)),
+                makeBodyPartData(this.leftFootPos, this.leftFootQuat, playerPos, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_FOOT)),
+                makeBodyPartData(this.waistPos, this.waistQuat, playerPos, this.fbtMode.bodyPartAvailable(VRBodyPart.WAIST)),
+                makeBodyPartData(this.rightKneePos, this.rightKneeQuat, playerPos, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_KNEE)),
+                makeBodyPartData(this.leftKneePos, this.leftKneeQuat, playerPos, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_KNEE)),
+                makeBodyPartData(this.rightElbowPos, this.rightElbowQuat, playerPos, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_ELBOW)),
+                makeBodyPartData(this.leftElbowPos, this.leftElbowQuat, playerPos, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_ELBOW)),
                 this.seated,
                 this.leftHanded,
                 this.fbtMode
@@ -586,13 +586,13 @@ public class ClientVRPlayers {
         }
     }
 
-    private static VRBodyPartDataImpl makeBodyPartData(Vector3fc pos, Vector3fc rot, Quaternionfc quat) {
-        return new VRBodyPartDataImpl(fromVector3fc(pos), fromVector3fc(rot), quat);
+    private static VRBodyPartDataImpl makeBodyPartData(Vector3fc pos, Vector3fc rot, Quaternionfc quat, Vec3 playerPos) {
+        return new VRBodyPartDataImpl(fromVector3fc(pos).add(playerPos), fromVector3fc(rot), quat);
     }
 
-    private static VRBodyPartDataImpl makeBodyPartData(Vector3fc pos, Quaternionfc quat, boolean partAvailable) {
+    private static VRBodyPartDataImpl makeBodyPartData(Vector3fc pos, Quaternionfc quat, Vec3 playerPos, boolean partAvailable) {
         return partAvailable
-            ? new VRBodyPartDataImpl(fromVector3fc(pos), fromVector3fc(quat.transform(MathUtils.BACK, new Vector3f())), quat)
+            ? makeBodyPartData(pos, quat.transform(MathUtils.BACK, new Vector3f()), quat, playerPos)
             : null;
     }
 
