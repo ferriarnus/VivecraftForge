@@ -1,15 +1,15 @@
 package org.vivecraft.client.api_impl;
 
-import org.vivecraft.api.client.VivecraftRenderingAPI;
+import org.vivecraft.api.client.VRRenderingAPI;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_xr.render_pass.RenderPassType;
 
-public class VivecraftRenderingAPIImpl implements VivecraftRenderingAPI {
+public class VRRenderingAPIImpl implements VRRenderingAPI {
 
-    public static final VivecraftRenderingAPIImpl INSTANCE = new VivecraftRenderingAPIImpl();
+    public static final VRRenderingAPIImpl INSTANCE = new VRRenderingAPIImpl();
 
-    private VivecraftRenderingAPIImpl() {
+    private VRRenderingAPIImpl() {
     }
 
     @Override

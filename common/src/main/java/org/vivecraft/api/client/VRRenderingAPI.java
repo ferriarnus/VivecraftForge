@@ -1,16 +1,16 @@
 package org.vivecraft.api.client;
 
-import org.vivecraft.client.api_impl.VivecraftRenderingAPIImpl;
+import org.vivecraft.client.api_impl.VRRenderingAPIImpl;
 import org.vivecraft.client_vr.render.RenderPass;
 
 /**
  * The main interface for interacting with Vivecraft from rendering code. For other client-side code, one should use
- * {@link VivecraftClientAPI}.
+ * {@link VRClientAPI}.
  */
-public interface VivecraftRenderingAPI {
+public interface VRRenderingAPI {
 
-    static VivecraftRenderingAPI getInstance() {
-        return VivecraftRenderingAPIImpl.INSTANCE;
+    static VRRenderingAPI getInstance() {
+        return VRRenderingAPIImpl.INSTANCE;
     }
 
     /**

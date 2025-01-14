@@ -2,7 +2,7 @@ package org.vivecraft.client.api_impl;
 
 import org.jetbrains.annotations.Nullable;
 import org.vivecraft.api.client.Tracker;
-import org.vivecraft.api.client.VivecraftClientAPI;
+import org.vivecraft.api.client.VRClientAPI;
 import org.vivecraft.api.client.data.VRPoseHistory;
 import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.api.data.VRPose;
@@ -12,13 +12,13 @@ import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.provider.ControllerType;
 
-public final class VivecraftClientAPIImpl implements VivecraftClientAPI {
+public final class VRClientAPIImpl implements VRClientAPI {
 
-    public static final VivecraftClientAPIImpl INSTANCE = new VivecraftClientAPIImpl();
+    public static final VRClientAPIImpl INSTANCE = new VRClientAPIImpl();
 
     private final VRPoseHistoryImpl poseHistory = new VRPoseHistoryImpl();
 
-    private VivecraftClientAPIImpl() {
+    private VRClientAPIImpl() {
     }
 
     public void clearHistories() {

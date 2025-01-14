@@ -2,13 +2,14 @@ package org.vivecraft.api.client;
 
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
+import org.vivecraft.api.VRAPI;
 
 /**
  * A tracker is an object that is run for the local player during the game tick or before rendering a frame only if
  * they are in VR. Using trackers are one of the cleanest ways to interact with Vivecraft's data; it's how Vivecraft
- * itself does. Trackers should generally use {@link VivecraftClientAPI#getPreTickWorldPose()}, as this provides
- * the most up-to-date data, and other methods such as {@link VivecraftClientAPI#getPostTickWorldPose()} or
- * {@link org.vivecraft.api.VivecraftAPI#getVRPose(Player)} may not have data available when the tracker is run.
+ * itself does. Trackers should generally use {@link VRClientAPI#getPreTickWorldPose()}, as this provides
+ * the most up-to-date data, and other methods such as {@link VRClientAPI#getPostTickWorldPose()} or
+ * {@link VRAPI#getVRPose(Player)} may not have data available when the tracker is run.
  */
 public interface Tracker {
 

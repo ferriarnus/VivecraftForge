@@ -2,20 +2,20 @@ package org.vivecraft.api;
 
 import net.minecraft.world.entity.player.Player;
 import org.vivecraft.api.data.VRPose;
-import org.vivecraft.common.api_impl.VivecraftAPIImpl;
+import org.vivecraft.common.api_impl.VRAPIImpl;
 
 import javax.annotation.Nullable;
 
 /**
  * The main interface for interacting with Vivecraft from common code.
  */
-public interface VivecraftAPI {
+public interface VRAPI {
 
     /**
      * @return The Vivecraft API instance for interacting with Vivecraft's API.
      */
-    static VivecraftAPI getInstance() {
-        return VivecraftAPIImpl.INSTANCE;
+    static VRAPI getInstance() {
+        return VRAPIImpl.INSTANCE;
     }
 
     /**

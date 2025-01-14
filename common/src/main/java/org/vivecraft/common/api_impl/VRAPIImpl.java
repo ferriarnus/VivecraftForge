@@ -2,17 +2,17 @@ package org.vivecraft.common.api_impl;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import org.vivecraft.api.VivecraftAPI;
+import org.vivecraft.api.VRAPI;
 import org.vivecraft.client.ClientVRPlayers;
 import org.jetbrains.annotations.Nullable;
 import org.vivecraft.api.data.VRPose;
 import org.vivecraft.server.ServerVRPlayers;
 
-public final class VivecraftAPIImpl implements VivecraftAPI {
+public final class VRAPIImpl implements VRAPI {
 
-    public static final VivecraftAPIImpl INSTANCE = new VivecraftAPIImpl();
+    public static final VRAPIImpl INSTANCE = new VRAPIImpl();
 
-    private VivecraftAPIImpl() {
+    private VRAPIImpl() {
     }
 
     @Override

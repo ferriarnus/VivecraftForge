@@ -3,18 +3,18 @@ package org.vivecraft.api.client;
 import org.vivecraft.api.client.data.VRPoseHistory;
 import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.api.data.VRPose;
-import org.vivecraft.client.api_impl.VivecraftClientAPIImpl;
+import org.vivecraft.client.api_impl.VRClientAPIImpl;
 
 import javax.annotation.Nullable;
 
 /**
  * The main interface for interacting with Vivecraft from client code. For rendering, one should use
- * {@link VivecraftRenderingAPI}.
+ * {@link VRRenderingAPI}.
  */
-public interface VivecraftClientAPI {
+public interface VRClientAPI {
 
-    static VivecraftClientAPI getInstance() {
-        return VivecraftClientAPIImpl.INSTANCE;
+    static VRClientAPI getInstance() {
+        return VRClientAPIImpl.INSTANCE;
     }
 
     /**
