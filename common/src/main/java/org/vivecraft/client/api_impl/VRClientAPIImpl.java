@@ -106,7 +106,7 @@ public final class VRClientAPIImpl implements VRClientAPI {
     @Override
     public FBTMode getFBTMode() {
         // Need to check if VR is running, not just initialized, since the VR player is set after initialization
-        if (isVRActive()) {
+        if (!isVRActive()) {
             return FBTMode.ARMS_ONLY;
         }
         return ClientDataHolderVR.getInstance().vrPlayer.vrdata_world_pre.fbtMode;
