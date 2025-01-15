@@ -49,11 +49,11 @@ public class VehicleTracker extends Tracker {
     }
 
     public double getVehicleFloor(Entity vehicle, double original) {
-//        if (vehicle instanceof AbstractHorse) {
-        return original; // horses are fine.
-//        } else {
-//            return vehicle.getY();
-//        }
+        if (vehicle instanceof Boat) {
+            return original + 0.6f;
+        } else {
+            return original;
+        }
     }
 
     public static Vector3f getSteeringDirection(LocalPlayer player) {

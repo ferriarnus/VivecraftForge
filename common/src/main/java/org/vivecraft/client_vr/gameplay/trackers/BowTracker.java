@@ -60,7 +60,11 @@ public class BowTracker extends Tracker {
     }
 
     public boolean isCharged() {
-        return Util.getMillis() - this.startDrawTime >= MAX_DRAW_MILLIS;
+        if (!ClientNetworking.SERVER_WANTS_DATA) {
+            return Util.getMillis() - this.startDrawTime >= MAX_DRAW_MILLIS;
+        } else {
+            return false;
+        }
     }
 
     public static boolean isBow(ItemStack itemStack) {

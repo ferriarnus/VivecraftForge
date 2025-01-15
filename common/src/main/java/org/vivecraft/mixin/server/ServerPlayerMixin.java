@@ -20,6 +20,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionUtils;
@@ -108,6 +109,19 @@ public abstract class ServerPlayerMixin extends PlayerMixin {
         } else {
             return original.call(instance, type, posX, posY, posZ, particleCount, xOffset, yOffset, zOffset, speed);
         }
+    }
+
+    @Override
+    public void releaseUsingItem() {
+        ServerVivePlayer serverVivePlayer = vivecraft$getVivePlayer();
+        if (serverVivePlayer != null && serverVivePlayer.isVR()) {
+            if (serverVivePlayer.draw > 0.0F) {
+                if (!this.useItem.isEmpty()) {
+                    this.useItemRemaining = Math.max(this.useItem.getUseDuration() - (int) (BowItem.MAX_DRAW_DURATION * serverVivePlayer.draw), 0);
+                }
+            }
+        }
+        super.releaseUsingItem();
     }
 
     /**

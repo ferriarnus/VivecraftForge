@@ -2,15 +2,17 @@ package org.vivecraft.client_vr.gameplay.trackers;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.settings.AutoCalibration;
 import org.vivecraft.common.utils.MathUtils;
 
 public class SwimTracker extends Tracker {
-    private static final float FRICTION = 0.9F;
-    private static final float RISE_SPEED = 0.005F;
-    private static final float SWIM_SPEED = 1.3F;
+    private static final float FRICTION = 0.85F;
+    private static final float RISE_SPEED = 0.0015F;
+    private static final float SWIM_SPEED = 1.0F;
 
     private Vector3f motion = new Vector3f();
     private double lastDist;
@@ -65,6 +67,10 @@ public class SwimTracker extends Tracker {
         if (distDelta > 0.0D) {
             Vector3f velocity = moveDir.mul((float) distDelta * SWIM_SPEED * dirFactor).mul(0.15F);
             this.motion = this.motion.add(velocity);
+        }
+
+        if (player.getFluidHeight(FluidTags.WATER) > AutoCalibration.getPlayerHeight() - 0.1F) {
+            this.motion = this.motion.add(0.0f, RISE_SPEED, 0.0f);
         }
 
         this.lastDist = distance;
