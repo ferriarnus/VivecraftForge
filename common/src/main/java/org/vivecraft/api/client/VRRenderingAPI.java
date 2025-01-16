@@ -28,7 +28,7 @@ public interface VRRenderingAPI {
     RenderPass getCurrentRenderPass();
 
     /**
-     * @return Whether the current render pass is the first one it performed for this render cycle.
+     * @return Whether the current render pass is the first one performed for this render cycle.
      */
     boolean isFirstRenderPass();
 
@@ -43,7 +43,8 @@ public interface VRRenderingAPI {
     Vec3 getHandRenderPos(InteractionHand hand);
 
     /**
-     * Sets the provided {@link PoseStack} to render at the position of the provided {@link InteractionHand}.
+     * Sets the provided {@link PoseStack} to render at the position of and with the rotation of the provided
+     * {@link InteractionHand}.
      * @param hand The hand to set the PoseStack to.
      * @param stack The PoseStack to be set.
      */

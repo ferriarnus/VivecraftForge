@@ -66,9 +66,7 @@ public interface VRClientAPI {
     VRPose getPostTickWorldPose();
 
     /**
-     * Gets the VR pose representing the player in Minecraft world coordinates after the game tick interpolated for
-     * rendering.
-     * This is the same pose as {@link #getPostTickWorldPose()}, however it is interpolated for rendering.
+     * Gets the VR pose representing the player in Minecraft world coordinates interpolated for rendering.
      *
      * @return The VR pose representing the player in Minecraft space post-tick interpolated for rendering, or null if
      * the local player isn't in VR.
