@@ -148,19 +148,6 @@ public class ServerVivePlayer {
     }
 
     /**
-     *
-     * @param c controller to get the rotation for
-     * @return controller rotation as a quaternion
-     */
-    public Quaternionfc getControllerQuaternion(int c) {
-        if (this.vrPlayerState != null) {
-            Pose controllerPose = c == 0 ? this.vrPlayerState.mainHand() : this.vrPlayerState.offHand();
-            return controllerPose.orientation();
-        }
-        return null; // Should only return null if player isn't in VR.
-    }
-
-    /**
      * @return if the player has VR active
      */
     public boolean isVR() {
