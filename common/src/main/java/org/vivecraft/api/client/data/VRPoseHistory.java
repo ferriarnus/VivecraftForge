@@ -17,7 +17,7 @@ public interface VRPoseHistory {
      * Passing a value larger than this number to any methods below in their maxTicksBack or ticksBack parameters
      * will throw an {@link IllegalArgumentException}.
      */
-    int MAX_TICKS_BACK = 20;
+    int MAX_TICKS_BACK = 100;
 
     /**
      * @return The amount of ticks worth of history being held. The number returned by this method will never be higher

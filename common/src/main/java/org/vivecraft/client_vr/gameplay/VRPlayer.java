@@ -402,9 +402,9 @@ public class VRPlayer {
         {
             if (tracker.tickType() == Tracker.TrackerTickType.PER_TICK)
             {
-                tracker.idleTick(mc.player);
-                if (tracker.isActive(mc.player)) {
-                    tracker.doProcess(mc.player);
+                tracker.idleTick(player);
+                if (tracker.isActive(player)) {
+                    tracker.doProcess(player);
                 } else {
                     tracker.reset(player);
                 }

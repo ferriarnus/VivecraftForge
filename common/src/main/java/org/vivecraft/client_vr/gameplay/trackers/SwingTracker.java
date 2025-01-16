@@ -232,7 +232,7 @@ public class SwingTracker implements Tracker {
                 for (Entity entity : mobs) {
                     if (entity.isPickable() && entity != this.mc.getCameraEntity().getVehicle()) {
                         if (entityAct) {
-                            // Minecraft.getInstance().physicalGuiManager.preClickAction();
+                            // this.mc.physicalGuiManager.preClickAction();
 
                             if (!EpicFightHelper.isLoaded() || !EpicFightHelper.attack()) {
                                 ClientNetworking.sendActiveBodyPart(BodyPart.values()[i]);

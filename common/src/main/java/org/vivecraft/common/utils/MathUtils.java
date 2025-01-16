@@ -232,7 +232,7 @@ public class MathUtils {
     }
 
     /**
-     * Converst a {@link Vector3fc} to a {@link Vec3}.
+     * Converts a {@link Vector3fc} to a {@link Vec3}.
      * @param vec The original Vector3fc.
      * @return The Vec3.
      */
