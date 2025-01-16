@@ -301,10 +301,8 @@ public class VRPlayer {
             interpolatedWorldScale,
             interpolatedWorldRotation_Radians);
 
-        for (Tracker tracker : ClientDataHolderVR.getInstance().getTrackers())
-        {
-            if (tracker.tickType() == Tracker.TrackerTickType.PER_FRAME)
-            {
+        for (Tracker tracker : ClientDataHolderVR.getInstance().getTrackers()) {
+            if (tracker.tickType() == Tracker.TrackerTickType.PER_FRAME) {
                 tracker.idleTick(this.mc.player);
                 if (tracker.isActive(this.mc.player)) {
                     tracker.doProcess(this.mc.player);

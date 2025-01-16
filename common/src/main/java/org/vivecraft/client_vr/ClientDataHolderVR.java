@@ -150,6 +150,6 @@ public class ClientDataHolderVR {
      * @return Whether some tracker is currently using an item.
      */
     public boolean isTrackerUsingItem(LocalPlayer player) {
-        return ClientDataHolderVR.getInstance().getTrackers().stream().anyMatch(tracker -> tracker.itemInUse(player));
+        return this.trackers.stream().anyMatch(tracker -> tracker.itemInUse(player));
     }
 }

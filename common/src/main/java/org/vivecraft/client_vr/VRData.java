@@ -535,12 +535,10 @@ public class VRData {
         }
 
         public VRBodyPartData asVRBodyPart() {
-            Quaternionf quat = new Quaternionf();
-            quat.setFromUnnormalized(getMatrix());
             return new VRBodyPartDataImpl(
                 getPosition(),
                 new Vec3(getDirection()),
-                quat
+                new Quaternionf().setFromUnnormalized(getMatrix())
             );
         }
 
