@@ -9,6 +9,8 @@ import org.vivecraft.api.data.VRBodyPartData;
 import org.vivecraft.common.api_impl.data.VRBodyPartDataImpl;
 import org.vivecraft.common.utils.MathUtils;
 
+import static org.vivecraft.common.utils.MathUtils.fromVector3fc;
+
 /**
  * holds a device Pose
  *
@@ -45,9 +47,5 @@ public record Pose(Vector3fc position, Quaternionfc orientation) {
      */
     public VRBodyPartData asBodyPartData(Vec3 playerPos) {
         return new VRBodyPartDataImpl(fromVector3fc(this.position).add(playerPos), fromVector3fc(this.orientation.transform(MathUtils.BACK, new Vector3f())), this.orientation);
-    }
-
-    private static Vec3 fromVector3fc(Vector3fc vec) {
-        return new Vec3(vec.x(), vec.y(), vec.z());
     }
 }

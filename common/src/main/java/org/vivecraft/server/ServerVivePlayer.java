@@ -191,10 +191,10 @@ public class ServerVivePlayer {
         return this.vrPlayerState.leftHanded();
     }
 
-    public VRPose asVRPose(Vec3 playerPos) {
+    public VRPose asVRPose() {
         if (this.vrPlayerState == null) {
             return null;
         }
-        return this.vrPlayerState.asPose(playerPos);
+        return this.vrPlayerState.asPose(player.position());
     }
 }

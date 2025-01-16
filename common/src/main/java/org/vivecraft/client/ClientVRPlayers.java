@@ -34,6 +34,8 @@ import org.vivecraft.common.utils.MathUtils;
 
 import java.util.*;
 
+import static org.vivecraft.common.utils.MathUtils.fromVector3fc;
+
 public class ClientVRPlayers {
 
     private static ClientVRPlayers INSTANCE;
@@ -594,9 +596,5 @@ public class ClientVRPlayers {
         return partAvailable
             ? makeBodyPartData(pos, quat.transform(MathUtils.BACK, new Vector3f()), quat, playerPos)
             : null;
-    }
-
-    private static Vec3 fromVector3fc(Vector3fc vec) {
-        return new Vec3(vec.x(), vec.y(), vec.z());
     }
 }

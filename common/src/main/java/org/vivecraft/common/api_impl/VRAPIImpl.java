@@ -31,7 +31,7 @@ public final class VRAPIImpl implements VRAPI {
             return null;
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            return ServerVRPlayers.getVivePlayer(serverPlayer).asVRPose(serverPlayer.position());
+            return ServerVRPlayers.getVivePlayer(serverPlayer).asVRPose();
         }
 
         return ClientVRPlayers.getInstance().getRotationsForPlayer(player.getUUID()).asVRPose(player.position());

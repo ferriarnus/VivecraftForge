@@ -4,17 +4,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionfc;
 import org.vivecraft.api.data.VRBodyPartData;
 
-public class VRBodyPartDataImpl implements VRBodyPartData {
-
-    private final Vec3 pos;
-    private final Vec3 rot;
-    private final Quaternionfc quaternion;
-
-    public VRBodyPartDataImpl(Vec3 pos, Vec3 rot, Quaternionfc quaternion) {
-        this.pos = pos;
-        this.rot = rot;
-        this.quaternion = quaternion;
-    }
+public record VRBodyPartDataImpl(Vec3 pos, Vec3 rot, Quaternionfc quaternion) implements VRBodyPartData {
 
     @Override
     public Vec3 getPos() {
@@ -49,6 +39,6 @@ public class VRBodyPartDataImpl implements VRBodyPartData {
 
     @Override
     public String toString() {
-        return "Position: " + getPos() + "\tRotation: " + getRot();
+        return "Position: " + getPos() + ", Rotation: " + getRot();
     }
 }
