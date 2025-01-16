@@ -31,21 +31,19 @@ public class RowTracker implements Tracker {
         this.dh = dh;
     }
 
-    public boolean isActive(LocalPlayer p) {
+    public boolean isActive(LocalPlayer player) {
         if (this.dh.vrSettings.seated) {
             return false;
         } else if (!this.dh.vrSettings.realisticRowEnabled) {
             return false;
-        } else if (p != null && p.isAlive()) {
-            if (this.mc.gameMode == null) {
-                return false;
-            } else if (this.mc.options.keyUp.isDown()) {
-                return false;
-            } else if (!(p.getVehicle() instanceof Boat)) {
-                return false;
-            } else {
-                return !this.dh.bowTracker.isNotched();
-            }
+        } else if (player == null || !player.isAlive()) {
+            return false;
+        } else if (this.mc.gameMode == null) {
+            return false;
+        } else if (this.mc.options.keyUp.isDown()) { // important
+            return false;
+        } else if (!(player.getVehicle() instanceof Boat)) {
+            return false;
         } else {
             return !this.dh.bowTracker.isNotched();
         }
