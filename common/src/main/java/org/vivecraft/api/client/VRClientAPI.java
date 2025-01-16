@@ -26,13 +26,12 @@ public interface VRClientAPI {
     void registerTracker(Tracker tracker);
 
     /**
-     * Gets the VR pose representing the player in the room before the game tick.
-     * Note that this pose is gathered BEFORE mod loaders' pre-tick events.
+     * Gets the VR pose representing the player in the room after the most recent poll of VR hardware.
      *
-     * @return The VR pose representing the player in the room pre-tick, or null if the local player isn't in VR.
+     * @return The most up-to-date VR pose representing the player in the room, or null if the local player isn't in VR.
      */
     @Nullable
-    VRPose getPreTickRoomPose();
+    VRPose getLatestRoomPose();
 
     /**
      * Gets the VR pose representing the player in the room after the game tick.
@@ -44,10 +43,8 @@ public interface VRClientAPI {
     VRPose getPostTickRoomPose();
 
     /**
-     * Gets the VR pose representing the player in Minecraft world coordinates before the game tick.
-     * This is the same as {@link #getPreTickRoomPose()} with translation to in-game world coordinates as of the last
-     * tick, and is the main pose source used by Vivecraft for gameplay. If you're unsure which {@link VRPose} method
-     * to use, you likely want to use this one.
+     * Gets the VR pose representing the player in Minecraft world coordinates before the game tick. If you're unsure
+     * which {@link VRPose} method to use, you very likely want to use this one.
      * Note that this pose is gathered BEFORE mod loaders' pre-tick events.
      *
      * @return The VR pose representing the player in world space pre-tick, or null if the local player isn't in VR.

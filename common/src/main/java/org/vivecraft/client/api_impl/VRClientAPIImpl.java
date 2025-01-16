@@ -31,7 +31,7 @@ public final class VRClientAPIImpl implements VRClientAPI {
 
     @Nullable
     @Override
-    public VRPose getPreTickRoomPose() {
+    public VRPose getLatestRoomPose() {
         if (!isVRActive()) {
             return null;
         }
