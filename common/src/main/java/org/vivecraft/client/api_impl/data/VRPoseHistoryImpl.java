@@ -6,9 +6,11 @@ import org.vivecraft.api.data.VRBodyPart;
 import org.vivecraft.api.data.VRBodyPartData;
 import org.vivecraft.api.data.VRPose;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.stream.DoubleStream;
 
 public class VRPoseHistoryImpl implements VRPoseHistory {
 
@@ -19,7 +21,7 @@ public class VRPoseHistoryImpl implements VRPoseHistory {
 
     public void addPose(VRPose pose) {
         this.dataQueue.addFirst(pose);
-        if (this.dataQueue.size() > VRPoseHistory.MAX_TICKS_BACK) {
+        if (this.dataQueue.size() > VRPoseHistory.MAX_TICKS_BACK + 1) {
             this.dataQueue.removeLast();
         }
     }
@@ -69,51 +71,66 @@ public class VRPoseHistoryImpl implements VRPoseHistory {
     public Vec3 averageVelocity(VRBodyPart bodyPart, int maxTicksBack) throws IllegalArgumentException {
         checkPartNonNull(bodyPart);
         checkTicksBack(maxTicksBack);
-        VRBodyPartData currentData = this.dataQueue.getLast().getBodyPartData(bodyPart);
-        if (currentData == null) {
-            return null;
+        maxTicksBack = getNumTicksBack(maxTicksBack);
+        List<Vec3> diffs = new ArrayList<>(maxTicksBack);
+        for (int i = 0; i < maxTicksBack; i++) {
+            VRBodyPartData newer = dataQueue.get(i).getBodyPartData(bodyPart);
+            VRBodyPartData older = dataQueue.get(i + 1).getBodyPartData(bodyPart);
+            if (newer == null || older == null) {
+                break;
+            }
+            diffs.add(newer.getPos().subtract(older.getPos()));
         }
-        Vec3 current = currentData.getPos();
-        VRBodyPartData oldData = getOldPose(maxTicksBack).getBodyPartData(bodyPart);
-        if (oldData == null) {
-            return null;
+        if (diffs.isEmpty()) {
+            // Return no change if the body part is available but no historical data or null if body part isn't
+            // available.
+            return dataQueue.getFirst().getBodyPartData(bodyPart) != null ? Vec3.ZERO : null;
         }
-        Vec3 old = oldData.getPos();
-        return current.subtract(old).scale(1d / getNumTicksBack(maxTicksBack));
+        return new Vec3(
+            diffs.stream().mapToDouble(vec -> vec.x).average().orElse(0),
+            diffs.stream().mapToDouble(vec -> vec.y).average().orElse(0),
+            diffs.stream().mapToDouble(vec -> vec.z).average().orElse(0)
+        );
     }
 
     @Override
     public double averageSpeed(VRBodyPart bodyPart, int maxTicksBack) throws IllegalArgumentException {
-        Vec3 averageVelocity = averageVelocity(bodyPart, maxTicksBack);
-        if (averageVelocity == null) {
-            return 0;
+        checkPartNonNull(bodyPart);
+        checkTicksBack(maxTicksBack);
+        maxTicksBack = getNumTicksBack(maxTicksBack);
+        List<Double> speeds = new ArrayList<>(maxTicksBack);
+        for (int i = 0; i < maxTicksBack; i++) {
+            VRBodyPartData newer = dataQueue.get(i).getBodyPartData(bodyPart);
+            VRBodyPartData older = dataQueue.get(i + 1).getBodyPartData(bodyPart);
+            if (newer == null || older == null) {
+                break;
+            }
+            speeds.add(newer.getPos().distanceTo(older.getPos()));
         }
-        return Math.sqrt(averageVelocity.x() * averageVelocity.x() +
-                averageVelocity.y() * averageVelocity.y() +
-                averageVelocity.z() * averageVelocity.z());
+        return speeds.stream().mapToDouble(Double::valueOf).average().orElse(0);
     }
 
     @Override
     public Vec3 averagePosition(VRBodyPart bodyPart, int maxTicksBack) throws IllegalArgumentException {
         checkPartNonNull(bodyPart);
         checkTicksBack(maxTicksBack);
-        int iters = getNumTicksBack(maxTicksBack);
-        VRBodyPartData currentData = this.dataQueue.getLast().getBodyPartData(bodyPart);
-        if (currentData == null) {
-            return null;
-        }
-        ListIterator<VRPose> iterator = this.dataQueue.listIterator(this.dataQueue.size() - 1);
-        Vec3 avg = currentData.getPos();
-        int i = iters;
-        while (i > 0) {
-            VRBodyPartData oldData = iterator.previous().getBodyPartData(bodyPart);
-            if (oldData == null) {
+        maxTicksBack = getNumTicksBack(maxTicksBack);
+        List<Vec3> positions = new ArrayList<>(maxTicksBack);
+        for (VRPose pose : dataQueue) {
+            VRBodyPartData data = pose.getBodyPartData(bodyPart);
+            if (data == null) {
                 break;
             }
-            avg = avg.add(oldData.getPos());
-            i--;
+            positions.add(data.getPos());
         }
-        return avg.scale(1d / (iters + 1));
+        if (positions.isEmpty()) {
+            return null;
+        }
+        return new Vec3(
+            positions.stream().mapToDouble(vec -> vec.x).average().orElse(0),
+            positions.stream().mapToDouble(vec -> vec.y).average().orElse(0),
+            positions.stream().mapToDouble(vec -> vec.z).average().orElse(0)
+        );
     }
 
     private void checkTicksBack(int ticksBack) {
