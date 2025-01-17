@@ -8,7 +8,7 @@ import org.vivecraft.client.gui.screens.ErrorScreen;
 import org.vivecraft.client.gui.screens.GarbageCollectorScreen;
 import org.vivecraft.client.utils.TextUtils;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
-import org.vivecraft.client_vr.gameplay.trackers.Tracker;
+import org.vivecraft.client.api_impl.VRClientAPIImpl;
 import org.vivecraft.client_vr.menuworlds.MenuWorldRenderer;
 import org.vivecraft.client_vr.provider.nullvr.NullVR;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.MCOpenVR;
@@ -70,9 +70,6 @@ public class VRState {
             RenderPassManager.setVanillaRenderPass();
 
             dh.vrPlayer = new VRPlayer();
-            for (Tracker t : dh.getTrackers()) {
-                dh.vrPlayer.registerTracker(t);
-            }
 
             dh.menuWorldRenderer = new MenuWorldRenderer();
 
@@ -156,5 +153,6 @@ public class VRState {
             // this reloads any PostChain, at least in vanilla
             Minecraft.getInstance().levelRenderer.onResourceManagerReload(Minecraft.getInstance().getResourceManager());
         }
+        VRClientAPIImpl.INSTANCE.clearHistories();
     }
 }

@@ -1,5 +1,19 @@
 package org.vivecraft.client_vr.gameplay.trackers;
 
+import java.util.HashSet;
+
+import org.vivecraft.api.client.Tracker;
+import org.vivecraft.client.VivecraftVRMod;
+import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client.Xplat;
+import org.vivecraft.client_vr.extensions.PlayerExtension;
+import org.vivecraft.client_vr.VRData;
+import org.vivecraft.client_vr.provider.ControllerType;
+import org.vivecraft.client_vr.settings.VRHotkeys;
+import org.vivecraft.client_vr.settings.VRSettings;
+import org.vivecraft.client_vr.render.RenderPass;
+import org.vivecraft.client_vr.render.VRFirstPersonArmSwing;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -35,7 +49,7 @@ import org.vivecraft.common.utils.MathUtils;
 
 import java.util.HashSet;
 
-public class InteractTracker extends Tracker {
+public class InteractTracker implements Tracker {
     // indicates when a hand has a bucket and is in a liquid
     public boolean[] bukkit = new boolean[2];
 
@@ -62,8 +76,12 @@ public class InteractTracker extends Tracker {
     // a set of blocks that can be interacted with
     private HashSet<Class<?>> rightClickable = null;
 
+    protected Minecraft mc;
+    protected ClientDataHolderVR dh;
+
     public InteractTracker(Minecraft mc, ClientDataHolderVR dh) {
-        super(mc, dh);
+        this.mc = mc;
+        this.dh = dh;
     }
 
     @Override
@@ -272,6 +290,11 @@ public class InteractTracker extends Tracker {
             }
         } catch (NoSuchMethodException ignored) {
         }
+    }
+
+    @Override
+    public TrackerTickType tickType() {
+        return TrackerTickType.PER_TICK;
     }
 
     public boolean isInteractActive(int controller) {

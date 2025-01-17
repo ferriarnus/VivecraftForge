@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.vivecraft.client.utils.UpdateChecker;
-import org.vivecraft.common.network.BodyPart;
+import org.vivecraft.api.data.VRBodyPart;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.server.config.ConfigBuilder;
 import org.vivecraft.server.config.ServerConfig;
@@ -338,8 +338,8 @@ public class ServerUtil {
      */
     public static void debugParticleAxes(ServerVivePlayer vivePlayer) {
         if (vivePlayer.isVR() && vivePlayer.vrPlayerState != null) {
-            for(BodyPart bodyPart : BodyPart.values()) {
-                if (bodyPart.isValid(vivePlayer.vrPlayerState.fbtMode())) {
+            for(VRBodyPart bodyPart : VRBodyPart.values()) {
+                if (bodyPart.availableInMode(vivePlayer.vrPlayerState.fbtMode()) && bodyPart != VRBodyPart.HMD) {
                     debugParticleAxes(
                         vivePlayer.player.serverLevel(),
                         vivePlayer.getBodyPartPos(bodyPart),

@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.common.network.CommonNetworkHelper;
-import org.vivecraft.common.network.BodyPart;
+import org.vivecraft.api.data.VRBodyPart;
 import org.vivecraft.server.ServerVRPlayers;
 import org.vivecraft.server.ServerVivePlayer;
 import org.vivecraft.server.config.ServerConfig;
@@ -44,7 +44,7 @@ public class InventoryMixin {
 
     @Unique
     private ItemStack vivecraft$activeItem(ItemStack original) {
-        BodyPart bodyPart = null;
+        VRBodyPart bodyPart = null;
         // server side
         if (this.player instanceof ServerPlayer serverPlayer && ServerConfig.DUAL_WIELDING.get()) {
             if (ServerVRPlayers.isVRPlayer(serverPlayer)) {
@@ -61,9 +61,9 @@ public class InventoryMixin {
         }
 
         if (bodyPart != null) {
-            if (bodyPart == BodyPart.OFF_HAND) {
+            if (bodyPart == VRBodyPart.OFF_HAND) {
                 return this.offhand.get(0);
-            } else if (bodyPart != BodyPart.MAIN_HAND) {
+            } else if (bodyPart != VRBodyPart.MAIN_HAND) {
                 // feet
                 return ItemStack.EMPTY;
             }

@@ -709,7 +709,7 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
         if (!VRState.VR_RUNNING || ClientDataHolderVR.getInstance().vrSettings.seated) {
             return useKeyDown;
         } else {
-            return useKeyDown || ClientDataHolderVR.getInstance().vrPlayer.isTrackerUsingItem(this.player);
+            return useKeyDown || ClientDataHolderVR.getInstance().isTrackerUsingItem(this.player);
         }
     }
 

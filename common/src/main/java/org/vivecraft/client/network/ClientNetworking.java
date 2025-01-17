@@ -23,7 +23,7 @@ import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.CommonDataHolder;
 import org.vivecraft.common.VRServerPerms;
 import org.vivecraft.common.network.CommonNetworkHelper;
-import org.vivecraft.common.network.BodyPart;
+import org.vivecraft.api.data.VRBodyPart;
 import org.vivecraft.common.network.VrPlayerState;
 import org.vivecraft.common.network.packet.c2s.*;
 import org.vivecraft.common.network.packet.s2c.*;
@@ -51,7 +51,7 @@ public class ClientNetworking {
     private static float CAPTURED_YAW;
     private static float CAPTURED_PITCH;
     private static boolean OVERRIDE_ACTIVE;
-    public static BodyPart LAST_SENT_BODY_PART = BodyPart.MAIN_HAND;
+    public static VRBodyPart LAST_SENT_BODY_PART = VRBodyPart.MAIN_HAND;
 
     public static boolean NEEDS_RESET = true;
 
@@ -193,11 +193,11 @@ public class ClientNetworking {
 
     public static void sendActiveHand(InteractionHand hand) {
         if (SERVER_WANTS_DATA) {
-            sendActiveBodyPart(hand == InteractionHand.MAIN_HAND ? BodyPart.MAIN_HAND : BodyPart.OFF_HAND);
+            sendActiveBodyPart(hand == InteractionHand.MAIN_HAND ? VRBodyPart.MAIN_HAND : VRBodyPart.OFF_HAND);
         }
     }
 
-    public static void sendActiveBodyPart(BodyPart bodyPart) {
+    public static void sendActiveBodyPart(VRBodyPart bodyPart) {
         if (SERVER_WANTS_DATA) {
             // only send if the hand is different from last time, don't need to spam packets
             if (bodyPart != LAST_SENT_BODY_PART) {

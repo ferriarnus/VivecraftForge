@@ -230,4 +230,13 @@ public class MathUtils {
         dir.normalize().lerp(headDir, 0.5F, dir);
         return (float) Math.atan2(-dir.x, dir.z);
     }
+
+    /**
+     * Converts a {@link Vector3fc} to a {@link Vec3}.
+     * @param vec The original Vector3fc.
+     * @return The Vec3.
+     */
+    public static Vec3 fromVector3fc(Vector3fc vec) {
+        return new Vec3(vec.x(), vec.y(), vec.z());
+    }
 }

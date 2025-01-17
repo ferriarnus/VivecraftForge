@@ -1,5 +1,9 @@
 package org.vivecraft.client_vr.gameplay.trackers;
 
+import org.vivecraft.api.client.Tracker;
+import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.gameplay.VRPlayer;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -7,16 +11,17 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
-import org.vivecraft.client_vr.ClientDataHolderVR;
-import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.common.utils.MathUtils;
 
-public class BackpackTracker extends Tracker {
+public class BackpackTracker implements Tracker {
     public boolean[] wasIn = new boolean[2];
     public int previousSlot = 0;
+    protected Minecraft mc;
+    protected ClientDataHolderVR dh;
 
     public BackpackTracker(Minecraft mc, ClientDataHolderVR dh) {
-        super(mc, dh);
+        this.mc = mc;
+        this.dh = dh;
     }
 
     @Override
@@ -97,5 +102,10 @@ public class BackpackTracker extends Tracker {
                 this.wasIn[c] = false;
             }
         }
+    }
+
+    @Override
+    public TrackerTickType tickType() {
+        return TrackerTickType.PER_TICK;
     }
 }

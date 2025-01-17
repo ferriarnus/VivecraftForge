@@ -5,8 +5,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
-import org.vivecraft.common.network.*;
+import org.vivecraft.api.data.VRBodyPart;
 import org.vivecraft.common.utils.MathUtils;
+import org.vivecraft.api.data.VRPose;
+import org.vivecraft.common.network.CommonNetworkHelper;
+import org.vivecraft.common.network.VrPlayerState;
 
 import javax.annotation.Nullable;
 
@@ -18,7 +21,7 @@ public class ServerVivePlayer {
     public float draw;
     public float worldScale = 1.0F;
     public float heightScale = 1.0F;
-    public BodyPart activeBodyPart = BodyPart.MAIN_HAND;
+    public VRBodyPart activeBodyPart = VRBodyPart.MAIN_HAND;
     public boolean crawling;
     // if the player has VR active
     private boolean isVR = false;
@@ -40,10 +43,10 @@ public class ServerVivePlayer {
      * @param direction local direction to transform
      * @return direction in world space
      */
-    public Vec3 getBodyPartVectorCustom(BodyPart bodyPart, Vector3fc direction) {
+    public Vec3 getBodyPartVectorCustom(VRBodyPart bodyPart, Vector3fc direction) {
         if (this.vrPlayerState != null) {
-            if (this.isSeated() || !bodyPart.isValid(this.vrPlayerState.fbtMode())) {
-                bodyPart = BodyPart.MAIN_HAND;
+            if (this.isSeated() || !bodyPart.availableInMode(this.vrPlayerState.fbtMode())) {
+                bodyPart = VRBodyPart.MAIN_HAND;
             }
 
             return new Vec3(
@@ -57,7 +60,7 @@ public class ServerVivePlayer {
      * @param bodyPart BodyPart to get the direction from, if not available, will use the MAIN_HAND
      * @return forward direction of the given BodyPart
      */
-    public Vec3 getBodyPartDir(BodyPart bodyPart) {
+    public Vec3 getBodyPartDir(VRBodyPart bodyPart) {
         return this.getBodyPartVectorCustom(bodyPart, MathUtils.BACK);
     }
 
@@ -104,17 +107,17 @@ public class ServerVivePlayer {
      * @param realPosition if true disables the seated override
      * @return BodyPart position in world space
      */
-    public Vec3 getBodyPartPos(BodyPart bodyPart, boolean realPosition) {
+    public Vec3 getBodyPartPos(VRBodyPart bodyPart, boolean realPosition) {
         if (this.vrPlayerState != null) {
-            if (!bodyPart.isValid(this.vrPlayerState.fbtMode())) {
-                bodyPart = BodyPart.MAIN_HAND;
+            if (!bodyPart.availableInMode(this.vrPlayerState.fbtMode())) {
+                bodyPart = VRBodyPart.MAIN_HAND;
             }
 
             // in seated the realPosition is at the head,
             // so reconstruct the seated position when wanting the visual position
             if (this.isSeated() && !realPosition) {
                 Vec3 dir = this.getHMDDir();
-                dir = dir.yRot(Mth.DEG_TO_RAD * (bodyPart == BodyPart.MAIN_HAND ? -35.0F : 35.0F));
+                dir = dir.yRot(Mth.DEG_TO_RAD * (bodyPart == VRBodyPart.MAIN_HAND ? -35.0F : 35.0F));
                 dir = new Vec3(dir.x, 0.0D, dir.z);
                 dir = dir.normalize();
                 return this.getHMDPos().add(
@@ -138,7 +141,7 @@ public class ServerVivePlayer {
      * @param bodyPart BodyPart to get the position for, if not available, will use the MAIN_HAND
      * @return BodyPart position in world space
      */
-    public Vec3 getBodyPartPos(BodyPart bodyPart) {
+    public Vec3 getBodyPartPos(VRBodyPart bodyPart) {
         return getBodyPartPos(bodyPart, false);
     }
 
@@ -161,5 +164,22 @@ public class ServerVivePlayer {
      */
     public boolean isSeated() {
         return this.vrPlayerState != null && this.vrPlayerState.seated();
+    }
+
+    /**
+     * @return if the player is using left-handed mode
+     */
+    public boolean isLeftHanded() {
+        if (this.vrPlayerState == null) {
+            return false;
+        }
+        return this.vrPlayerState.leftHanded();
+    }
+
+    public VRPose asVRPose() {
+        if (this.vrPlayerState == null) {
+            return null;
+        }
+        return this.vrPlayerState.asPose(player.position());
     }
 }

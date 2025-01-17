@@ -17,7 +17,7 @@ import org.joml.Vector3fc;
 import org.vivecraft.client.render.models.FeetModel;
 import org.vivecraft.client.utils.ModelUtils;
 import org.vivecraft.client_vr.ClientDataHolderVR;
-import org.vivecraft.common.network.FBTMode;
+import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 
 public class VRPlayerModel_WithArmsLegs<T extends LivingEntity> extends VRPlayerModel_WithArms<T> implements FeetModel {

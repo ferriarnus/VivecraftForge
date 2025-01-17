@@ -4,16 +4,22 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
+import org.vivecraft.api.data.VRBodyPart;
+import org.vivecraft.api.data.VRPose;
 import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
-import org.vivecraft.common.network.FBTMode;
+import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.common.utils.MathUtils;
 
 import javax.annotation.Nullable;
 import java.lang.Math;
+import org.joml.Quaternionf;
+import org.vivecraft.api.data.VRBodyPartData;
+import org.vivecraft.common.api_impl.data.VRPoseImpl;
+import org.vivecraft.common.api_impl.data.VRBodyPartDataImpl;
 
 public class VRData {
     // headset center
@@ -358,6 +364,32 @@ public class VRData {
         };
     }
 
+    /**
+     * @return this data in a manner better-suited for the API
+     */
+    public VRPose asVRPose() {
+        return new VRPoseImpl(
+            this.hmd.asVRBodyPart(),
+            this.c0.asVRBodyPart(),
+            this.c1.asVRBodyPart(),
+            getDataIfAvailable(this.foot_right, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_FOOT)),
+            getDataIfAvailable(this.foot_left, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_FOOT)),
+            getDataIfAvailable(this.waist, this.fbtMode.bodyPartAvailable(VRBodyPart.WAIST)),
+            getDataIfAvailable(this.knee_right, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_KNEE)),
+            getDataIfAvailable(this.knee_left, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_KNEE)),
+            getDataIfAvailable(this.elbow_right, this.fbtMode.bodyPartAvailable(VRBodyPart.RIGHT_ELBOW)),
+            getDataIfAvailable(this.elbow_left, this.fbtMode.bodyPartAvailable(VRBodyPart.LEFT_ELBOW)),
+            ClientDataHolderVR.getInstance().vrSettings.seated,
+            ClientDataHolderVR.getInstance().vrSettings.reverseHands,
+            this.fbtMode
+        );
+    }
+
+    @Nullable
+    private static VRBodyPartData getDataIfAvailable(VRDevicePose pose, boolean partAvailable) {
+        return partAvailable ? pose.asVRBodyPart() : null;
+    }
+
     @Override
     public String toString() {
         return """
@@ -500,6 +532,14 @@ public class VRData {
          */
         public Matrix4f getMatrix() {
             return new Matrix4f().rotationY(VRData.this.rotation_radians).mul(this.matrix);
+        }
+
+        public VRBodyPartData asVRBodyPart() {
+            return new VRBodyPartDataImpl(
+                getPosition(),
+                new Vec3(getDirection()),
+                new Quaternionf().setFromUnnormalized(getMatrix())
+            );
         }
 
         @Override
