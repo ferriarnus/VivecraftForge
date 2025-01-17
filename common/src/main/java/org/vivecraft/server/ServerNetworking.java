@@ -19,7 +19,7 @@ import org.vivecraft.client.Xplat;
 import org.vivecraft.common.CommonDataHolder;
 import org.vivecraft.common.network.CommonNetworkHelper;
 import org.vivecraft.api.data.FBTMode;
-import org.vivecraft.common.network.BodyPart;
+import org.vivecraft.api.data.VRBodyPart;
 import org.vivecraft.common.network.VrPlayerState;
 import org.vivecraft.common.network.packet.PayloadIdentifier;
 import org.vivecraft.common.network.packet.c2s.*;
@@ -194,7 +194,7 @@ public class ServerNetworking {
                 player.connection.aboveGroundTickCount = 0;
             }
             case ACTIVEHAND -> {
-                BodyPart newBodyPart = vivePlayer.isSeated() ? BodyPart.MAIN_HAND : ((ActiveBodyPartPayloadC2S) c2sPayload).bodyPart();
+                VRBodyPart newBodyPart = vivePlayer.isSeated() ? VRBodyPart.MAIN_HAND : ((ActiveBodyPartPayloadC2S) c2sPayload).bodyPart();
                 if (vivePlayer.activeBodyPart != newBodyPart) {
                     // handle equipment changes
                     ItemStack oldItem = player.getItemBySlot(EquipmentSlot.MAINHAND);

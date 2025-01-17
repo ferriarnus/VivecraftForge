@@ -1,10 +1,6 @@
 package org.vivecraft.api.data;
 
-/**
- * The device tracking a specific body part.
- */
 public enum VRBodyPart {
-    HMD,
     MAIN_HAND,
     OFF_HAND,
     RIGHT_FOOT,
@@ -13,10 +9,11 @@ public enum VRBodyPart {
     RIGHT_KNEE,
     LEFT_KNEE,
     RIGHT_ELBOW,
-    LEFT_ELBOW;
+    LEFT_ELBOW,
+    HMD;
 
     /**
-     * @return The opposite body part to this one, or the same body part if it has no opposite.
+     * @return the opposite limb
      */
     public VRBodyPart opposite() {
         return switch (this) {
@@ -34,14 +31,28 @@ public enum VRBodyPart {
 
     /**
      * Whether this body part type is available in the provided full-body tracking mode.
-     * @param mode The full-body tracking mode to check.
+     * @param fbtMode The full-body tracking mode to check.
      * @return Whether this body part has available data in the provided mode.
      */
-    public boolean availableInMode(FBTMode mode) {
+    public boolean availableInMode(FBTMode fbtMode) {
         return switch (this) {
             case HMD, MAIN_HAND, OFF_HAND -> true;
-            case RIGHT_FOOT, LEFT_FOOT, WAIST -> mode != FBTMode.ARMS_ONLY;
-            case RIGHT_KNEE, LEFT_KNEE, RIGHT_ELBOW, LEFT_ELBOW -> mode == FBTMode.WITH_JOINTS;
+            case RIGHT_FOOT, LEFT_FOOT, WAIST -> fbtMode != FBTMode.ARMS_ONLY;
+            case RIGHT_KNEE, LEFT_KNEE, RIGHT_ELBOW, LEFT_ELBOW -> fbtMode == FBTMode.WITH_JOINTS;
         };
+    }
+
+    /**
+     * @return Whether this body part is a foot.
+     */
+    public boolean isFoot() {
+        return this == RIGHT_FOOT || this == LEFT_FOOT;
+    }
+
+    /**
+     * @return Whether this body part is a hand.
+     */
+    public boolean isHand() {
+        return this == MAIN_HAND || this == OFF_HAND;
     }
 }

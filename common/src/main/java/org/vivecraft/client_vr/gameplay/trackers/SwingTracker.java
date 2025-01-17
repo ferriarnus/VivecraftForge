@@ -35,7 +35,7 @@ import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client_vr.Vector3fHistory;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.api.data.FBTMode;
-import org.vivecraft.common.network.BodyPart;
+import org.vivecraft.api.data.VRBodyPart;
 import org.vivecraft.common.utils.MathUtils;
 import org.vivecraft.data.BlockTags;
 import org.vivecraft.data.ItemTags;
@@ -235,7 +235,7 @@ public class SwingTracker implements Tracker {
                             // this.mc.physicalGuiManager.preClickAction();
 
                             if (!EpicFightHelper.isLoaded() || !EpicFightHelper.attack()) {
-                                ClientNetworking.sendActiveBodyPart(BodyPart.values()[i]);
+                                ClientNetworking.sendActiveBodyPart(VRBodyPart.values()[i]);
                                 // only attack if epic fight didn't trigger
                                 this.mc.gameMode.attack(player, entity);
                             } else {
@@ -349,7 +349,7 @@ public class SwingTracker implements Tracker {
                             // this.mc.physicalGuiManager.preClickAction();
 
                             // send hitting hand
-                            ClientNetworking.sendActiveBodyPart(BodyPart.values()[i]);
+                            ClientNetworking.sendActiveBodyPart(VRBodyPart.values()[i]);
 
                             // this will either destroy the block if in creative or set it as the current block.
                             // does nothing in survival if you are already hitting this block.
@@ -391,7 +391,7 @@ public class SwingTracker implements Tracker {
         }
 
         // reset hitting hand
-        ClientNetworking.sendActiveBodyPart(BodyPart.MAIN_HAND);
+        ClientNetworking.sendActiveBodyPart(VRBodyPart.MAIN_HAND);
 
         this.mc.getProfiler().pop();
     }

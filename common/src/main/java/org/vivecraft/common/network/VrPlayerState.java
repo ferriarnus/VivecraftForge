@@ -5,6 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.vivecraft.api.data.VRBodyPart;
 import org.vivecraft.api.data.FBTMode;
 import org.vivecraft.api.data.VRBodyPartData;
 import org.vivecraft.client.network.ClientNetworking;
@@ -196,7 +197,7 @@ public record VrPlayerState(boolean seated, Pose hmd, boolean leftHanded, Pose m
      * @return Pose of the {@code bodyPart}, or {@code null} if the body part is not valid for the current FBT mode
      */
     @Nullable
-    public Pose getBodyPartPose(BodyPart bodyPart) {
+    public Pose getBodyPartPose(VRBodyPart bodyPart) {
         return switch(bodyPart) {
             case MAIN_HAND -> this.mainHand;
             case OFF_HAND -> this.offHand;
@@ -207,6 +208,7 @@ public record VrPlayerState(boolean seated, Pose hmd, boolean leftHanded, Pose m
             case LEFT_KNEE -> this.leftKnee;
             case RIGHT_KNEE -> this.rightKnee;
             case WAIST -> this.waist;
+            case HMD -> this.hmd;
         };
     }
 

@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.vivecraft.client.network.ClientNetworking;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.VRState;
-import org.vivecraft.common.network.BodyPart;
+import org.vivecraft.api.data.VRBodyPart;
 
 /**
  * we override the players look direction so the server handles any interactions as if the player looked at the interacted block
@@ -66,12 +66,12 @@ public class MultiPlayerGameModeVRMixin {
         if (VRState.VR_RUNNING && ClientNetworking.SERVER_ALLOWS_DUAL_WIELDING) {
             // check if main or offhand items match the started item, we want to limit abuse of this,
             // but still make both items work
-            BodyPart lastBodyPart = ClientNetworking.LAST_SENT_BODY_PART;
+            VRBodyPart lastBodyPart = ClientNetworking.LAST_SENT_BODY_PART;
 
-            ClientNetworking.LAST_SENT_BODY_PART = BodyPart.MAIN_HAND;
+            ClientNetworking.LAST_SENT_BODY_PART = VRBodyPart.MAIN_HAND;
             boolean sameItem = original.call(pos);
 
-            ClientNetworking.LAST_SENT_BODY_PART = BodyPart.OFF_HAND;
+            ClientNetworking.LAST_SENT_BODY_PART = VRBodyPart.OFF_HAND;
             sameItem |= original.call(pos);
 
             ClientNetworking.LAST_SENT_BODY_PART = lastBodyPart;
