@@ -40,6 +40,9 @@ dependencies {
     //for epic fight compat
     modCompileOnly("maven.modrinth:epic-fight:20.6.3")
 
+    // for origins compat
+    modCompileOnlyApi "com.github.apace100:apoli:2.9.0"
+
     // needed dependencies
     compileOnly("com.google.code.findbugs:jsr305:3.0.2")
     compileOnly('com.electronwill.night-config:toml:3.6.6')

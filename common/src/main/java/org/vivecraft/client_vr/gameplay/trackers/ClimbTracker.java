@@ -25,6 +25,7 @@ import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.provider.ControllerType;
 import org.vivecraft.common.network.packet.c2s.ClimbingPayloadC2S;
 import org.vivecraft.data.BlockTags;
+import org.vivecraft.mod_compat_vr.origins.OriginsHelper;
 import org.vivecraft.server.config.ClimbeyBlockmode;
 
 import java.util.*;
@@ -94,7 +95,8 @@ public class ClimbTracker extends Tracker {
      */
     public static boolean hasClimbeyClimbEquipped(Player player) {
         return ClientNetworking.SERVER_ALLOWS_CLIMBEY &&
-            (isClaws(player.getMainHandItem()) || isClaws(player.getOffhandItem()));
+            (isClaws(player.getMainHandItem()) || isClaws(player.getOffhandItem()) ||
+                (OriginsHelper.isLoaded() && OriginsHelper.hasClimbingPower(player)));
     }
 
     /**

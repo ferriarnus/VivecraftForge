@@ -154,6 +154,18 @@ allprojects {
 
         exclusiveContent {
             forRepository {
+                maven {
+                    name = "quiltmc"
+                    url = "https://maven.quiltmc.org/repository/release"
+                }
+            }
+            filter {
+                includeGroup "org.quiltmc.parsers"
+            }
+        }
+
+        exclusiveContent {
+            forRepository {
                 ivy {
                     name = "Discord"
                     url = "https://cdn.discordapp.com/attachments/"
